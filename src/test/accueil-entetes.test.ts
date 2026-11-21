@@ -14,8 +14,8 @@ describe("les en-têtes de l'Accueil", () => {
   const titres = css("src/components/TitreDeBloc.module.css");
   const regle = (sel: string) => new RegExp(`${sel} \\{([^}]*)\\}`).exec(titres)?.[1] ?? "";
 
-  it("le titre est à --t-6, en 800, avec un trait jaune de 3 px à gauche, et la ligne entière fait au moins 44 px", () => {
-    expect(regle("\\.titre"), "le titre n'est plus à --t-6 en 800").toMatch(/font-size:\s*var\(--t-6\)[\s\S]*font-weight:\s*800/);
+  it("le titre est à --t-6, à la graisse des titres de section (700, jeton), avec un trait jaune de 3 px à gauche, et la ligne entière fait au moins 44 px", () => {
+    expect(regle("\\.titre"), "le titre n'est plus à --t-6 à la graisse des titres de section").toMatch(/font-size:\s*var\(--t-6\)[\s\S]*font-weight:\s*var\(--titre-section-poids\)/);
     expect(regle("\\.titre"), "le trait jaune a disparu").toMatch(/border-left:\s*3px solid var\(--gold\)/);
     expect(regle("\\.tete"), "la cible du lien n'atteint plus 44 px").toMatch(/min-height:\s*44px/);
     expect(regle("\\.tout"), "« Tout voir » n'est plus sur l'échelle").toMatch(/font-size:\s*var\(--t-4\)/);

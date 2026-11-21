@@ -200,3 +200,11 @@
 .lienDeCoin {
   margin-right: -11px;
 }
+
+/* LA PROVENANCE SOUS LE TITRE (21 novembre 2026, planche « Cohérence des pages », 2A) : une ligne de plus sous la phrase, en note. */
+.provenance {
+  display: block;
+  margin-top: var(--s-3);
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}

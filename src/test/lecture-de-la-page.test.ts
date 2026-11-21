@@ -415,7 +415,7 @@ describe("la fiche d'une ligne : des sections qui se lisent (8 novembre 2026, pl
     expect(pied, "le titre du pied n'est plus celui des sections").toMatch(/font-size: var\(--t-6\);[^}]*font-weight: 700;/);
     expect(pied, "le titre du pied est revenu en capitales").not.toMatch(/text-transform|letter-spacing/);
     const fort = bloc(lire("src/components/TitreDeBloc.module.css"), ".fort");
-    expect(fort, "le titre des lignes similaires n'est plus celui des sections (sans le trait jaune de l'Accueil)").toMatch(/padding-left: 0;[^}]*border-left: 0;[^}]*font-weight: 700;/);
+    expect(fort, "le titre des lignes similaires n'est plus celui des sections (sans le trait jaune de l'Accueil)").toMatch(/padding-left: 0;[^}]*border-left: 0;[^}]*font-weight: var\(--titre-section-poids\);/);
     expect(bloc(lire("src/components/TitreDeBloc.module.css"), ".titre"), "le titre de bloc n'est plus à --t-6").toMatch(/font-size: var\(--t-6\);/);
     expect(lire("src/components/TitreDeBloc.tsx"), "« fort » ne choisit plus la classe").toMatch(/\$\{fort \? styles\.fort : ""\}/);
   });

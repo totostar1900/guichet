@@ -542,6 +542,6 @@
 .titreServices {
   margin: 0;
   font-size: var(--t-6);
-  font-weight: 700;
+  font-weight: var(--titre-section-poids);
   color: var(--ink);
 }

@@ -51,7 +51,7 @@ describe("l'Accueil « cartes »", () => {
     expect(code("src/components/accueil/TuilesDuHaut.tsx")).toMatch(/<SelectionDuDesk offres=\{offres\} sobre \/>/);
     expect(code("src/components/SelectionDuDesk.tsx")).toContain("<TitreDeBloc");
     expect(code("src/components/CeQuiFermeBientot.tsx")).toContain("<TitreDeBloc");
-    expect(code("src/components/TitreDeBloc.module.css"), "le titre n'a plus son trait jaune ni son poids").toMatch(/\.titre \{[^}]*border-left: 3px solid var\(--gold\)[^}]*font-weight: 800/);
+    expect(code("src/components/TitreDeBloc.module.css"), "le titre n'a plus son trait jaune ni son poids").toMatch(/\.titre \{[^}]*border-left: 3px solid var\(--gold\)[^}]*font-weight: var\(--titre-section-poids\)/);
   });
 
   it("l'avatar : le drapeau pour le Trésor, le monogramme pour le reste", () => {

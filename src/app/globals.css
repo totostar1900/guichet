@@ -387,6 +387,8 @@
      (au-delà, il passe sur deux lignes, rien n'est coupé) et les commandes — interrupteur, « Modifier » — sont
      calées sur l'arête droite d'une seconde colonne de 72 px. Le sélecteur, la boîte et le bouton du dessous
      prennent les deux colonnes (--ligne-largeur). Sur téléphone la colonne de texte rétrécit, la commande reste. */
+  /* LE TITRE D'UNE SECTION A UNE SEULE GRAISSE, 700 (21 novembre 2026, planche « Cohérence des pages », 1A). Mesuré sur douze pages : 800 (Accueil), 700 (Activité, Mon argent), 600 (Marché) et 400 (la coque du feuillet : Paramètres, Profil, Mon compte, Aide). La taille est celle de l'échelle, --t-6. */
+  --titre-section-poids: 700;
   --texte-max: 300px;
   --commande-col: 72px;
   --ligne-gap: 20px;
@@ -1354,7 +1356,8 @@ html[data-tuiles="lignes"] {
 }
 .panel-h h2 {
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: var(--t-6);
+  font-weight: var(--titre-section-poids);
 }
 .panel-h .right {
   margin-left: auto;

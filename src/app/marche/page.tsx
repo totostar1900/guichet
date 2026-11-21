@@ -102,10 +102,15 @@ export default async function MarchePage() {
             l'éclairage et la comparaison, plus bas. Aucune porte ne se ferme.
             Sur l'écran large la liste était déjà masquée par la feuille : la
             colonne de gauche porte la famille. */}
+        {/* LA PROVENANCE DES CHIFFRES DESCEND SOUS LE TITRE (21 novembre 2026, planche « Cohérence des pages », 2A) : une racine n'a pas de surtitre, et Marché était la seule. La ligne reste, rien n'est retiré. */}
         <EnTete
-          surTitre={`BVMAC · ${t("Bourse des Valeurs Mobilières de l'Afrique Centrale")}`}
           titre={t("Le marché")}
-          phrase={t("La Bourse de l'Afrique Centrale, séance après séance : l'indice, ce qui s'est échangé, les sociétés cotées, les adjudications et les notes de marché.")}
+          phrase={
+            <>
+              {t("La Bourse de l'Afrique Centrale, séance après séance : l'indice, ce qui s'est échangé, les sociétés cotées, les adjudications et les notes de marché.")}
+              <span className={styles.provenance}>{`BVMAC · ${t("Bourse des Valeurs Mobilières de l'Afrique Centrale")}`}</span>
+            </>
+          }
         />
 
         {/* L'EN-TÊTE DE LA MAISON, ET SA FLÈCHE AU MÊME ENDROIT QUE LES AUTRES.

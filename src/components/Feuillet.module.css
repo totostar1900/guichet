@@ -56,8 +56,8 @@
 }
 .bloc h2 {
   margin: 0;
-  font-size: var(--t-5);
-  font-weight: 400;
+  font-size: var(--t-6);
+  font-weight: var(--titre-section-poids);
 }
 
 /* UNE LIGNE PAR CHOSE : ce qu'on détient à gauche, le geste à droite. Les
