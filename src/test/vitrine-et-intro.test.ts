@@ -110,16 +110,20 @@ describe("la vitrine : sept écrans, un par lecture, qui s'arrêtent comme des s
     expect(code, "l'agrément a quitté la maison").toMatch(/COMPANY\.licence/);
     expect(v).toMatch(/Tout placement comporte un risque de perte en capital\./);
     expect(v).toMatch(/Les performances passées ne préjugent pas des performances futures\./);
-    for (const h of ["/info/eclairages", "/info/aide", "/info/risques", "/info/textes"]) {
+    /* DEUX LIENS, PLUS TROIS (21 novembre 2026, le client : « retire le lien vers éclairages, aide et contact ») : « Éclairages » et « Aide et contact » ont quitté le pied de l'accueil ; les contacts y sont écrits à la place. */
+    for (const h of ["/info/risques", "/info/textes"]) {
       expect(code, `le lien ${h} a disparu`).toContain(`href="${h}"`);
       expect(estPublic(h), `${h} n'est pas public`).toBe(true);
     }
+    for (const h of ["/info/eclairages", "/info/aide"]) expect(code, `le lien ${h} est revenu dans le pied de l'accueil`).not.toContain(`href="${h}"`);
     for (const phrase of ["Société de bourse agréée COSUMAF · n° COSUMAF-SDB-01/2026", "Prêtez aux États et aux institutions de la zone", "Ce que chaque placement peut vous apporter", "Les conditions de chaque placement vous sont remises avant toute décision", "Un conseiller vous répond, en français et sans jargon", "Voici ce que vous y trouvez", "Et aussi : l'épargne programmée", "Où va votre argent", "Ce que vous risquez"]) expect(code, `« ${phrase} » est revenu`).not.toContain(phrase);
   });
 
-  it("le pied a le nom de la maison et son agrément, et ni adresse, ni téléphone, ni mention longue", () => {
+  it("le pied a le nom de la maison, son agrément et ses contacts (téléphone, e-mail), et ni adresse postale ni mention longue", () => {
     expect(code).toMatch(/COMPANY\.legalName/);
-    expect(code, "l'adresse est revenue dans la page").not.toMatch(/COMPANY\.(address|phone|email)/);
+    expect(code, "l'adresse postale est revenue dans la page").not.toMatch(/COMPANY\.address/);
+    expect(code, "le téléphone a quitté le pied").toMatch(/href=\{`tel:\$\{COMPANY\.phone/);
+    expect(code, "l'adresse e-mail a quitté le pied").toMatch(/href=\{`mailto:\$\{COMPANY\.email\}`\}/);
     expect(code, "la mention longue est revenue dans la page").not.toMatch(/DISCLAIMER|Communication à caractère promotionnel/);
     expect(g).toMatch(/body:has\(\[data-vitrine\]\) footer \{\s*display: none;/);
   });

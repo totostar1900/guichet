@@ -336,6 +336,26 @@
 .liens a:hover {
   background: color-mix(in srgb, var(--on-navy) 14%, transparent);
 }
+.contacts {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-3) var(--s-7);
+  font-size: var(--t-4);
+  color: var(--on-navy-2);
+}
+.contacts span {
+  font-weight: 700;
+  color: var(--on-navy);
+}
+.contacts a {
+  color: var(--on-navy);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--on-navy) 35%, transparent);
+  text-underline-offset: 4px;
+  overflow-wrap: anywhere;
+}
 .maison {
   margin: 0;
   font-size: var(--t-2);

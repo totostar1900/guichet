@@ -149,11 +149,15 @@ export async function Accueil() {
             {t("Tout placement comporte un risque de perte en capital. Les performances passées ne préjugent pas des performances futures.")}
           </p>
           <nav className={styles.liens} aria-label={t("Pour en savoir plus")} data-anim="">
-            <Link href="/info/eclairages">{t("Éclairages")}</Link>
-            <Link href="/info/aide">{t("Aide et contact")}</Link>
             <Link href="/info/risques">{t("Risques et limites")}</Link>
             <Link href="/info/textes">{t("Textes et conditions")}</Link>
           </nav>
+          {/* LES CONTACTS, EN BAS DE PAGE (21 novembre 2026, le client : « retire le lien vers éclairages, aide et contact ; rajoute les contacts en bas de page »). Le numéro et l'adresse e-mail de la maison, écrits ; pas l'adresse postale, retirée de ce pied à sa demande. */}
+          <p className={styles.contacts} data-anim="">
+            <span>{t("Nous joindre")}</span>
+            <a href={`tel:${COMPANY.phone.replace(/\u00a0/g, "")}`}>{COMPANY.phone}</a>
+            <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a>
+          </p>
           <p className={styles.maison} data-anim="">
             <b>{COMPANY.legalName}</b>, {t(COMPANY.licence)}
             {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ? ` · v${process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.slice(0, 7)}` : ""}
