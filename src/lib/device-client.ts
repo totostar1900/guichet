@@ -40,8 +40,26 @@ export function readDevice(): RememberedDevice | null {
   }
 }
 
+/** « Oublier cet appareil » est un geste du client : le verrou ne doit pas reconnaître ce navigateur de lui-même juste après. */
+const OUBLI_VOULU = "guichet_appareil_oublie";
+export function marquerAppareilOublie(): void {
+  try {
+    localStorage.setItem(OUBLI_VOULU, "1");
+  } catch {
+    // stockage refusé : rien à retenir
+  }
+}
+export function appareilOublieVoulu(): boolean {
+  try {
+    return localStorage.getItem(OUBLI_VOULU) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export function saveDevice(d: RememberedDevice): void {
   try {
+    localStorage.removeItem(OUBLI_VOULU);
     localStorage.setItem(KEY, JSON.stringify(d));
   } catch {
     // Private window or storage blocked: the device simply is not remembered here.

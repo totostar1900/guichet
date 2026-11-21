@@ -4,10 +4,11 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore, useTran
 import { usePathname } from "next/navigation";
 import { useT } from "@/i18n/client";
 import { EcranDeCode } from "@/components/EcranDeCode";
-import { marquerCodeOublie } from "@/lib/device-client";
+import { appareilOublieVoulu, deviceLabel, enregistrerLeCode, marquerCodeOublie, newDeviceToken, readDevice } from "@/lib/device-client";
 import { CLE_GRACE, CLE_VERROU, faudraitVerrouiller } from "@/lib/verrou";
 import { logout } from "@/app/connexion/actions";
 import { poserLeCode, verifierLeCode } from "@/app/verrou/actions";
+import { enrolPin } from "@/app/moi/securite/actions";
 import { useVerrouDeDefilement } from "@/components/mobile/verrou-defilement";
 import styles from "./VerrouDeLApp.module.css";
 
@@ -131,6 +132,19 @@ export function VerrouDeLApp({ aUnCode, prenom }: { aUnCode: boolean; /** le pr�
 
 type Traduire = ReturnType<typeof useT>;
 
+/* CE NAVIGATEUR SE FAIT RECONNAÎTRE QUAND LE CODE EST SAISI ICI (21 novembre 2026, le client : « après la déconnexion de cet appareil, la reconnexion renvoie vers l'inscription »).
+   Le verrou posait le code du COMPTE, mais jamais l'appareil : aucun compte qui avait reçu son code par le verrou (tous ceux d'avant le parcours de création à code) n'était reconnu sur son navigateur. La sortie de « cet appareil » menait donc au champ e-mail, puis à « Créer votre compte ». On enrôle ce navigateur avec le MÊME code, une fois, à la pose comme au premier déverrouillage ; si le navigateur est déjà reconnu, ou si le serveur refuse, on ne fait rien (le code reste valable, rien n'est perdu). */
+async function reconnaitreCeNavigateur(code: string, prenom?: string): Promise<void> {
+  try {
+    if (readDevice() || appareilOublieVoulu()) return;
+    const token = newDeviceToken();
+    const r = await enrolPin(token, code, deviceLabel());
+    if (r.ok) enregistrerLeCode({ id: r.device.id, token, who: prenom?.trim().split(/\s+/)[0] ?? "", name: r.device.name, since: r.device.createdAt });
+  } catch {
+    /* un échec ne doit jamais empêcher d'entrer */
+  }
+}
+
 function Ecran({ aPoser, onLeve, onCodePose, onReporter, prenom, t }: { aPoser: boolean; onLeve: () => void; onCodePose: () => void; onReporter: () => void; prenom?: string; t: Traduire }) {
   const [premier, setPremier] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -169,6 +183,7 @@ function Ecran({ aPoser, onLeve, onCodePose, onReporter, prenom, t }: { aPoser: 
             setPremier(null);
             return setErreur(r.error);
           }
+          await reconnaitreCeNavigateur(code, prenom);
           onCodePose();
           onLeve();
         } catch {
@@ -180,7 +195,10 @@ function Ecran({ aPoser, onLeve, onCodePose, onReporter, prenom, t }: { aPoser: 
         return;
       }
       const r = await verifierLeCode(code);
-      if (r.ok) return onLeve();
+      if (r.ok) {
+        await reconnaitreCeNavigateur(code, prenom);
+        return onLeve();
+      }
       setErreur(r.error);
       if (r.bloque) await logout();
     });

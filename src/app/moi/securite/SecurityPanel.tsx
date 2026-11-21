@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore, useTransition } from "react";
 import { useDates, useT } from "@/i18n/client";
 import type { TrustedDevice } from "@/lib/domain/types";
-import { clearDevice, readDevice } from "@/lib/device-client";
+import { clearDevice, marquerAppareilOublie, readDevice } from "@/lib/device-client";
 import { forgetDeviceAction } from "./actions";
 import styles from "./page.module.css";
 
@@ -33,7 +33,10 @@ export function SecurityPanel({ devices }: { devices: TrustedDevice[] }) {
     start(async () => {
       setMsg(null);
       await forgetDeviceAction(d.id);
-      if (here?.id === d.id) clearDevice();
+      if (here?.id === d.id) {
+        clearDevice();
+        marquerAppareilOublie();
+      }
       setMsg("Appareil retiré.");
     });
 
