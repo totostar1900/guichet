@@ -11,7 +11,7 @@ import { checkPhoneProof, sendPhoneProof } from "@/app/offres/[id]/actions";
 import { enrolPin } from "@/app/moi/securite/actions";
 import { ClavierCode } from "@/components/ClavierCode";
 import { Attend, MessageDAttente } from "@/components/MessageDAttente";
-import { logout } from "@/app/connexion/actions";
+import { logoutVersLaPorte } from "@/app/connexion/actions";
 import { poserLeCode, verifierLeCode } from "@/app/verrou/actions";
 import { creerEnregistrerPrenom, creerEnvoyerCodeEmail, creerVerifierCodeEmail } from "./actions";
 import styles from "./creer.module.css";
@@ -144,7 +144,7 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
         const v = await verifierLeCode(c);
         if (!v.ok) {
           setErreur(v.error);
-          if (v.bloque) await logout();
+          if (v.bloque) await logoutVersLaPorte();
           return;
         }
         await enroler(c);

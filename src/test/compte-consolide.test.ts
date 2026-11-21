@@ -47,14 +47,17 @@ describe("Mon compte, consolidé", () => {
     expect(hub).toMatch(/href: "\/moi\/textes"/);
     expect(hub, "l'aide ou le contact sont revenus au compte").not.toMatch(/\/info\/aide|\/moi\/contact|Aide et contact/);
   });
-  it("« cet appareil » mène à la porte du code, « partout » à l'accueil (21 novembre 2026)", () => {
+  it("les deux sorties mènent à l'accueil ; seule la sortie du verrou (code oublié, cinq codes faux) continue sur la porte (21 novembre 2026)", () => {
     const a = lire("src/app/connexion/actions.ts");
     const corps = (nom: string) => {
       const debut = a.indexOf(`export async function ${nom}(`);
       return a.slice(debut, a.indexOf("\n}", debut));
     };
-    expect(corps("logout"), "« cet appareil » ne mène plus à la porte du code").toMatch(/redirect\("\/connexion"\)/);
+    expect(corps("logout"), "« cet appareil » ne mène plus à l'accueil").toMatch(/redirect\("\/"\)/);
     expect(corps("logoutEverywhere"), "« partout » ne mène plus à l'accueil").toMatch(/redirect\("\/"\)/);
-    for (const nom of ["logout", "logoutEverywhere"]) expect(corps(nom), `${nom} efface l'appareil reconnu`).not.toMatch(/oublierAppareil/);
+    expect(corps("logoutVersLaPorte"), "la sortie du verrou ne continue plus sur la porte").toMatch(/redirect\("\/connexion"\)/);
+    for (const nom of ["logout", "logoutEverywhere", "logoutVersLaPorte"]) expect(corps(nom), `${nom} efface l'appareil reconnu`).not.toMatch(/oublierAppareil/);
+    for (const f of ["src/components/VerrouDeLApp.tsx", "src/app/connexion/creer/CreerCompte.tsx", "src/app/parametres/code/ModifierLeCode.tsx"]) expect(lire(f), `${f} sort encore par le bouton « se déconnecter »`).not.toMatch(/await logout\(\)/);
   });
+
 });

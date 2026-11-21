@@ -6,7 +6,7 @@ import { useT } from "@/i18n/client";
 import { ClavierCode } from "@/components/ClavierCode";
 import { MessageDAttente } from "@/components/MessageDAttente";
 import { codeDeCetAppareil, deviceLabel, enregistrerLeCode, newDeviceToken, readDevice } from "@/lib/device-client";
-import { logout } from "@/app/connexion/actions";
+import { logoutVersLaPorte } from "@/app/connexion/actions";
 import { modifierLeCode, verifierLeCode } from "@/app/verrou/actions";
 import { enrolPin, forgetDeviceAction } from "@/app/moi/securite/actions";
 import styles from "./modifier.module.css";
@@ -42,7 +42,7 @@ export function ModifierLeCode({ aUnCode }: { aUnCode: boolean }) {
         const v = await verifierLeCode(c);
         if (!v.ok) {
           setErreur(v.error);
-          if (v.bloque) await logout();
+          if (v.bloque) await logoutVersLaPorte();
           return;
         }
         setActuel(c);
@@ -65,7 +65,7 @@ export function ModifierLeCode({ aUnCode }: { aUnCode: boolean }) {
         setPremier("");
         setEtape("nouveau");
         setErreur(r.error);
-        if (r.bloque) await logout();
+        if (r.bloque) await logoutVersLaPorte();
         return;
       }
       /* Le code de ce navigateur reprend les mêmes chiffres : le serveur a oublié les anciens. */

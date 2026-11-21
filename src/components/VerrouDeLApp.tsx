@@ -6,7 +6,7 @@ import { useT } from "@/i18n/client";
 import { EcranDeCode } from "@/components/EcranDeCode";
 import { appareilOublieVoulu, codeDeCetAppareil, deviceLabel, enregistrerLeCode, marquerCodeOublie, newDeviceToken, readDevice } from "@/lib/device-client";
 import { CLE_GRACE, CLE_VERROU, faudraitVerrouiller } from "@/lib/verrou";
-import { logout } from "@/app/connexion/actions";
+import { logoutVersLaPorte } from "@/app/connexion/actions";
 import { poserLeCode, verifierLeCode } from "@/app/verrou/actions";
 import { enrolPin } from "@/app/moi/securite/actions";
 import { useVerrouDeDefilement } from "@/components/mobile/verrou-defilement";
@@ -174,7 +174,7 @@ function Ecran({ aPoser, reconnaitre, onLeve, onCodePose, onReporter, prenom, t 
       } catch {
         // rien à effacer
       }
-      await logout();
+      await logoutVersLaPorte();
     });
   const oublie = () => {
     marquerCodeOublie();
@@ -216,7 +216,7 @@ function Ecran({ aPoser, reconnaitre, onLeve, onCodePose, onReporter, prenom, t 
         return onLeve();
       }
       setErreur(r.error);
-      if (r.bloque) await logout();
+      if (r.bloque) await logoutVersLaPorte();
     });
 
   const titre = aPoser ? (premier === null ? "Choisissez votre code" : "Saisissez-le encore") : reconnaitre ? "Reconnaître cet appareil" : undefined;

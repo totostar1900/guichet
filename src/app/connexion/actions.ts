@@ -106,9 +106,20 @@ export async function devLogin(form: FormData): Promise<void> {
 
 /* ---------- Déconnexion (les deux modes) ---------- */
 
-/* APRÈS UNE SORTIE, ON ARRIVE SUR LA PORTE, PAS SUR LA VITRINE (21 novembre 2026, le client : « une fois totalement déconnecté, il est demandé de recommencer l'inscription depuis le début au lieu de simplement utiliser le code »).
-   « / » est la vitrine d'un visiteur (« Créer mon compte ») ; « /connexion » montre le code de l'appareil reconnu, et l'e-mail en secours. L'appareil reste reconnu à la sortie : seule la session s'arrête. */
+/* APRÈS UNE SORTIE, ON ARRIVE SUR L'ACCUEIL (21 novembre 2026, le client : « revenir sur la page d'accueil après déconnexion. Pour le moment ça revient sur la page de connexion »). Elle remplace la décision du matin (« cet appareil » vers la porte du code) : l'accueil du visiteur garde « Se connecter » et « Ouvrir un compte » dans sa bande du bas, et l'appareil reste reconnu : seule la session s'arrête. */
 export async function logout(): Promise<void> {
+  if (authMode() === "supabase") {
+    const { supabaseAuthClient } = await import("@/lib/auth/supabase");
+    const sb = await supabaseAuthClient();
+    await sb.auth.signOut();
+  } else {
+    await clearDevSession();
+  }
+  redirect("/");
+}
+
+/* LA SORTIE QUI CONTINUE SUR LA PORTE : « code oublié », cinq codes faux. Le client y sort pour se reconnecter tout de suite (le drapeau « code oublié » mène la porte droit au code reçu) : l'accueil ajouterait un détour. Jamais pour le bouton « se déconnecter » : voir `logout`. */
+export async function logoutVersLaPorte(): Promise<void> {
   if (authMode() === "supabase") {
     const { supabaseAuthClient } = await import("@/lib/auth/supabase");
     const sb = await supabaseAuthClient();
@@ -119,7 +130,7 @@ export async function logout(): Promise<void> {
   redirect("/connexion");
 }
 
-/* « PARTOUT » ARRIVE À L'ACCUEIL, « CET APPAREIL » À LA PORTE DU CODE (21 novembre 2026, le client). Après un geste de sécurité on ne propose pas d'entrer d'un toucher : la vitrine garde « Se connecter » dans sa bande du bas. */
+/* « PARTOUT » ARRIVE À L'ACCUEIL, COMME « CET APPAREIL » (21 novembre 2026, le client). La vitrine garde « Se connecter » dans sa bande du bas. */
 /** « Se déconnecter partout » : every session of this account, on every device, ends now; the trusted devices stay listed under Sécurité. */
 export async function logoutEverywhere(): Promise<void> {
   if (authMode() === "supabase") {
