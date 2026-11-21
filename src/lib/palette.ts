@@ -11,6 +11,33 @@ export const PALETTES = [
   { key: "encre", fr: "Encre", en: "Ink", a: "#111827", b: MARQUE.or, paper: "#eeede8", line: "#bdbcb4", ink: "#2b2f37" },
 ] as const;
 export const THEMES = ["auto", "light", "dim", "dark"] as const;
+/**
+ * SIX APPARENCES, UNE SEULE LISTE (21 novembre 2026, planche « Tuiles et thèmes », choix 2A).
+ *
+ * Palette (4) et thème (4) se combinaient en seize couples dont plusieurs se ressemblaient ou se confondaient. Le client en choisit
+ * maintenant UN parmi six. Le stockage ne change pas (cookie, appareil, compte gardent « palette » + « thème ») : une apparence est un couple,
+ * et un couple d'avant se lit comme l'apparence la plus proche (`apparenceDe`) sans rien perdre tant que le client ne choisit pas.
+ */
+export const APPARENCES = [
+  { key: "auto", fr: "Auto", en: "Auto", palette: "navy", theme: "auto" },
+  { key: "clair", fr: "Clair", en: "Light", palette: "navy", theme: "light" },
+  { key: "ivoire", fr: "Ivoire", en: "Ivory", palette: "ivoire", theme: "light" },
+  { key: "tamise", fr: "Tamisé", en: "Dim", palette: "navy", theme: "dim" },
+  { key: "marine", fr: "Marine", en: "Navy", palette: "navy", theme: "dark" },
+  { key: "nuit", fr: "Nuit", en: "Night", palette: "encre", theme: "dark" },
+] as const;
+export type Apparence = (typeof APPARENCES)[number]["key"];
+
+/** L'apparence qui dit le mieux un couple palette + thème déjà enregistré. */
+export function apparenceDe(palette?: string | null, theme?: string | null): Apparence {
+  const p = palette ?? "navy";
+  const t = theme ?? "auto";
+  if (t === "dim") return "tamise";
+  if (t === "dark") return p === "encre" || p === "ardoise" ? "nuit" : "marine";
+  if (t === "light") return p === "ivoire" ? "ivoire" : "clair";
+  return p === "ivoire" ? "ivoire" : "auto";
+}
+
 export const P_KEY = "guichet:palette";
 export const T_KEY = "guichet:theme";
 /** The same choice in two cookies, so the server renders <html> with it: a navigation never resets the colours. */

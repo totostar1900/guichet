@@ -819,6 +819,10 @@ summary,
 button:not(:disabled),
 [role="button"],
 [role="tab"],
+[role="menuitem"],
+[role="switch"],
+[role="radio"],
+[role="option"],
 summary,
 a,
 .btn {
@@ -827,6 +831,10 @@ a,
 button:not(:disabled):active,
 [role="button"]:active,
 [role="tab"]:active,
+[role="menuitem"]:active,
+[role="switch"]:active,
+[role="radio"]:active,
+[role="option"]:active,
 summary:active {
   scale: 0.97;
   filter: brightness(0.93);
@@ -844,6 +852,10 @@ a:active {
   button:not(:disabled):active,
   [role="button"]:active,
   [role="tab"]:active,
+  [role="menuitem"]:active,
+  [role="switch"]:active,
+  [role="radio"]:active,
+  [role="option"]:active,
   summary:active,
   .btn:not(:disabled):active,
   a:active {

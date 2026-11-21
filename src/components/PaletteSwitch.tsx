@@ -4,7 +4,7 @@ import { useEffect, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { useT } from "@/i18n/client";
 import styles from "./PaletteSwitch.module.css";
-import { PALETTES, THEMES, P_KEY, T_KEY, P_COOKIE, T_COOKIE, YEAR } from "@/lib/palette";
+import { APPARENCES, apparenceDe, P_KEY, T_KEY, P_COOKIE, T_COOKIE, YEAR } from "@/lib/palette";
 import { saveDisplay } from "@/lib/display-actions";
 
 
@@ -59,22 +59,15 @@ function apply(palette: string, theme: string) {
 export function PaletteSwitch({ lang }: { lang: "fr" | "en" }) {
   const t = useT();
   const [palette, theme] = useSyncExternalStore(subscribe, read, () => "navy|auto").split("|");
+  const actuelle = apparenceDe(palette, theme);
   return (
     <div className={styles.wrap}>
-      {/* LES PALETTES SE LISENT COMME LES THÈMES (12 novembre 2026) : une liste de noms, la même forme que « auto · clair · tamisé · sombre ». Les petites pages de couleur sont retirées : un nom dit la palette, et le choix se voit dès qu'on le touche. */}
-      <small className={styles.etiq}>{t("Palette")}</small>
-      <div className={styles.seg} role="group" aria-label={t("Palette")}>
-        {PALETTES.map((p) => (
-          <button key={p.key} type="button" className={palette === p.key ? styles.segOn : ""} aria-pressed={palette === p.key} onClick={() => apply(p.key, theme)}>
-            {p[lang]}
-          </button>
-        ))}
-      </div>
-      <small className={styles.etiq}>{t("Thème")}</small>
-      <div className={styles.seg} role="group" aria-label={t("Thème")}>
-        {THEMES.map((k) => (
-          <button key={k} type="button" className={theme === k ? styles.segOn : ""} aria-pressed={theme === k} onClick={() => apply(palette, k)}>
-            {t(k === "auto" ? "auto" : k === "light" ? "clair" : k === "dim" ? "tamisé" : "sombre")}
+      {/* UNE SEULE LISTE (21 novembre 2026, choix 2A) : six apparences à la place de « Palette » et « Thème », qui se combinaient en couples proches ou identiques. */}
+      <small className={styles.etiq}>{t("Apparence")}</small>
+      <div className={styles.seg} role="group" aria-label={t("Apparence")}>
+        {APPARENCES.map((a) => (
+          <button key={a.key} type="button" className={actuelle === a.key ? styles.segOn : ""} aria-pressed={actuelle === a.key} onClick={() => apply(a.palette, a.theme)}>
+            {a[lang]}
           </button>
         ))}
       </div>

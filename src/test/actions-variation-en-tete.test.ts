@@ -46,11 +46,11 @@ describe("le menu : les palettes sont une liste de noms, comme les thèmes", () 
   const src = lire("src/components/PaletteSwitch.tsx");
   const css = lire("src/components/PaletteSwitch.module.css");
 
-  it("plus de petites pages de couleur : deux listes segmentées", () => {
+  it("plus de petites pages de couleur : une seule liste segmentée, les six apparences", () => {
     expect(src).not.toMatch(/styles\.swatch|<i style=\{\{ background: p\.paper/);
     expect(css).not.toMatch(/\.swatch/);
-    expect(src.match(/className=\{styles\.seg\}/g)?.length, "une liste pour les palettes, une pour les thèmes").toBe(2);
-    expect(src).toMatch(/PALETTES\.map\(\(p\) => \(\s*<button[^>]*styles\.segOn[\s\S]*?\{p\[lang\]\}/);
+    expect(src.match(/className=\{styles\.seg\}/g)?.length, "une seule liste : les six apparences (2A, 21 novembre 2026)").toBe(1);
+    expect(src).toMatch(/APPARENCES\.map\(\(a\) => \(\s*<button[^>]*styles\.segOn[\s\S]*?\{a\[lang\]\}/);
   });
 });
 

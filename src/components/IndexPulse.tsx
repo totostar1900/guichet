@@ -124,7 +124,7 @@ export async function IndexPulse({
         <span className={styles.date}>{fmtDate(stats.last.date)}</span>
       </div>
       <div className={styles.body}>
-        <svg viewBox="0 0 420 60" role="img" aria-label={t("Soixante dernières séances de l'indice")} className={styles.spark}>
+        <svg viewBox="0 0 420 60" role="img" aria-label={t("Soixante dernières séances de l'indice")} className={styles.spark} data-anim="courbe">
           <title>{t("Soixante dernières séances de l'indice")}</title>
           <line x1="0" y1="59" x2="420" y2="59" className={styles.axis} />
           {pts.length >= 2 && <polyline points={line} className={styles.line} />}

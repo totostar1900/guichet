@@ -830,6 +830,7 @@ export const EN_MORE: Record<string, string> = {
   "flux le {date}": "flow on {date}",
   "Couleurs": "Colours",
   "Palette": "Palette",
+  "Apparence": "Appearance",
   "Thème": "Theme",
   "auto": "auto",
   "clair": "light",

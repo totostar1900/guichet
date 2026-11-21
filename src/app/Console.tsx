@@ -28,6 +28,7 @@ import { courbeDuPortefeuille } from "@/lib/domain/courbe-portefeuille";
 import { famillesDuPortefeuille, NOM_FAMILLE, type Famille } from "@/lib/domain/familles-actifs";
 import { getLang, getT } from "@/i18n/server";
 import { fmt, fmtDate, localIso } from "@/lib/format";
+import { Compteur } from "@/components/mouvement/Compteur";
 import styles from "./Console.module.css";
 
 /**
@@ -214,7 +215,7 @@ export async function Console({ session }: { session: Session }) {
               <b className={styles.sansValeur}>{t("Pas encore de valorisation")}</b>
             ) : (
               <b data-anim="montant">
-                {fmt(Math.round(total))} <em>FCFA</em>
+                <Compteur cle="portefeuille" valeur={Math.round(total)} /> <em>FCFA</em>
               </b>
             )}
             {perf.invested > 0 && (
