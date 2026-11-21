@@ -2,6 +2,7 @@
 
 import { useT } from "@/i18n/client";
 import { ClavierCode } from "@/components/ClavierCode";
+import { MessageDAttente } from "@/components/MessageDAttente";
 import styles from "./EcranDeCode.module.css";
 
 /**
@@ -19,7 +20,8 @@ export function EcranDeCode({ titre, prenom, onFini, occupe, cle, erreur, onOubl
         onFini={onFini}
         occupe={occupe}
         cle={cle}
-        erreur={erreur ? <div className={styles.erreur} role="alert">{t(erreur)}</div> : enAttente ? <div className={styles.attente}>{t(enAttente)}</div> : <div className={styles.attente} aria-hidden="true">&nbsp;</div>}
+        enErreur={Boolean(erreur)}
+        erreur={erreur ? <div className={styles.erreur} role="alert">{t(erreur)}</div> : occupe ? <MessageDAttente /> : enAttente ? <div className={styles.attente}>{t(enAttente)}</div> : <div className={styles.attente} aria-hidden="true">&nbsp;</div>}
       />
       {onOubli && (
         <button type="button" className={styles.lien} onClick={onOubli} disabled={occupe}>

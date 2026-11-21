@@ -10,6 +10,7 @@ import { acceptTerms } from "@/app/moi/actions";
 import { checkPhoneProof, sendPhoneProof } from "@/app/offres/[id]/actions";
 import { enrolPin } from "@/app/moi/securite/actions";
 import { ClavierCode } from "@/components/ClavierCode";
+import { Attend, MessageDAttente } from "@/components/MessageDAttente";
 import { logout } from "@/app/connexion/actions";
 import { poserLeCode, verifierLeCode } from "@/app/verrou/actions";
 import { creerEnregistrerPrenom, creerEnvoyerCodeEmail, creerVerifierCodeEmail } from "./actions";
@@ -217,8 +218,9 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
             {" · "}
             <button type="button" className={styles.lien} onClick={() => vers(etape === "email-code" ? "email" : "telephone")}>{t(etape === "email-code" ? "Changer d'adresse" : "Ce n'est pas votre numéro ? Le changer")}</button>
           </p>
+          {enCours && <MessageDAttente avecBouton={false} depuis={2} />}
           <div className={styles.bas}>
-            <button className={styles.valider} type="submit" disabled={enCours || code.replace(/\s/g, "").length < 6}>{t(enCours ? "Vérification…" : "Continuer")}</button>
+            <button className={styles.valider} type="submit" disabled={enCours || code.replace(/\s/g, "").length < 6}>{enCours ? <Attend>{t("Vérification…")}</Attend> : t("Continuer")}</button>
           </div>
         </form>
       )}
@@ -302,7 +304,7 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
             <h1 className="display">{t(codeExiste ? (reconnaitre ? "Entrer sans attendre un code" : "Saisissez votre code") : etape === "code" ? "Protégez votre compte" : "Saisissez-le encore")}</h1>
             <p>{t(codeExiste ? (reconnaitre ? "Saisissez votre code une fois : cet appareil vous reconnaîtra, et la prochaine fois ce code seul vous connectera, sans e-mail." : "Le code de votre compte, le même sur tous vos appareils.") : etape === "code" ? "Un code à six chiffres, le même sur tous vos appareils, protège l'accès à votre compte." : "Pour éviter toute faute de frappe.")}</p>
           </header>
-          <ClavierCode onFini={fixerCode} occupe={enCours} cle={etape} erreur={champErreur} />
+          <ClavierCode onFini={fixerCode} occupe={enCours} cle={etape} erreur={champErreur ?? (enCours ? <MessageDAttente /> : null)} enErreur={Boolean(champErreur)} />
           <div className={styles.bas}>
             <button className={styles.secondaire} type="button" onClick={fin}>{reconnaitre ? t("Pas sur cet appareil") : t("Plus tard")}</button>
           </div>

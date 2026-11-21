@@ -3,6 +3,7 @@
 import { useT } from "@/i18n/client";
 import { useActionState, useState } from "react";
 import { sendCode, sendPhoneCode, verifyCode, verifyPhoneCode, type LoginState } from "./actions";
+import { Attend, MessageDAttente } from "@/components/MessageDAttente";
 import styles from "./page.module.css";
 
 /** One-time code by e-mail or by phone (SMS / WhatsApp, per Supabase provider). */
@@ -32,9 +33,10 @@ export function EmailOtpForm({ next, phoneEnabled, withCode }: { next: string; p
           <input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]*" maxLength={8} autoFocus={state.step !== "code" || Boolean(state.withCode)} required />
         </label>
         {state.error && <div className={styles.error}>{state.error}</div>}
+        {pending && <MessageDAttente avecBouton={false} depuis={2} />}
         <div className={styles.row}>
           <button className="btn primary" type="submit" disabled={pending}>
-            {t(pending ? "Vérification…" : "Se connecter")}
+            {pending ? <Attend>{t("Vérification…")}</Attend> : t("Se connecter")}
           </button>
           <button className="btn ghost" type="submit" name="restart" value="1" formNoValidate>
             {t(state.step === "code" ? "Changer d'adresse" : "Changer de numéro")}

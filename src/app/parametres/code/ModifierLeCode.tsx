@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useT } from "@/i18n/client";
 import { ClavierCode } from "@/components/ClavierCode";
+import { MessageDAttente } from "@/components/MessageDAttente";
 import { codeDeCetAppareil, deviceLabel, enregistrerLeCode, newDeviceToken, readDevice } from "@/lib/device-client";
 import { logout } from "@/app/connexion/actions";
 import { modifierLeCode, verifierLeCode } from "@/app/verrou/actions";
@@ -104,7 +105,7 @@ export function ModifierLeCode({ aUnCode }: { aUnCode: boolean }) {
     <div className={styles.page}>
       <h1 className="display">{t(titre)}</h1>
       <p>{t(phrase)}</p>
-      <ClavierCode onFini={saisi} occupe={enCours} cle={etape} erreur={erreur ? <div className={styles.erreur} role="alert">{t(erreur)}</div> : null} />
+      <ClavierCode onFini={saisi} occupe={enCours} cle={etape} erreur={erreur ? <div className={styles.erreur} role="alert">{t(erreur)}</div> : enCours ? <MessageDAttente /> : null} enErreur={Boolean(erreur)} />
       <button type="button" className={styles.annuler} onClick={() => routeur.replace("/parametres")}>
         {t("Annuler")}
       </button>

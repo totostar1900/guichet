@@ -411,3 +411,10 @@ Le Marché est passé de l'or au bleu par `ACCENTS.marche` (`src/lib/config.ts`)
 - **Ce qu'un mot ne défait pas** : la structure (titres à plat, porte des séances, section retirée) se défait par le dépôt ; 23 littéraux d'or écrits hors jetons (barre du menu, PDF, notifications) ne suivent pas l'accent.
 - **Un accent neuf se mesure avant d'entrer** : contraste du texte sur le fond de page dans les trois thèmes (le bleu `--info` : 7,4:1 en sombre, 6,0:1 en clair), puis les quatre palettes.
 - **Une classe nouvelle ne doit pas heurter une classe existante du même module** : `styles.source` existait déjà dans la page du Marché (le pied) et un test s'en servait de repère ; la mienne s'est appelée `provenance`.
+
+## Leçon du 21 novembre 2026 : une attente se dit par paliers, et le code saisi reste à l'écran
+
+Après le sixième chiffre, les ronds se vidaient (160 ms) et les chiffres s'éteignaient, sans un mot : « la page est figée ». Fait (planche « Attente après le code », 1A · 2A · 3A) : les ronds restent pleins et ondulent tant qu'une réponse attend (`ClavierCode` : ils se vident quand `occupe` retombe, après une grâce de 80 ms qu'un `occupe` vrai annule), le message monte par paliers (`MessageDAttente` : rien avant 0,15 s, « Vérification… » jusqu'à 4 s, « La connexion est lente… » jusqu'à 15 s, puis « Réessayer »), une erreur fait trembler les ronds. Le composant n'existe que pendant l'attente : le monter lance la minuterie, le démonter la remet à zéro (aucun `setState` synchrone dans un effet).
+- **Un test de rendu mesure le bon élément** : `querySelector('[role=dialog]')` renvoyait la fenêtre des mentions (avant le verrou dans le DOM) et « prouvait » que rien n'attendait. Viser l'élément par ce qu'il contient (`:has(i[data-plein])`).
+- **Ralentir une action serveur pour la mesurer** : `page.route` sur les `POST` à en-tête `next-action`, avec un délai ; mesurer à 0,1 s, 0,4 s, 4,4 s et 14,9 s.
+- **La porte à six chiffres n'existe qu'avec Supabase** : en démonstration on mesure le verrou, qui partage `EcranDeCode` et `ClavierCode`. À dire.

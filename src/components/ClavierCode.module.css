@@ -34,3 +34,57 @@
 .clavier button:disabled {
   opacity: 0.5;
 }
+
+/* L'ATTENTE APRÈS LE SIXIÈME CHIFFRE (21 novembre 2026, planche « Attente après le code », 1A) : les six ronds restent pleins et ondulent, l'un après l'autre. Une erreur les fait trembler une fois. */
+.ronds[data-attente] i {
+  animation: onde 1.2s ease-in-out infinite;
+}
+.ronds[data-attente] i:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.ronds[data-attente] i:nth-child(3) {
+  animation-delay: 0.24s;
+}
+.ronds[data-attente] i:nth-child(4) {
+  animation-delay: 0.36s;
+}
+.ronds[data-attente] i:nth-child(5) {
+  animation-delay: 0.48s;
+}
+.ronds[data-attente] i:nth-child(6) {
+  animation-delay: 0.6s;
+}
+@keyframes onde {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  40% {
+    transform: scale(1.55);
+    opacity: 1;
+  }
+}
+.ronds[data-secoue] {
+  animation: tremble 0.42s ease-in-out;
+}
+@keyframes tremble {
+  20% {
+    transform: translateX(-7px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ronds[data-attente] i,
+  .ronds[data-secoue] {
+    animation: none;
+  }
+}
