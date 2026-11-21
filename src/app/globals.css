@@ -382,6 +382,15 @@
      dans « gap » ne lit plus la maison. Hors échelle (--s-*) à dessein : 20 se
      lisait comme un seul texte, 32 flottait sur téléphone. */
   --sections-gap: 28px;
+  /* LA LIGNE EN DEUX COLONNES, DÉCIDÉ LE 21 NOVEMBRE 2026 (planche « Mesure des lignes », 1B · 2A · 3A · 4A).
+     Une ligne de réglage n'occupe plus la largeur de la page : le texte tient dans une première colonne de 300 px
+     (au-delà, il passe sur deux lignes, rien n'est coupé) et les commandes — interrupteur, « Modifier » — sont
+     calées sur l'arête droite d'une seconde colonne de 72 px. Le sélecteur, la boîte et le bouton du dessous
+     prennent les deux colonnes (--ligne-largeur). Sur téléphone la colonne de texte rétrécit, la commande reste. */
+  --texte-max: 300px;
+  --commande-col: 72px;
+  --ligne-gap: 20px;
+  --ligne-largeur: min(100%, calc(var(--texte-max) + var(--ligne-gap) + var(--commande-col)));
   /* L'ÉCART ENTRE DEUX TUILES, ÉCRIT UNE FOIS : douze. C'était déjà la valeur la
      plus répandue (Trade, Agir, Services, Compte) ; une bande de sommaire à 32
      se lisait comme une autre section. */

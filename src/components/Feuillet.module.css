@@ -63,13 +63,22 @@
 /* UNE LIGNE PAR CHOSE : ce qu'on détient à gauche, le geste à droite. Les
    lignes d'un feuillet ont la même forme parce qu'elles se lisent d'un seul
    balayage ; c'est la feuille du compte qui les empilait autrement. */
+/* DEUX COLONNES (21 novembre 2026) : le texte dans la première, d'une longueur maximale ; le geste sur l'arête droite de la seconde. Les largeurs sont des jetons de globals.css, jamais écrites ici. */
 .ligne {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, var(--texte-max)) var(--commande-col);
+  column-gap: var(--ligne-gap);
+  width: var(--ligne-largeur);
   align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s-6);
   padding-block: var(--s-5);
   border-bottom: 1px solid var(--line);
+}
+.ligne > :last-child:not(:first-child) {
+  justify-self: end;
+}
+/* Ce qui occupe les deux colonnes : un sélecteur, une boîte, un bouton de sortie. */
+.cadre {
+  width: var(--ligne-largeur);
 }
 .ligne > span {
   display: flex;

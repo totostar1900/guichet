@@ -10,17 +10,22 @@
    tailles qui ont un nom. */
 
 .reglage {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, var(--texte-max)) var(--commande-col);
+  column-gap: var(--ligne-gap);
+  width: var(--ligne-largeur);
   align-items: center;
-  gap: var(--s-6);
   padding-block: var(--s-5);
   border-top: 1px solid var(--line);
+}
+/* La commande — interrupteur, « Modifier » — se cale sur l'arête droite de la seconde colonne. */
+.reglage > :last-child:not(:first-child) {
+  justify-self: end;
 }
 .reglage:first-of-type {
   border-top: 0;
 }
 .reglage > span {
-  flex: 1 1 auto;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -38,9 +43,9 @@
 /* Une commande large — un segment de trois, une paire de palettes — passe
    sous sa phrase au lieu de se serrer à sa droite. */
 .colonne {
-  flex-direction: column;
+  grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
-  gap: var(--s-5);
+  row-gap: var(--s-5);
 }
 
 /* LE SEGMENT PREND TOUTE LA LARGEUR, ses trois boutons égaux (20 novembre 2026, « aligner les boutons ») : les interrupteurs et « Modifier » sont calés à droite, le segment aligné sur les deux bords. */

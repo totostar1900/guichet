@@ -393,3 +393,7 @@ Le moteur de mouvement posait des classes et des attributs (`data-anime`) sur de
 - **Le mouvement des sept racines se CIBLE** (`cibles()` dans `Mouvement.tsx`) : on descend dans les piles et les blocs plus hauts que l'écran, on prend chaque pièce, on saute le collant, le fixe et ce qui est déjà marqué ; une pile animée d'un bloc ne bouge qu'une fois pour toute la page (mesuré sur Investir). Une rangée basse prend l'arrivée douce, un grand bloc jamais de flou.
 - **Un tirage lié à une valeur se garde AVEC cette valeur** (`{pays, signe}`) : sinon, à l'arrivée d'une page, on lit un instant le tirage de la page d'avant.
 
+
+## Leçon du 21 novembre 2026 : une ligne de réglage est en deux colonnes, et ne dit jamais sa largeur
+
+Sur Paramètres, la ligne mesurait 900 px et l'interrupteur tombait à 855 px de son texte. Choisi sur planche (1B · 2A · 3A · 4A) : **deux colonnes lues aux jetons** `--texte-max` (300 px, le texte passe sur deux lignes au-delà), `--commande-col` (72 px, commandes sur l'arête droite commune), `--ligne-gap`, `--ligne-largeur` (la somme, plafonnée à 100 % pour le téléphone). Ce qui n'est ni du texte ni une commande (sélecteur, boîte, bouton de sortie) prend les deux colonnes : `.colonne` / `.cadre`. Mesurer : 392 px de ligne à 1280 et 1700, 362 à 390, tous les interrupteurs à la même arête droite. Gardé par `ligne-deux-colonnes.test.ts` (vérifié par mutation) ; ETALON § 8.15. Une planche qui demande une longueur se chiffre en pixels, pas en caractères : la coupure ne dépend pas de la police.
