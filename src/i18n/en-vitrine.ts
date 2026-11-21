@@ -148,8 +148,8 @@ export const EN_VITRINE: Record<string, string> = {
   "Purpose Capital est agréée en qualité de société de bourse par la Commission de Surveillance du Marché Financier de l'Afrique Centrale (COSUMAF).":
     "Purpose Capital is licensed as a brokerage firm by the Commission de Surveillance du Marché Financier de l'Afrique Centrale (COSUMAF), the financial market supervisory commission of Central Africa.",
   "Investir, c'est penser à ceux qui comptent.": "Investing means thinking of those who matter.",
-  "Un placement fait avec méthode peut aider à préparer les projets d'une famille ; rien n'est garanti, mais la démarche, elle, se transmet.":
-    "An investment made with method can help prepare a family's plans; nothing is guaranteed, but the habit itself gets passed on.",
+  "Un placement fait avec méthode aide à préparer les projets d'une famille, et la démarche, elle, se transmet.":
+    "A placement made with method helps prepare a family's plans, and the approach itself gets passed on.",
 
   /* ---------- la connexion : la biométrie en bas (18 novembre 2026) ---------- */
   "Connexion biométrique": "Biometric sign-in",
@@ -301,7 +301,7 @@ export const EN_VITRINE: Record<string, string> = {
   "Donnez du temps à votre épargne pour porter vos projets.": "Give your savings time to carry your plans.",
   "Investir pour l'avenir de votre famille.": "Invest for your family's future.",
   "Votre épargne peut faire avancer toute une région.": "Your savings can move a whole region forward.",
-  "Un placement fait avec méthode peut aider à préparer les projets de votre famille. Rien n'est garanti.": "A placement made with method can help prepare your family's plans. Nothing is guaranteed.",
+  "Un placement fait avec méthode aide à préparer les projets de votre famille.": "A placement made with method helps prepare your family's plans.",
   "Une équipe à vos côtés, à chaque étape.": "A team by your side, at every step.",
   "Des conseillers à votre écoute, en français et en anglais, avec des mots simples.": "Advisers who listen, in French and in English, in simple words.",
   "S'il manque une pièce, nous vous aidons, à votre rythme.": "If a document is missing, we help you, at your pace.",

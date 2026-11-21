@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 /**
  * LE DESSIN SUIT LE DOIGT (21 novembre 2026, planche « Accueil », choix 3A : « la carte, moins intense, dessinée avec le défilement de la page »).
  *
- * Le tracé n'est plus joué une fois à l'entrée dans l'écran : il est LIÉ À LA POSITION de la page. Il avance quand on descend, il recule quand on remonte, et les six pays se tracent l'un après l'autre. À mesure que l'écran entre, de son bord bas jusqu'à presque son plein affichage, le trait va de 0 à 1.
+ * Le tracé n'est plus joué une fois à l'entrée dans l'écran : il est LIÉ À LA POSITION de la page. Il avance quand on descend, il recule quand on remonte, et les six pays se tracent l'un après l'autre. Le trait va de 0 à 1 de l'entrée de l'écran (par le bas) jusqu'à 90 % de sa traversée ; l'écran de la carte fait deux écrans et demi de haut (« .longue » dans Accueil.module.css), si bien que le tracé se fait à la vitesse du doigt, et non dans l'arrêt automatique.
  *
  * Le contenu est rendu ENTIER par le serveur : sans script, ou avec « moins de mouvement » demandé au téléphone, la carte reste entière et fixe. Une seule lecture de position par image (requestAnimationFrame), des écouteurs passifs.
  */
@@ -22,8 +22,9 @@ export function TraceAuDefilement({ children, className }: { children: ReactNode
     let image = 0;
     const majour = () => {
       image = 0;
-      const haut = ecran.getBoundingClientRect().top;
-      const p = borne((window.innerHeight - haut) / (window.innerHeight * 0.95));
+      const r = ecran.getBoundingClientRect();
+      /* De l'entrée de l'écran par le bas jusqu'à 90 % de sa traversée : un écran haut comme le téléphone s'achève à son arrêt, un écran plus haut s'achève au défilement. */
+      const p = borne((window.innerHeight - r.top) / (Math.max(r.height, window.innerHeight) * 0.9));
       traits.forEach((t, i) => {
         const q = borne(p * 1.7 - i * 0.14);
         t.style.strokeDashoffset = String(1 - q);

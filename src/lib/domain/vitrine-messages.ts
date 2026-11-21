@@ -20,7 +20,7 @@ export const MESSAGES: Record<Categorie, readonly string[]> = {
 };
 
 /**
- * LE MOT QUI PREND LA COULEUR (21 novembre 2026, planche « Accueil », choix 1C : un accent chaud, corail, sur un mot clé par titre). Le mot est écrit tel qu'il figure dans la phrase, en français puis en anglais ; l'accueil le cherche dans la phrase AFFICHÉE, et ne colore rien s'il ne la trouve pas (un cliquet garde que chaque mot s'y trouve).
+ * LE MOT QUI PREND LA COULEUR (21 novembre 2026, planche « Accueil », choix 1C, puis « repasser au jaune or » : l'or de la marque sur un mot clé par titre). Le mot est écrit tel qu'il figure dans la phrase, en français puis en anglais ; l'accueil le cherche dans la phrase AFFICHÉE, et ne colore rien s'il ne la trouve pas (un cliquet garde que chaque mot s'y trouve).
  */
 export const MOTS_CLES: Record<string, readonly [fr: string, en: string]> = {
   "Le hub des produits financiers d'Afrique centrale.": ["Afrique centrale", "Central Africa"],
@@ -49,8 +49,8 @@ export const MOTS_CLES: Record<string, readonly [fr: string, en: string]> = {
  */
 export const PHRASES = {
   famille: [
-    ["Investir, c'est penser à ceux qui comptent.", "Un placement fait avec méthode peut aider à préparer les projets d'une famille ; rien n'est garanti, mais la démarche, elle, se transmet."],
-    ["Investir, c'est penser à ceux qui comptent.", "Un placement fait avec méthode peut aider à préparer les projets de votre famille. Rien n'est garanti."],
+    ["Investir, c'est penser à ceux qui comptent.", "Un placement fait avec méthode aide à préparer les projets d'une famille, et la démarche, elle, se transmet."],
+    ["Investir, c'est penser à ceux qui comptent.", "Un placement fait avec méthode aide à préparer les projets de votre famille."],
   ],
   vous: [["Une maison sérieuse, à vos côtés à chaque étape."], ["Une équipe à vos côtés, à chaque étape."]],
   conseillers: [

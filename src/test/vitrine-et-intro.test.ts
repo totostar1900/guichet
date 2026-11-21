@@ -94,7 +94,9 @@ describe("la vitrine : sept écrans, un par lecture, qui s'arrêtent comme des s
     expect((carte.match(/data-trait=""/g) ?? []).length).toBe(6);
     expect((courbe.match(/data-ligne=/g) ?? []).length, "la courbe n'a plus son cours et sa moyenne").toBe(2);
     expect(v, "la carte ne se trace plus avec le défilement").toMatch(/<TraceAuDefilement className=\{styles\.fond\}>\s*<CarteCemac/);
-    expect(css, "le filigrane de la carte n'est plus à 22 %").toMatch(/\.carte path \{[^}]*22%/);
+    expect(css, "le filigrane de la carte n'est plus à 14 %").toMatch(/\.carte path \{[^}]*14%/);
+    expect(css, "l'écran de la carte n'est plus un écran haut, à contenu collé").toMatch(/\.longue \{[^}]*min-height: 250svh/);
+    expect(css).toMatch(/\.colle \{[^}]*position: sticky/);
     expect(css).toMatch(/\.fond\[data-vu="oui"\] \.courbe \[data-trait\] \{/);
     expect(css, "un fond dessiné prend le toucher").toMatch(/\.fond \{[^}]*pointer-events: none;/);
   });
@@ -122,7 +124,7 @@ describe("la vitrine : sept écrans, un par lecture, qui s'arrêtent comme des s
     expect(g).toMatch(/body:has\(\[data-vitrine\]\) footer \{\s*display: none;/);
   });
 
-  it("le dessin de la famille se trace sur l'écran investir, sans fond, avec un texte qui dit « peut » et « rien n'est garanti »", () => {
+  it("le dessin de la famille se trace sur l'écran investir, sans fond, avec un texte sur la famille (« aide », sans « rien n'est garanti » depuis le 21 novembre 2026)", () => {
     const debut = code.indexOf("<FamilleDessin");
     expect(debut, "le dessin de la famille a quitté la vitrine").toBeGreaterThan(-1);
     const d = lire("src/components/accueil/FamilleDessin.tsx");
@@ -132,9 +134,12 @@ describe("la vitrine : sept écrans, un par lecture, qui s'arrêtent comme des s
     expect(sansNotes, "le dessin a un fond").not.toMatch(/<rect|fill="(?!none)/);
     expect(v).toContain("t(ph.famille[0])");
     expect(vm()).toMatch(/Investir, c'est penser à ceux qui comptent\./);
-    expect(vm()).toMatch(/peut aider à préparer les projets d'une famille/);
-    expect(vm(), "le texte sur la famille ne dit plus que rien n'est garanti").toMatch(/rien n'est garanti/);
-    for (const jeu of vm().match(/famille: \[[\s\S]*?\n  \],/)?.[0].split("],\n    [") ?? []) expect(jeu, "un jeu de phrases sur la famille ne dit plus que rien n'est garanti").toMatch(/rien n'est garanti/i);
+    /* LE CLIENT L'A DEMANDÉ (21 novembre 2026) : « retirer rien n'est garanti, remplacer peut aider par aide ». L'avertissement général reste au pied de l'accueil (écran 7) et sur la page des risques. */
+    const famille = vm().match(/famille: \[[\s\S]*?\n  \],/)?.[0] ?? "";
+    expect(famille).toMatch(/aide à préparer les projets d'une famille/);
+    expect(famille, "« peut aider » est revenu").not.toMatch(/peut aider/);
+    expect(famille, "« rien n'est garanti » est revenu").not.toMatch(/rien n'est garanti/i);
+    expect(code, "l'avertissement de perte en capital a quitté le pied de l'accueil").toMatch(/Tout placement comporte un risque de perte en capital/);
     expect(tranche(code, "styles.texte", "</section>").length, "le texte sur la famille est redevenu long").toBeLessThan(520);
     expect(css).toMatch(/\.famille\[data-vu="oui"\] \.dessin \[data-trait\] \{\s*animation: tracer/);
   });

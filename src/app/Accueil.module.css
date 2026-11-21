@@ -11,8 +11,8 @@
   --mesure-texte: 34rem;
   --mesure-large: 72rem;
   --bande: 5.5rem;
-  /* 21 novembre 2026, planche « Accueil » : l'accent chaud (1C) et la police de la vitrine (2A, Plus Jakarta Sans, pour l'accueil seul). */
-  --accent-icone: var(--corail);
+  /* 21 novembre 2026, planche « Accueil » : la police de la vitrine (2A, Plus Jakarta Sans, pour l'accueil seul). L'accent redevient L'OR (le client : « repasser au jaune or en remplacement de ce rose ») : l'or de la marque sur fond sombre, pour les icônes et le mot clé de chaque titre. */
+  --accent-icone: var(--marque-or-sombre);
   font-family: var(--font-vitrine), var(--font-ui);
 
   /* PLEINE LARGEUR, SANS MARGE NÉGATIVE QUI DÉBORDE : la page sort de la gouttière de « main » (20 px, 14 px sur téléphone) à gauche, à droite et en haut, et « main » est peint en nuit (« globals.css ») pour que le bas ne laisse rien de clair. */
@@ -41,6 +41,27 @@
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
+.longue {
+  /* L'ÉCRAN DE LA CARTE FAIT DEUX ÉCRANS ET DEMI DE HAUT (21 novembre 2026, le client : « la carte qui se dessine avec le défilement », redit). Tracé sur un seul écran, le dessin se jouait dans la dernière fraction de seconde de l'arrêt automatique : on le voyait se jouer, on ne le conduisait pas. Ici le contenu reste collé (« .colle ») pendant qu'on traverse l'écran, et la carte se trace à la vitesse du doigt. L'arrêt automatique laisse défiler librement un écran plus haut que le téléphone. */
+  display: block;
+  padding: 0;
+  min-height: 250svh;
+}
+.colle {
+  position: sticky;
+  top: 0;
+  box-sizing: border-box;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  min-height: calc(100svh - 3.5rem);
+  padding: var(--s-11) var(--s-8) calc(var(--bande) + env(safe-area-inset-bottom, 0px));
+}
+@media (prefers-reduced-motion: reduce) {
+  .longue {
+    min-height: calc(100svh - 3.5rem);
+  }
+}
 .col {
   width: 100%;
   max-width: var(--mesure-texte);
@@ -60,7 +81,7 @@
   text-wrap: balance;
 }
 .mot {
-  color: var(--corail);
+  color: var(--marque-or-sombre);
 }
 .chapeau {
   margin: 0;
@@ -164,9 +185,9 @@
   translate: -50% 0;
 }
 .carte path {
-  /* PLUS DISCRÈTE (21 novembre 2026, planche « Accueil », 3A) : trait à 22 % au lieu de 38 %, fond à 3 % au lieu de 5 %. Le tracé suit le défilement : voir TraceAuDefilement. */
-  fill: color-mix(in srgb, var(--on-navy) 3%, transparent);
-  stroke: color-mix(in srgb, var(--on-navy) 22%, transparent);
+  /* ENCORE PLUS DISCRÈTE (21 novembre 2026, le client : « la carte plus discrète », une seconde fois) : trait à 14 % (c'était 38 %, puis 22 %), fond à 2 %. Le tracé suit le défilement : voir TraceAuDefilement. */
+  fill: color-mix(in srgb, var(--on-navy) 2%, transparent);
+  stroke: color-mix(in srgb, var(--on-navy) 14%, transparent);
   stroke-width: 1.4px;
   vector-effect: non-scaling-stroke;
   stroke-dasharray: 1;

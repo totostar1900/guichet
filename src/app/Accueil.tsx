@@ -21,7 +21,7 @@ import styles from "./Accueil.module.css";
  *   5 · « en toute sérénité » : le sérieux de la maison, à plat, icônes qui se dessinent ;
  *   6 · « à chaque étape » : l'accompagnement, à plat ;
  *   7 · un espace dédié : les conseillers, le risque de perte en capital, les trois liens du pied, et la maison (nom, agrément, version).
- * LES MESSAGES CHANGENT À CHAQUE VISITE : plusieurs variantes par écran, une tirée côté serveur (`vitrine-messages.ts`) ; les phrases des écrans 3, 5, 6 et 7 aussi (« PHRASES »), et un mot par titre prend le corail (« MOTS_CLES »).
+ * LES MESSAGES CHANGENT À CHAQUE VISITE : plusieurs variantes par écran, une tirée côté serveur (`vitrine-messages.ts`) ; les phrases des écrans 3, 5, 6 et 7 aussi (« PHRASES »), et un mot par titre prend l'or (« MOTS_CLES »).
  * LES BOUTONS D'ENTRÉE NE SONT PAS DANS LA PAGE : la bande basse (PorteVitrine) ; au large, la pastille du haut.
  * Aucun titre jaune (le client : « retirer tous les titres jaunes ») : plus d'étiquette dorée au-dessus des titres, et plus de numéros.
  * Un seul fond, sans lueur : le bleu nuit de la maison, d'un bord à l'autre, pied compris.
@@ -30,7 +30,7 @@ import styles from "./Accueil.module.css";
  * LE TEXTE DE L'ÉCRAN 3 DIT « PEUT » ET « RIEN N'EST GARANTI » : un placement fait avec méthode peut aider à préparer les projets d'une famille ; il n'en promet aucun.
  * LE PIED est celui de la page (le pied du gabarit est masqué ici) : l'adresse et la mention longue en sont retirées à la demande du client ; le nom de la maison et son agrément restent, le risque de perte en capital est écrit à l'écran 6, et « Éclairages », « Aide et contact », « Risques et limites » sont de vrais liens vers des pages publiques. Les mentions légales complètes restent à « /info/mentions ».
  */
-/** Le titre, avec son mot clé en corail s'il figure dans la phrase affichée (dans la langue du lecteur) : sinon, le titre seul. */
+/** Le titre, avec son mot clé en or s'il figure dans la phrase affichée (dans la langue du lecteur) : sinon, le titre seul. */
 function avecMotCle(texte: string, mot: string | undefined) {
   const i = mot ? texte.toLowerCase().indexOf(mot.toLowerCase()) : -1;
   if (!mot || i < 0) return texte;
@@ -106,15 +106,17 @@ export async function Accueil() {
       </section>
 
       {/* ÉCRAN 4 · LA RÉGION : un seul message, sur la carte de la zone CEMAC. */}
-      <section className={styles.ecran}>
-        <TraceAuDefilement className={styles.fond}>
-          <CarteCemac className={styles.carte} />
-        </TraceAuDefilement>
-        <div className={styles.col}>
-          <h2 data-anim="">{titre(m.region)}</h2>
-          <p className={styles.chapeau} data-anim="">
-            {t("Les fonds levés sur ce marché financent des projets de la région : le marché existe pour les rendre possibles.")}
-          </p>
+      <section className={`${styles.ecran} ${styles.longue}`}>
+        <div className={styles.colle}>
+          <TraceAuDefilement className={styles.fond}>
+            <CarteCemac className={styles.carte} />
+          </TraceAuDefilement>
+          <div className={styles.col}>
+            <h2 data-anim="">{titre(m.region)}</h2>
+            <p className={styles.chapeau} data-anim="">
+              {t("Les fonds levés sur ce marché financent des projets de la région : le marché existe pour les rendre possibles.")}
+            </p>
+          </div>
         </div>
       </section>
 
