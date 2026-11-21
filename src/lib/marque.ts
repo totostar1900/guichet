@@ -1,3 +1,5 @@
+import { CAMPAGNE } from "./campagne";
+
 /**
  * LES TROIS OR DE LA MAISON, ÉCRITS UNE FOIS (21 novembre 2026, « ramener les 23 littéraux au catalogue sans changer leur couleur »).
  *
@@ -7,7 +9,7 @@
  *
  * Un fichier qui écrirait de nouveau un de ces or en dur est refusé par « marque.test.ts ».
  */
-export const MARQUE = {
+const BASE = {
   /** L'or de la marque sur fond clair : PDF, palettes, couleur de la zone CEMAC, trait de la présentation. */
   or: "#b8860b",
   /** L'or de la marque sur fond sombre : barre du haut, onglet courant, étiquette des PDF. */
@@ -15,6 +17,9 @@ export const MARQUE = {
   /** L'or vif de la barre du haut sur mobile et du dégradé des statuts. */
   orVif: "#e2b94c",
 } as const;
+
+/** Les trois or, tels que la campagne en cours les redit (aucune campagne : les valeurs d'origine). */
+export const MARQUE: { or: string; orSombre: string; orVif: string } = { ...BASE, ...CAMPAGNE.marque };
 
 /** Les trois jetons CSS, posés sur « :root » par la mise en page : une seule source pour le TypeScript et pour les feuilles de style. */
 export const MARQUE_CSS = `:root{--marque-or:${MARQUE.or};--marque-or-sombre:${MARQUE.orSombre};--marque-or-vif:${MARQUE.orVif}}`;

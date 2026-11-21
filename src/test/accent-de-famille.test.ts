@@ -49,7 +49,7 @@ describe("l'accent bleu d'une famille", () => {
   it("est lu par la feuille de style depuis « data-accent », que le script et la navigation posent", () => {
     expect(sansNotes(lire("src/app/layout.tsx"))).toMatch(/__html: FAMILLE_BOOT/);
     expect(sansNotes(lire("src/app/layout.tsx")), "la mise en page ne pose plus un mot par famille").not.toMatch(/data-accent-marche/);
-    expect(css).toMatch(/html\[data-accent="bleu"\] :is\(main, \[aria-current="page"\]\) \{\s*--gold: var\(--info\);\s*--gold-ink: var\(--info\);\s*--gold-soft: var\(--info-soft\);/);
+    expect(css).toMatch(/html\[data-accent="bleu"\] :is\(main, \[aria-current="page"\], \[data-accent-suit\]\) \{\s*--gold: var\(--info\);\s*--gold-ink: var\(--info\);\s*--gold-soft: var\(--info-soft\);/);
     const ms = sansNotes(lire("src/components/mobile/MobileShell.tsx"));
     expect(ms).toMatch(/dataset\.accent = accentDe\(f\)/);
   });
@@ -58,14 +58,17 @@ describe("l'accent bleu d'une famille", () => {
     expect(blocs.length).toBeGreaterThanOrEqual(3);
     expect(css, "un bloc d'accent dépend encore d'une famille écrite en dur").not.toMatch(/data-famille="marche"/);
   });
-  it("laisse l'or à la barre du haut et au bouton flottant : seuls le contenu et l'entrée de menu active sont touchés", () => {
+  it("laisse l'or à la barre du haut : seuls le contenu, l'entrée de menu active et le bouton flottant du Marché (qui porte « data-accent-suit ») sont touchés", () => {
     for (const b of css.match(/[^{}]*data-accent="bleu"[^{}]*\{/g) ?? []) {
-      expect(b, "le bleu a quitté « main » et l'entrée active").toMatch(/:is\(main, \[aria-current="page"\]\)/);
-      expect(b, "le bleu touche la barre du haut").not.toMatch(/\bheader\b|BarreDuHaut|MarketFab/);
+      expect(b, "le bleu a quitté « main », l'entrée active et le bouton flottant").toMatch(/:is\(main, \[aria-current="page"\], \[data-accent-suit\]\)/);
+      expect(b, "le bleu touche la barre du haut").not.toMatch(/\bheader\b|BarreDuHaut/);
     }
   });
+  it("la pastille de menu du Marché (le bouton flottant) suit l'accent de sa famille", () => {
+    expect(sansNotes(lire("src/components/mobile/MarketFab.tsx"))).toMatch(/data-accent-suit=""/);
+  });
   it("le bouton principal et les segments ne passent au bleu qu'en sombre (en clair ils sont marine)", () => {
-    const sombre = css.match(/\[data-theme="dark"\] :is\(main, \[aria-current="page"\]\) \{[^}]*\}/)?.[0] ?? "";
+    const sombre = css.match(/\[data-theme="dark"\] :is\(main, \[aria-current="page"\], \[data-accent-suit\]\) \{[^}]*\}/)?.[0] ?? "";
     expect(sombre).toMatch(/--fill: var\(--info\);/);
     expect(sombre).toMatch(/--select: var\(--info\);/);
   });

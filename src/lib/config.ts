@@ -1,3 +1,4 @@
+import { CAMPAGNE } from "./campagne";
 /**
  * L'ASPECT DES TUILES, DE TOUTE L'APPLICATION, EN UN MOT (ETALON.md § 8).
  *
@@ -24,7 +25,9 @@ export const TUILES: AspectDesTuiles = "tuiles";
  * La barre du haut, la cloche et le bouton flottant gardent l'or : ils servent toute l'application. Les règles vivent dans « globals.css » (« data-accent ») ; le script du <head> et le suivi de navigation posent « data-famille » et « data-accent » sur « <html> ».
  */
 export type Accent = "or" | "bleu";
-export const ACCENTS: Record<"instruments" | "trader" | "marche" | "aide" | "accueil", Accent> = { instruments: "or", trader: "or", marche: "bleu", aide: "or", accueil: "or" };
+const ACCENTS_DE_BASE: Record<"instruments" | "trader" | "marche" | "aide" | "accueil", Accent> = { instruments: "or", trader: "or", marche: "bleu", aide: "or", accueil: "or" };
+/** Les accents, tels que la campagne en cours les redit (« src/lib/campagne.ts » ; aucune campagne : ceux d'origine). */
+export const ACCENTS: Record<"instruments" | "trader" | "marche" | "aide" | "accueil", Accent> = { ...ACCENTS_DE_BASE, ...CAMPAGNE.accents };
 
 /** Product and company identity : the one place to change names. */
 export const PRODUCT = {

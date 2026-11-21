@@ -16,7 +16,7 @@ import styles from "./Info.module.css";
  * téléphone et ne se fermait que d'un toucher précis. On réutilise la fenêtre centrée de la maison (« Sheet » « centre ») : même voile, même geste, même croix.
  * Exceptions voulues : le « i » de la barre du haut (sa feuille d'onglets) ; le reste est à discuter (voir le skill guichet-espace-tuiles, « Les bulles »).
  */
-export function Info({ term, termes, text, label, subtle, titre }: { term?: TermKey; /** UN SEUL « i » POUR UN GRAPHE OU UN TABLEAU (6 novembre 2026) : tous les termes qu'il emploie, chacun avec sa définition, dans une seule fenêtre. */ termes?: TermKey[]; text?: string; label?: string; subtle?: boolean; /** Le « i » d'un titre de page : le même rond que celui des « En bref », à l'extrême droite de la ligne du titre (10 novembre 2026). */ titre?: boolean }) {
+export function Info({ term, termes, text, contenu, label, subtle, titre }: { /** Un texte fait de morceaux et de balises (un paragraphe de « Comment lire » avec ses pastilles de couleur) : il prend la place de « text ». */ contenu?: React.ReactNode; term?: TermKey; /** UN SEUL « i » POUR UN GRAPHE OU UN TABLEAU (6 novembre 2026) : tous les termes qu'il emploie, chacun avec sa définition, dans une seule fenêtre. */ termes?: TermKey[]; text?: string; label?: string; subtle?: boolean; /** Le « i » d'un titre de page : le même rond que celui des « En bref », à l'extrême droite de la ligne du titre (10 novembre 2026). */ titre?: boolean }) {
   const tr = useT();
   const t = term ? getRegistry().glossary[term] : undefined;
   const liste = (termes ?? []).flatMap((k) => {
@@ -71,7 +71,7 @@ export function Info({ term, termes, text, label, subtle, titre }: { term?: Term
             ))}
           </dl>
         ) : (
-          <p className={styles.texte}>{body}</p>
+          <div className={styles.texte}>{contenu ?? body}</div>
         )}
         {lesson && (
           <a className={styles.more} href={`/info/${lesson.key}`}>

@@ -8,6 +8,7 @@ import styles from "./layout.module.css";
 import { COMPANY, PRODUCT, TUILES } from "@/lib/config";
 import { FAMILLE_BOOT } from "@/lib/famille";
 import { MARQUE_CSS } from "@/lib/marque";
+import { CAMPAGNE, cssDeCampagne } from "@/lib/campagne";
 import { NavTabs } from "@/components/NavTabs";
 import { repo } from "@/lib/data";
 import { backendName } from "@/lib/data";
@@ -186,7 +187,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {/* la profondeur (racine ou page) avant la première image : le dock et la barre du haut en dépendent (nav-profondeur) */}
         <script dangerouslySetInnerHTML={{ __html: PROFONDEUR_BOOT }} />
         {/* LES TROIS OR DE LA MARQUE, posés une fois (src/lib/marque.ts) : la barre du haut les lit */}
-        <style dangerouslySetInnerHTML={{ __html: MARQUE_CSS }} />
+        <style dangerouslySetInnerHTML={{ __html: MARQUE_CSS + cssDeCampagne(CAMPAGNE) }} />
         {/* la famille de la page et son accent avant la première image */}
         <script dangerouslySetInnerHTML={{ __html: FAMILLE_BOOT }} />
       </head>

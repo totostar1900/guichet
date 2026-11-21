@@ -51,6 +51,8 @@ export function FlowsChart({ r, outlay, flows, settleOn, scale: size = 1 }: { r?
   const bw = Math.min(64, slot * 0.5);
   const iso = (d: Date) => d.toISOString().slice(0, 10);
   const dense = pts.length > 7;
+  /* UN ÉCHÉANCIER SERRÉ GARDE SES REPÈRES LISIBLES (21 novembre 2026, audit des flux) : au-delà de sept versements les dates passaient en année seule à 8,5 px et les titres disparaissaient. Désormais « mm/aa » à 9,5 px, un repère sur « saut » pour qu'ils ne se touchent pas (le premier et le dernier toujours), et le titre du versement (Souscription, Coupon, Remboursement) sous le premier, le dernier et celui qu'on désigne. */
+  const saut = dense ? Math.ceil(pts.length / 6) : 1;
   const cum: number[] = [];
   pts.reduce((s, p, i) => (cum[i] = s + p.amount), 0);
   const keys = pts.map((p, i) => `${iso(p.date)}|${i}`);
@@ -135,10 +137,12 @@ export function FlowsChart({ r, outlay, flows, settleOn, scale: size = 1 }: { r?
                   {fmtUnits(Math.abs(p.amount))}
                 </text>
               )}
-              <text x={x + bw / 2} y={H - 20} textAnchor="middle" style={{ fontSize: dense ? 8.5 : undefined }}>
-                {dense ? String(p.date.getFullYear()) : `${fmtDate(iso(p.date), false)} ${p.date.getFullYear()}`}
-              </text>
-              {!dense && (
+              {(!dense || i === pts.length - 1 || hover === i || (i % saut === 0 && pts.length - 1 - i >= saut)) && (
+                <text x={x + bw / 2} y={H - 20} textAnchor="middle" style={{ fontSize: dense ? 9.5 : undefined }}>
+                  {dense ? `${String(p.date.getMonth() + 1).padStart(2, "0")}/${String(p.date.getFullYear()).slice(2)}` : `${fmtDate(iso(p.date), false)} ${p.date.getFullYear()}`}
+                </text>
+              )}
+              {(!dense || i === 0 || i === pts.length - 1 || hover === i) && (
                 <text x={x + bw / 2} y={H - 7} textAnchor="middle" style={{ fill: "var(--ink-3)" }}>
                   {p.label}
                 </text>

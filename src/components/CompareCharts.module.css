@@ -39,21 +39,11 @@
   font-size: 0.76rem;
   color: var(--ink-3);
 }
-.how {
-  margin: 0;
-  font-size: 0.82rem;
-  line-height: 1.55;
-  color: var(--ink-2);
-  padding: 8px 12px;
-  border-left: 3px solid var(--gold);
-  background: var(--paper);
-  border-radius: 0 6px 6px 0;
-}
-.how b {
-  color: var(--ink);
-}
-.how i {
-  font-style: normal;
+/* LE TITRE D'UNE CARTE ET SON « i » : « Comment lire » n'est plus un paragraphe sous le graphe mais une bulle (21 novembre 2026). */
+.titreCarte {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-4);
 }
 .keys {
   display: flex;
@@ -190,12 +180,9 @@ svg .end.b {
   font-weight: 700;
   font-family: var(--font-ui);
 }
-svg .calLabel.a {
-  fill: var(--navy);
-  stroke: none;
-}
-svg .calLabel.b {
-  fill: #2a8a9a;
+/* LE TITRE D'UNE LIGNE DE TEMPS SUIT LE THÈME (21 novembre 2026, audit des flux) : il était écrit en « --navy » fixe, marine sur le fond marine du thème sombre : invisible. Il prend la couleur de sa ligne (« .a », « .b »), qui change avec le thème. */
+svg .calLabel {
+  fill: currentColor;
   stroke: none;
 }
 .calTick {
@@ -215,12 +202,9 @@ svg .calLabel.b {
 .inFill {
   fill: currentColor;
 }
-svg .inFill.a {
-  fill: var(--navy);
-  stroke: none;
-}
-svg .inFill.b {
-  fill: #2a8a9a;
+/* LES BARRES DE CHAQUE LIGNE PRENNENT LA COULEUR DE LEUR LIGNE, qui suit le thème (21 novembre 2026, audit des flux) : la première était en « --navy » fixe, marine sur marine en sombre, et la seconde en teal écrit en dur. */
+svg .inFill {
+  fill: currentColor;
   stroke: none;
 }
 .maybe {
@@ -240,6 +224,8 @@ svg .inFill.b {
 }
 .calTip {
   transform: translate(-50%, calc(-100% - 10px));
+  width: max-content;
+  max-width: 220px;
 }
 @media (max-width: 760px) {
   .barRow {

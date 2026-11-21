@@ -873,7 +873,6 @@ export const EN_REST: Record<string, string> = {
   "Décaissement": "Outlay",
   "Dividende attendu": "Expected dividend",
   "Produit de cession": "Sale proceeds",
-  "attendu, pas promis": "expected, not promised",
   "ce que vous payez": "what you pay",
   "ce qui revient (coupons, remboursement)": "what comes back (coupons, redemption)",
   "attendu, pas promis (dividende)": "expected, not promised (dividend)",
@@ -1262,6 +1261,10 @@ export const EN_REST: Record<string, string> = {
   /* Les aperçus de la porte du marché : un chiffre de chaque page. */
   "Les {n} sociétés": "All {n} companies",
   "Ces trois-là pèsent {p} de la capitalisation, {c} FCFA au total dont {f} de flottant coté.": "These three are {p} of the capitalisation, {c} FCFA in all, of which {f} is quoted float.",
+  "coupons": "coupons",
+  "remboursement": "redemption",
+  "produit de cession": "sale proceeds",
+  "attendu, pas promis": "expected, not promised",
   "La connexion est lente, un instant…": "The connection is slow, one moment…",
   "Ça prend plus de temps que prévu.": "This is taking longer than expected.",
   "Réessayer": "Try again",

@@ -10,6 +10,7 @@ import { fmt, fmtPct } from "@/lib/format";
 import q from "./QuoteHistory.module.css";
 import styles from "./CompareCharts.module.css";
 import { useDates, useT } from "@/i18n/client";
+import { Info } from "./Info";
 import { type Lu, RangeRead, TrackBand, TrackMarks, togglePin, trackStyles, useTracker } from "./charts/tracker";
 
 /**
@@ -56,7 +57,21 @@ function ReturnBars({ lines, benchmark }: { lines: CompareLine[]; benchmark?: Be
   return (
     <div className={styles.card}>
       <div className={styles.head}>
-        <b>{t("Le rendement, sur une même règle")}</b>
+        <div className={styles.titreCarte}>
+          <b>{t("Le rendement, sur une même règle")}</b>
+          <Info label={t("Comment lire")} contenu={<>{t("Les barres se comparent, mais pas leurs natures :")}{" "}
+        {lines.map((l, i) => (
+          <span key={l.id}>
+            {i > 0 ? " · " : ""}
+            <i className={COLORS[i]}>■</i> {t(l.title)} : {t(NATURE[l.ret.nature])}
+          </span>
+        ))}
+.{" "}
+        {lines.some((l) => l.ret.nature === "promesse") && t("Un rendement « si servi » ou « au pair » suppose que votre ordre est servi au prix indiqué et que l'émetteur paie jusqu'au terme.") + " "}
+        {lines.some((l) => l.ret.nature === "passe") && t("Un rendement passé ne dit rien de l'année qui vient : il se lit avec le repli et les variations.") + " "}
+        {lines.some((l) => l.ret.nature === "cours") && t("Un rendement de dividende dépend d'une décision annuelle des actionnaires et bouge avec le cours.") + " "}
+        {lines.some((l) => l.ret.nature === "aucune") && t("Une ligne sans rendement (un rachat, une action sans dividende connu) se lit dans le calendrier des flux, pas ici.")}</>} />
+        </div>
         <span>{t("brut, avant frais et fiscalité")}</span>
       </div>
       <div className={styles.bars}>
@@ -72,20 +87,6 @@ function ReturnBars({ lines, benchmark }: { lines: CompareLine[]; benchmark?: Be
           </div>
         ))}
       </div>
-      <p className={styles.how}>
-        <b>{t("Comment lire")}</b> : {t("Les barres se comparent, mais pas leurs natures :")}{" "}
-        {lines.map((l, i) => (
-          <span key={l.id}>
-            {i > 0 ? " · " : ""}
-            <i className={COLORS[i]}>■</i> {t(l.title)} : {t(NATURE[l.ret.nature])}
-          </span>
-        ))}
-.{" "}
-        {lines.some((l) => l.ret.nature === "promesse") && t("Un rendement « si servi » ou « au pair » suppose que votre ordre est servi au prix indiqué et que l'émetteur paie jusqu'au terme.") + " "}
-        {lines.some((l) => l.ret.nature === "passe") && t("Un rendement passé ne dit rien de l'année qui vient : il se lit avec le repli et les variations.") + " "}
-        {lines.some((l) => l.ret.nature === "cours") && t("Un rendement de dividende dépend d'une décision annuelle des actionnaires et bouge avec le cours.") + " "}
-        {lines.some((l) => l.ret.nature === "aucune") && t("Une ligne sans rendement (un rachat, une action sans dividende connu) se lit dans le calendrier des flux, pas ici.")}
-      </p>
     </div>
   );
 }
@@ -120,7 +121,13 @@ function TwoFunds({ lines, benchmark }: { lines: CompareLine[]; benchmark?: Benc
   return (
     <div className={styles.card}>
       <div className={styles.head}>
-        <b>{t("Deux fonds sur la même période")}</b>
+        <div className={styles.titreCarte}>
+          <b>{t("Deux fonds sur la même période")}</b>
+          <Info label={t("Comment lire")} contenu={<>{reading === "placement" && t("Le même million placé le même jour dans chaque fonds, brut, avant frais d'entrée et de sortie ; la ligne pointillée est ce que le dernier bon du Trésor aurait donné. Une courbe plus haute a gagné plus, pas forcément avec le même calme : regardez « Repli ».")}
+        {reading === "rendement" && t("À chaque date, le rendement annualisé des {n} mois qui précèdent, pour chaque fonds : la fenêtre la plus longue que les deux historiques permettent. Une courbe stable est un fonds régulier ; deux courbes qui se croisent souvent se valent sur la durée.", { n: Math.round(windowDays / 30) })}
+        {reading === "rendement" && series.some((s) => s.length === 0) && " " + t("Un des deux fonds n'a pas encore assez de VL pour cette fenêtre : sa courbe viendra avec les prochains bulletins.")}
+        {reading === "repli" && t("À chaque date, de combien chaque fonds était sous son plus haut : zéro = au sommet. Plus la zone rouge est profonde et longue, plus il a fallu de patience. C'est le prix du gain de l'autre lecture.")}</>} />
+        </div>
         <span>
           {t("du")} {fmtDate(from)} {t("au")} {fmtDate(to)} · {t("la période commune, à partir de la première VL du plus jeune")}
         </span>
@@ -146,13 +153,6 @@ function TwoFunds({ lines, benchmark }: { lines: CompareLine[]; benchmark?: Benc
           </span>
         )}
       </div>
-      <p className={styles.how}>
-        <b>{t("Comment lire")}</b> —{" "}
-        {reading === "placement" && t("Le même million placé le même jour dans chaque fonds, brut, avant frais d'entrée et de sortie ; la ligne pointillée est ce que le dernier bon du Trésor aurait donné. Une courbe plus haute a gagné plus, pas forcément avec le même calme : regardez « Repli ».")}
-        {reading === "rendement" && t("À chaque date, le rendement annualisé des {n} mois qui précèdent, pour chaque fonds : la fenêtre la plus longue que les deux historiques permettent. Une courbe stable est un fonds régulier ; deux courbes qui se croisent souvent se valent sur la durée.", { n: Math.round(windowDays / 30) })}
-        {reading === "rendement" && series.some((s) => s.length === 0) && " " + t("Un des deux fonds n'a pas encore assez de VL pour cette fenêtre : sa courbe viendra avec les prochains bulletins.")}
-        {reading === "repli" && t("À chaque date, de combien chaque fonds était sous son plus haut : zéro = au sommet. Plus la zone rouge est profonde et longue, plus il a fallu de patience. C'est le prix du gain de l'autre lecture.")}
-      </p>
     </div>
   );
 }
@@ -189,7 +189,10 @@ function FundVsDebt({ fund, debt }: { fund: CompareLine; debt: CompareLine }) {
   return (
     <div className={styles.card}>
       <div className={styles.head}>
-        <b>{t("Le passé de l'un, la promesse de l'autre")}</b>
+        <div className={styles.titreCarte}>
+          <b>{t("Le passé de l'un, la promesse de l'autre")}</b>
+          <Info label={t("Comment lire")} contenu={<>{t("Le titre de dette n'a pas de courbe : il a des dates. Sa ligne monte en marches à chaque coupon et saute au remboursement ; elle vaut si l'émetteur paie. Le fonds en face montre ce qu'il a fait sur une durée égale, dans le passé : ce n'est pas ce qu'il fera. Aucune des deux lignes n'est une prévision.")}</>} />
+        </div>
         <span>
           {t("même montant, même durée")} : {Math.round(horizon / 30)} {t("mois")}
         </span>
@@ -203,14 +206,17 @@ function FundVsDebt({ fund, debt }: { fund: CompareLine; debt: CompareLine }) {
           <i className={styles.b}>■</i> {t(debt.title)} · {fmt(cum)} FCFA <small>({t("promesse")}, {fmtDate(start, false)} → {fmtDate(end, false)})</small>
         </span>
       </div>
-      <p className={styles.how}>
-        <b>{t("Comment lire")}</b> : {t("Le titre de dette n'a pas de courbe : il a des dates. Sa ligne monte en marches à chaque coupon et saute au remboursement ; elle vaut si l'émetteur paie. Le fonds en face montre ce qu'il a fait sur une durée égale, dans le passé : ce n'est pas ce qu'il fera. Aucune des deux lignes n'est une prévision.")}
-      </p>
     </div>
   );
 }
 
 /* ---------- 4. the cash-flow calendar ---------- */
+/** Le plus petit pas, en mois, qui fait tenir « place » repères sur « jours » jours : du mois à vingt ans. */
+export function pasDesRepères(jours: number, place: number): number {
+  const mois = Math.max(1, jours / 30.4);
+  for (const s of [1, 2, 3, 4, 6, 12, 24, 60, 120]) if (Math.ceil(mois / s) <= place) return s;
+  return 240;
+}
 const KIND: Record<FlowItem["kind"], string> = { sortie: "Décaissement", coupon: "Coupon", capital: "Remboursement", dividende: "Dividende attendu", cession: "Produit de cession" };
 function Calendar({ lines }: { lines: CompareLine[] }) {
   const { fmtDate } = useDates();
@@ -239,10 +245,14 @@ function Calendar({ lines }: { lines: CompareLine[] }) {
   const H = laneH * lines.length + 24;
   const padL = phone ? 12 : 24;
   const x = (d: string) => padL + ((W - padL - 24) * daysBetween(from, d)) / span;
-  const ticks = useMemo(() => {
+  /* LES DATES NE SE SUPERPOSENT PLUS (21 novembre 2026, audit des flux) : le pas des repères se déduit de la place qu'ils ont. Un repère écrit « sept. 2027 » en occupe environ 90 unités du dessin ; on garde le plus petit pas (1, 2, 3, 4, 6, 12 ou 24 mois) qui les fait tenir côte à côte, sur téléphone comme au bureau. */
+  const place = Math.max(2, Math.floor((W - padL - 24) / (phone ? 82 : 90)) + 1);
+  const pas = pasDesRepères(span, place);
+  /* Quelques repères au plus : le calcul est court, il n'a pas besoin de mémoïsation. */
+  const ticks = (() => {
     const out: string[] = [];
     const d = new Date(from + "T00:00:00Z");
-    const step = span > 900 ? 6 : span > 400 ? 3 : 1;
+    const step = pas;
     d.setUTCDate(1);
     d.setUTCMonth(d.getUTCMonth() + 1); // the first whole month after the start
     while (d.toISOString().slice(0, 10) <= to) {
@@ -250,12 +260,23 @@ function Calendar({ lines }: { lines: CompareLine[] }) {
       d.setUTCMonth(d.getUTCMonth() + step);
     }
     return out;
-  }, [from, to, span]);
+  })();
   const h = hover ? lines[hover.l].flows!.items[hover.i] : null;
+  const kinds = new Set(all.filter((f) => f.amount > 0 && f.sure).map((f) => f.kind));
+  const incertains = all.filter((f) => f.amount > 0 && !f.sure);
+  const legende = {
+    out: all.some((f) => f.amount < 0),
+    revient: (["coupon", "capital", "cession"] as const).filter((k) => kinds.has(k)).map((k) => (k === "coupon" ? "coupons" : k === "capital" ? "remboursement" : "produit de cession")),
+    incertain: incertains.length > 0,
+    incertainSeulementDividende: incertains.every((f) => f.kind === "dividende"),
+  };
   return (
     <div className={`${styles.card} ${styles.full}`}>
       <div className={styles.head}>
-        <b>{t("Le calendrier des flux")}</b>
+        <div className={styles.titreCarte}>
+          <b>{t("Le calendrier des flux")}</b>
+          <Info label={t("Comment lire")} contenu={<>{t("Une ligne de temps par titre : la barre rouge est ce que vous payez au règlement, les barres de couleur ce qui revient et quand : coupons, puis le capital au terme. La hauteur est proportionnelle au montant. C'est la question « quand l'argent revient » lue sans un seul pourcentage ; les montants sont bruts, pour un nominal de référence, et supposent que l'émetteur paie.")}</>} />
+        </div>
         <span>{lines.map((l) => t(l.flows!.title)).join(" · ")}</span>
       </div>
       <div className={styles.calWrap} ref={boxRef}>
@@ -288,13 +309,13 @@ function Calendar({ lines }: { lines: CompareLine[] }) {
             );
           })}
           {ticks.map((d) => (
-            <text key={d} x={x(d)} y={H - 7} className={styles.calTick} textAnchor="middle">
+            <text key={d} x={x(d)} y={H - 7} className={styles.calTick} textAnchor={x(d) < padL + 32 ? "start" : x(d) > W - 36 ? "end" : "middle"}>
               {fmtDate(d).replace(/^1 /, "")}
             </text>
           ))}
         </svg>
         {h && hover && (
-          <div className={`${q.tip} ${styles.calTip}`} style={{ left: `${(x(h.date) / W) * 100}%`, top: `${((hover.l * laneH + laneH / 2) / H) * 100}%` }} role="status">
+          <div className={`${q.tip} ${styles.calTip}`} style={{ left: `clamp(110px, ${(x(h.date) / W) * 100}%, calc(100% - 110px))`, top: `${((hover.l * laneH + laneH / 2) / H) * 100}%` }} role="status">
             <b>
               {h.amount < 0 ? "−" : "+"}
               {fmt(Math.abs(h.amount))} FCFA
@@ -307,24 +328,33 @@ function Calendar({ lines }: { lines: CompareLine[] }) {
         )}
       </div>
       <div className={styles.keys}>
-        <span>
-          <i className={styles.outKey}>■</i> {t("ce que vous payez")}
-        </span>
-        <span>
-          <i className={styles.a}>■</i> <i className={styles.b}>■</i> {t("ce qui revient (coupons, remboursement)")}
-        </span>
-        <span>
-          <i className={styles.maybeKey}>■</i> {t("attendu, pas promis (dividende)")}
-        </span>
+        {/* LA LÉGENDE NE DIT QUE CE QUI EST DESSINÉ (21 novembre 2026, audit des flux) : « attendu, pas promis (dividende) » ne paraît que si un versement incertain est au graphe, « ce que vous payez » que s'il y a un décaissement, et ce qui revient nomme ses sortes (coupons, remboursement, produit de cession) d'après les versements présents. */}
+        {legende.out && (
+          <span>
+            <i className={styles.outKey}>■</i> {t("ce que vous payez")}
+          </span>
+        )}
+        {legende.revient.length > 0 && (
+          <span>
+            {lines.map((_, i) => (
+              <i key={i} className={COLORS[i]}>
+                ■{" "}
+              </i>
+            ))}
+            {t("ce qui revient")} ({legende.revient.map((k) => t(k)).join(", ")})
+          </span>
+        )}
+        {legende.incertain && (
+          <span>
+            <i className={styles.maybeKey}>■</i> {t(legende.incertainSeulementDividende ? "attendu, pas promis (dividende)" : "attendu, pas promis")}
+          </span>
+        )}
         {lines.map((l, i) => (
           <span key={l.id}>
             <i className={COLORS[i]}>■</i> {l.flows!.outlay > 0 ? `${fmt(l.flows!.outlay)} → ${fmt(l.flows!.back)} FCFA` : `${fmt(l.flows!.back)} FCFA ${t("encaissés")}`}
           </span>
         ))}
       </div>
-      <p className={styles.how}>
-        <b>{t("Comment lire")}</b> : {t("Une ligne de temps par titre : la barre rouge est ce que vous payez au règlement, les barres de couleur ce qui revient et quand : coupons, puis le capital au terme. La hauteur est proportionnelle au montant. C'est la question « quand l'argent revient » lue sans un seul pourcentage ; les montants sont bruts, pour un nominal de référence, et supposent que l'émetteur paie.")}
-      </p>
     </div>
   );
 }
