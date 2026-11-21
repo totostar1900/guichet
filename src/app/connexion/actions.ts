@@ -106,6 +106,8 @@ export async function devLogin(form: FormData): Promise<void> {
 
 /* ---------- Déconnexion (les deux modes) ---------- */
 
+/* APRÈS UNE SORTIE, ON ARRIVE SUR LA PORTE, PAS SUR LA VITRINE (21 novembre 2026, le client : « une fois totalement déconnecté, il est demandé de recommencer l'inscription depuis le début au lieu de simplement utiliser le code »).
+   « / » est la vitrine d'un visiteur (« Créer mon compte ») ; « /connexion » montre le code de l'appareil reconnu, et l'e-mail en secours. L'appareil reste reconnu à la sortie : seule la session s'arrête. */
 export async function logout(): Promise<void> {
   if (authMode() === "supabase") {
     const { supabaseAuthClient } = await import("@/lib/auth/supabase");
@@ -114,7 +116,7 @@ export async function logout(): Promise<void> {
   } else {
     await clearDevSession();
   }
-  redirect("/");
+  redirect("/connexion");
 }
 
 /** « Se déconnecter partout » : every session of this account, on every device, ends now; the trusted devices stay listed under Sécurité. */
@@ -126,7 +128,7 @@ export async function logoutEverywhere(): Promise<void> {
   } else {
     await clearDevSession();
   }
-  redirect("/");
+  redirect("/connexion");
 }
 
 /* ---------- Appareils de confiance : le code à six chiffres de ce navigateur ---------- */

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useDates, useT } from "@/i18n/client";
 import type { ChannelStatus } from "@/lib/domain/types";
 import { ProofBlock } from "@/components/ProofBlock";
-import styles from "../securite/page.module.css";
+import styles from "@/app/moi/securite/page.module.css";
 
 /**
  * LES COORDONNÉES, UNE FOIS, ICI (19 novembre 2026, planche « Compte, connexion et textes », 3A).

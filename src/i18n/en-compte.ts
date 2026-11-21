@@ -41,6 +41,8 @@ export const EN_COMPTE: Record<string, string> = {
      n'en montre pas aujourd'hui — il lit le nom et la phrase — mais la table
      les porte, et toute surface qui la lit les affichera. */
   "nom, ville, canaux": "name, city, channels",
+  "pièces, identité, coordonnées": "documents, identity, contact details",
+  "votre dossier d'ouverture, vos pièces, votre identité et vos deux canaux prouvés : e-mail et téléphone": "your opening file, your documents, your identity and your two proven channels: e-mail and phone",
   "votre dossier": "your file",
   "horizon et tolérance": "horizon and tolerance",
   "clés et appareils": "passkeys and devices",

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { translatable } from "@/i18n/core";
+import { STATUS_LABEL } from "@/lib/kyc/checklist";
 import { AIDE_PAGES, COMPTE_PAGES, INSTRUMENTS_PAGES, MARCHE_PAGES, PARAMETRES_PAGES, PORTEFEUILLE_PAGES, type NavPage } from "@/lib/nav-groups";
 
 /**
@@ -160,9 +161,9 @@ describe("le compte en pages", () => {
    */
   it("donne une adresse à chacune des cinq rubriques", () => {
     const sommaire = lire("src/app/moi/compte/page.tsx");
-    expect(sommaire, "le sommaire du compte a réécrit sa propre liste").toContain("COMPTE_PAGES.filter");
+    expect(sommaire, "le sommaire du compte a réécrit sa propre liste").toContain("COMPTE_PAGES.map");
     const portes = COMPTE_PAGES.map((p) => p.href);
-    expect(portes, "une rubrique a quitté la table du compte").toEqual(["/moi/identite", "/moi/dossier", "/ouvrir-un-compte", "/moi/profil"]);
+    expect(portes, "une rubrique a quitté la table du compte").toEqual(["/ouvrir-un-compte", "/moi/profil"]);
   });
 
   /**
@@ -176,8 +177,8 @@ describe("le compte en pages", () => {
    */
   it("garde tout ce que la feuille portait, chacun à son adresse", () => {
     const inventaire: [string, string, string][] = [
-      ["identityAction", "src/app/moi/identite/Identite.tsx", "export function Identite"],
-      ["ProofBlock", "src/app/moi/identite/Canaux.tsx", "export function Canaux"],
+      ["identityAction", "src/app/ouvrir-un-compte/Identite.tsx", "export function Identite"],
+      ["ProofBlock", "src/app/ouvrir-un-compte/Canaux.tsx", "export function Canaux"],
       ["PushToggle", "src/app/moi/appareil/Appareil.tsx", "export function Appareil"],
       ["PaletteSwitch", "src/components/mobile/BarreDuHaut.tsx", "export function BarreDuHaut"],
       ["LangSwitch", "src/components/mobile/BarreDuHaut.tsx", "export function BarreDuHaut"],
@@ -229,9 +230,9 @@ describe("le compte en pages", () => {
      interface anglaise sans que rien n'échoue. Il vit maintenant au sommaire
      du compte, sous « Mes pièces ». */
   it("traduit l'état du dossier d'ouverture", () => {
-    const sommaire = lire("src/app/moi/compte/page.tsx");
-    const etats = [...sommaire.matchAll(/t\("(approuvé|dossier [^"]+)"\)/g)].map((m) => m[1]);
-    expect(etats.length, "le sommaire ne dit plus où en est le dossier").toBeGreaterThan(0);
+    expect(lire("src/app/moi/compte/page.tsx"), "le sommaire ne dit plus où en est le dossier").toMatch(/t\(STATUS_LABEL\[fiche\.status\]\)/);
+    const etats = Object.values(STATUS_LABEL);
+    expect(etats.length).toBeGreaterThan(0);
     expect(
       etats.filter((e) => !translatable(e)),
       "à traduire dans src/i18n",

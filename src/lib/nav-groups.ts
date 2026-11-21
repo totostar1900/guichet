@@ -165,9 +165,6 @@ export const PARAMETRES_PAGES: NavPage[] = [
 
 export const COMPTE_PAGES: NavPage[] = [
   /* QUATRE RUBRIQUES, UNE DONNÉE UNE FOIS (19 novembre 2026, planche « Compte, connexion et textes », 3A). L'e-mail et le téléphone figuraient en trois endroits, le canal de contact en trois, les alertes en deux. « Profil et coordonnées » porte l'identité et les deux canaux prouvés ; « Mon dossier » range les pièces et le profil d'investisseur ; « Sécurité et connexion » ne parle que de la façon d'ouvrir Guichet ; « Préférences » porte la langue, les couleurs et TOUTES les notifications. */
-  { key: "identite", href: "/moi/identite", label: "Profil et coordonnées", tuile: "nom, e-mail, téléphone", hint: "votre nom, votre ville, et vos deux canaux prouvés : e-mail et téléphone" },
-  { key: "dossier", href: "/moi/dossier", label: "Mon dossier", tuile: "pièces et profil", hint: "vos pièces d'ouverture et votre profil d'investisseur" },
-  /* Les deux pages du dossier : sous « Mon dossier », cherchées et situées comme avant. */
-  { key: "pieces", href: "/ouvrir-un-compte", label: "Mes pièces", tuile: "votre dossier", hint: "votre dossier d'ouverture et les pièces qui le composent", sousDe: "dossier" },
-  { key: "profil", href: "/moi/profil", label: "Profil d'investisseur", tuile: "horizon et tolérance", hint: "votre horizon, votre tolérance au risque, et ce que la maison en déduit", sousDe: "dossier" },
+  { key: "pieces", href: "/ouvrir-un-compte", label: "Mes pièces", tuile: "pièces, identité, coordonnées", hint: "votre dossier d'ouverture, vos pièces, votre identité et vos deux canaux prouvés : e-mail et téléphone" },
+  { key: "profil", href: "/moi/profil", label: "Profil d'investisseur", tuile: "horizon et tolérance", hint: "votre horizon, votre tolérance au risque, et ce que la maison en déduit" },
 ];

@@ -3,6 +3,7 @@ import { repo } from "@/lib/data";
 import { getT } from "@/i18n/server";
 import { Rubriques } from "@/components/mobile/Rubriques";
 import { COMPTE_PAGES } from "@/lib/nav-groups";
+import { STATUS_LABEL } from "@/lib/kyc/checklist";
 import { Deconnexion } from "./Deconnexion";
 import styles from "@/components/Feuillet.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
@@ -44,20 +45,18 @@ export default async function ComptePage() {
   const t = await getT();
   const r = repo();
 
-  const [fiche, canaux, appareils] = await Promise.all([
+  const [fiche, canaux] = await Promise.all([
     r.getClientFileByUser(s.userId).catch(() => undefined),
     r.getChannelStatus(s.userId).catch(() => undefined),
-    r.listDevices(s.userId).catch(() => []),
   ]);
 
   /* Chaque rubrique dit son état, et c'est ce qui épargne le détour : « 1
      canal · 0 appareil » répond avant qu'on ouvre la page. */
   const prouves = [canaux?.emailVerifiedAt, canaux?.phoneVerifiedAt].filter(Boolean).length;
   const etat: Record<string, string | undefined> = {
-    identite: prouves ? t(prouves > 1 ? "{n} canaux prouvés" : "1 canal prouvé", { n: String(prouves) }) : t("aucun canal prouvé"),
-    dossier: fiche?.status === "approuve" ? t("approuvé") : undefined,
-    securite: appareils.length ? t(appareils.length > 1 ? "{n} appareils" : "1 appareil", { n: String(appareils.length) }) : undefined,
+    pieces: fiche ? t(STATUS_LABEL[fiche.status]) : prouves ? t(prouves > 1 ? "{n} canaux prouvés" : "1 canal prouvé", { n: String(prouves) }) : undefined,
   };
+
 
   return (
     <Glissement>
@@ -70,7 +69,7 @@ export default async function ComptePage() {
               Ce qui dépend du client — « 1 canal prouvé », « approuvé », « 2
               appareils » — se calcule ici, et nulle part ailleurs. */}
           <Rubriques
-            items={COMPTE_PAGES.filter((p) => !p.sousDe).map((p) => ({
+            items={COMPTE_PAGES.map((p) => ({
               href: p.href,
               nom: t(p.label),
               quoi: t(p.hint),
@@ -78,11 +77,10 @@ export default async function ComptePage() {
             }))}
           />
 
-          {/* PLUS BAS : les textes que la maison opposable, et l'aide. Ce ne sont pas des rubriques de VOTRE compte, mais on les cherche ici (19 novembre 2026, planche « Compte, connexion et textes », 3A). */}
+          {/* PLUS BAS : les textes que la maison oppose. Ce n'est pas une rubrique de VOTRE compte, mais on le cherche ici (19 novembre 2026). L'aide et le contact n'y sont plus (21 novembre 2026, le client : « retirer aide et contact de mon compte ») : le siège « Aide » les porte. */}
           <Rubriques
             items={[
               { href: "/moi/textes", nom: t("Textes et conditions"), quoi: t("Vos textes et conditions : les versions que vous avez acceptées, et la convention.") },
-              { href: "/info/aide", nom: t("Aide et contact"), quoi: t("Vos questions, nos réponses, et un conseiller à joindre.") },
             ]}
           />
 

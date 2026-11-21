@@ -32,7 +32,6 @@ export async function IndexPulse({
   liens = true,
   pied,
   aPlat,
-  seances,
 }: {
   compact?: boolean;
   /**
@@ -68,10 +67,6 @@ export async function IndexPulse({
    * la surface se touche. Sans chevron : le mot et sa flèche suffisent.
    */
   pied?: { href: string; mot: string };
-  /**
-   * LA PORTE DU TABLEAU DES SÉANCES (21 novembre 2026, planche « Marché en bleu », 1A) : la carte « Ce qui s'est échangé » est partie du Marché, et elle portait le seul lien direct vers « /indice#seances ». Il revient ici, au pied des chiffres de la carte, à côté de « L'indice → » du coin.
-   */
-  seances?: { href: string; mot: string };
 }) {
   const t = await getT();
   const bulletins = await repo().listBulletins(400).catch(() => []);
@@ -88,6 +83,9 @@ export async function IndexPulse({
    */
   const plat = stats.day == null || Math.abs(stats.day) < 0.005;
   const bouge = plat ? [...stats.points].reverse().find((x) => x.variationPct != null && Math.abs(x.variationPct) >= 0.005) : undefined;
+  /* LE TITRE À PLAT, AVEC SON TRAIT (21 novembre 2026, le client : « passe BVMAC Index comme titre du graphique avec son trait sur le côté ; retire le titre BVMAC All Share du graphe, le trait bleu sur la carte, le lien Les séances ; le lien L'indice suivra l'affichage des autres liens de la page »).
+     Une page qui demande un en-tête SANS titre (le Marché) reçoit le titre des blocs de la maison, « BVMAC Index », dont le lien « L'indice › » est celui des autres blocs de la page. */
+  const titrePlat = aPlat ?? (entete && !entete.titre ? { titre: "BVMAC Index", href: entete.lien.href, mot: entete.lien.mot } : undefined);
   const pts = stats.points.slice(-60);
   const min = Math.min(...pts.map((p) => p.value));
   const max = Math.max(...pts.map((p) => p.value));
@@ -95,7 +93,7 @@ export async function IndexPulse({
   const line = pts.map((p, i) => `${((i / Math.max(1, pts.length - 1)) * 416 + 2).toFixed(1)},${(56 - ((p.value - min) / span) * 50).toFixed(1)}`).join(" ");
   return (
     /* UN SEUL ENFANT DE LA PAGE : l'en-tête et la carte forment un bloc, séparés par « --titre-gap ». Rendus en deux enfants d'une pile, ils s'écartaient de 28 + 16 px (mesuré sur le code, le 1er novembre 2026) et la carte portait en plus ses 12 px de marge basse. */
-    <div className={`${styles.bloc} ${aPlat ? styles.blocPlat : ""}`} data-anim="bloc">
+    <div className={`${styles.bloc} ${titrePlat ? styles.blocPlat : ""}`} data-anim="bloc">
       {/* LE TITRE S'EN VA AVEC LA PIÈCE, OU IL NE VIENT PAS.
           La page d'arrivée l'écrivait de son côté, dans une section à elle :
           « LE MARCHÉ · La place → », puis l'indice en dessous. Or l'indice
@@ -115,12 +113,11 @@ export async function IndexPulse({
           <Link href={entete.lien.href}>{entete.lien.mot} →</Link>
         </div>
       )}
-      {aPlat && <TitreDeBloc id="indice-bvmac" titre={aPlat.titre} href={aPlat.href} tout={aPlat.mot} />}
+      {titrePlat && <TitreDeBloc id="indice-bvmac" titre={titrePlat.titre} href={titrePlat.href} tout={titrePlat.mot} />}
       <Enveloppe pied={pied ?? (aPlat ? { href: aPlat.href, mot: "" } : undefined)}>
-      <section className={`${styles.pulse} ${compact ? styles.compact : ""}`} aria-label="BVMAC All Share Index" data-coach="indice" title={aPlat ? t("Indice de prix : les dividendes ne sont pas comptés dans l'indice") : undefined}>
+      <section className={`${styles.pulse} ${compact ? styles.compact : ""} ${titrePlat ? styles.sansBarre : ""}`} aria-label="BVMAC All Share Index" data-coach="indice" title={aPlat ? t("Indice de prix : les dividendes ne sont pas comptés dans l'indice") : undefined}>
       <div className={styles.level}>
-        {!aPlat && <small>BVMAC All Share</small>}
-        <b>{stats.last.value.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
+                <b>{stats.last.value.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
         <span className={styles.date}>{fmtDate(stats.last.date)}</span>
       </div>
       <div className={styles.body}>
@@ -144,11 +141,6 @@ export async function IndexPulse({
           </span>
           {plat && bouge && <span className={styles.calme}>{t("dernier mouvement le {d}, {v}", { d: fmtDate(bouge.date, false), v: signed(bouge.variationPct, 2) })}</span>}
           {plat && !bouge && stats.points.length > 1 && <span className={styles.calme}>{t("aucun mouvement depuis la première séance lue, le {d}", { d: fmtDate(stats.points[0].date) })}</span>}
-          {seances && !pied && !aPlat && (
-            <Link href={seances.href} className={styles.how}>
-              {seances.mot} →
-            </Link>
-          )}
           {liens && !pied && !aPlat && (
             <>
               <Link href="/indice" className={styles.how}>
@@ -163,11 +155,6 @@ export async function IndexPulse({
       </div>
       {!aPlat && (
         <div className={styles.coin}>
-          {entete && !entete.titre && (
-            <Link href={entete.lien.href} className={styles.coinLien}>
-              {entete.lien.mot} →
-            </Link>
-          )}
           <span className={styles.tag} title={t("Les dividendes ne sont pas comptés dans l'indice")}>
             {t("indice de prix")}
           </span>

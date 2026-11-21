@@ -19,7 +19,16 @@ import { CODE_DE_DEMONSTRATION } from "./demo";
  * parcourir le parcours hors production.
  */
 
-export type CreerEtape = { ok: true; demo?: string } | { ok: false; error: string };
+export type CreerEtape = { ok: true; demo?: string; /** l'adresse a déjà un compte complet : on est connecté, la création n'a pas lieu */ existant?: true } | { ok: false; error: string };
+
+/* UNE ADRESSE DÉJÀ INSCRITE NE REFAIT PAS L'INSCRIPTION (21 novembre 2026). Le code prouve que la boîte est la sienne et ouvre le compte qui existe ; un compte dont le numéro est déjà prouvé est un compte complet, et lui redemander prénom, numéro, mentions et code de l'appareil écraserait ce qu'il a déjà. */
+async function dejaInscrit(): Promise<boolean> {
+  const { getSession } = await import("@/lib/auth");
+  const s = await getSession();
+  if (!s) return false;
+  const canaux = await repo().getChannelStatus(s.userId).catch(() => undefined);
+  return Boolean(canaux?.phoneVerifiedAt);
+}
 
 export async function creerEnvoyerCodeEmail(rawEmail: string, next = "/"): Promise<CreerEtape> {
   const email = z.string().email().safeParse(rawEmail.trim().toLowerCase());
@@ -37,7 +46,8 @@ export async function creerVerifierCodeEmail(rawEmail: string, code: string): Pr
   if (authMode() === "supabase") {
     const { guestVerifyEmailCode } = await import("@/app/offres/[id]/actions");
     const r = await guestVerifyEmailCode(email, code);
-    return r.ok ? { ok: true } : { ok: false, error: r.error };
+    if (!r.ok) return { ok: false, error: r.error };
+    return (await dejaInscrit()) ? { ok: true, existant: true } : { ok: true };
   }
   if (code.replace(/\s/g, "") !== CODE_DE_DEMONSTRATION) return { ok: false, error: "Code incorrect ou expiré." };
   const local = email.split("@")[0].replace(/[._-]+/g, " ").trim();
@@ -55,8 +65,9 @@ export async function creerVerifierCodeEmail(rawEmail: string, code: string): Pr
     mfaVerified: true,
   };
   await writeDevSession(s);
+  const dejaPhone = await repo().getChannelStatus(s.userId).catch(() => undefined);
   await repo().markChannelVerified(s.userId, "email", email);
-  return { ok: true };
+  return dejaPhone?.phoneVerifiedAt ? { ok: true, existant: true } : { ok: true };
 }
 
 /**

@@ -1273,6 +1273,12 @@ export const memoryRepository: Repository = {
     store().channels.set(userId, st);
     await this.updateContact(userId, channel === "phone" ? { phone: target } : { email: target });
   },
+  async channelOwner(channel, target) {
+    for (const [userId, st] of store().channels) {
+      if (channel === "phone" ? st.phone === target && st.phoneVerifiedAt : st.email === target && st.emailVerifiedAt) return userId;
+    }
+    return undefined;
+  },
   async createChannelCode(c) {
     const code: ChannelCode = { ...c, id: uid(), attempts: 0, createdAt: nowIso() };
     store().codes = store().codes.filter((x) => !(x.channel === c.channel && x.target === c.target && !x.verifiedAt));

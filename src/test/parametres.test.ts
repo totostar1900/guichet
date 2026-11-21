@@ -92,7 +92,7 @@ describe("Le blocage du code (20 novembre 2026)", () => {
 describe("La première connexion : e-mail, téléphone, prénom ; les pièces viennent après (19 novembre 2026)", () => {
   it("le prénom vient juste après le téléphone, avant « Avant d'entrer », et le parcours reprend par lui", () => {
     const c = lire("src/app/connexion/creer/CreerCompte.tsx");
-    expect(c).toMatch(/creerVerifierCodeEmail[\s\S]*vers\("telephone"\)/);
+    expect(c).toMatch(/creerVerifierCodeEmail[\s\S]*vers\(r\.existant \? "existant" : "telephone"\)/);
     expect(c).toMatch(/checkPhoneProof[\s\S]*vers\("prenom"\)/);
     expect(c).toMatch(/creerEnregistrerPrenom\(prenom\)[\s\S]*vers\("avant"\)/);
     expect(lire("src/app/connexion/creer/page.tsx")).toMatch(/"prenom" : "appareil"/);

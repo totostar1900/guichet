@@ -114,7 +114,7 @@ export default async function MarchePage() {
             s'en sert — et cette page ne le lui demandait pas. Le second lien
             de sa carte, « comment le lire », descend dans la section de
             l'éclairage, qui est faite pour lui : une carte, une flèche. */}
-        <IndexPulse entete={{ lien: { href: "/indice", mot: t("L'indice") } }} liens={false} seances={{ href: "/indice#seances", mot: t("Les séances") }} />
+        <IndexPulse entete={{ lien: { href: "/indice", mot: t("L'indice") } }} liens={false} />
 
         {/* TROIS LIGNES, ET NON SEPT. Les sept sociétés paraissaient sur quatre
             pages avec quatre jeux de colonnes : l'indice donne le capital global

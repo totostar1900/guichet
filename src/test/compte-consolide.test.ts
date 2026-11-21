@@ -9,16 +9,19 @@ const lire = (f: string) => readFileSync(f, "utf8").replace(/\/\*[\s\S]*?\*\//g,
  * L'audit : l'e-mail et le téléphone en trois endroits, le canal de contact en trois, les alertes en deux, et « Sécurité » cachée derrière le menu du coin.
  */
 describe("Mon compte, consolidé", () => {
-  it("le sommaire a deux rubriques (Paramètres en est sorti) ; les pages du dossier sont rangées dessous", () => {
-    const rubriques = COMPTE_PAGES.filter((p) => !p.sousDe).map((p) => p.label);
-    expect(rubriques).toEqual(["Profil et coordonnées", "Mon dossier"]);
+  it("le sommaire a deux rubriques, « Mes pièces » et « Profil d'investisseur » ; « Profil et coordonnées » et « Mon dossier » n'existent plus (21 novembre 2026)", () => {
+    expect(COMPTE_PAGES.map((p) => p.label)).toEqual(["Mes pièces", "Profil d'investisseur"]);
+    expect(COMPTE_PAGES.some((p) => p.sousDe), "une rubrique est rangée sous une autre").toBe(false);
     expect(PARAMETRES_PAGES.map((p) => p.href), "Paramètres sort de Mon compte et a sa propre adresse").toEqual(["/parametres"]);
-    expect(COMPTE_PAGES.filter((p) => p.sousDe === "dossier").map((p) => p.href)).toEqual(["/ouvrir-un-compte", "/moi/profil"]);
-    expect(lire("src/app/moi/dossier/page.tsx")).toMatch(/p\.sousDe === "dossier"/);
+    expect(lire("src/app/moi/dossier/page.tsx"), "« Mon dossier » ne mène plus au compte").toMatch(/redirect\("\/moi\/compte"\)/);
+    expect(lire("src/app/moi/identite/page.tsx"), "« Profil et coordonnées » ne mène plus à Mes pièces").toMatch(/redirect\("\/ouvrir-un-compte#profil-et-coordonnees"\)/);
   });
-  it("l'e-mail et le téléphone vivent une fois, sur « Profil et coordonnées », avec leur preuve", () => {
-    expect(lire("src/app/moi/identite/page.tsx")).toMatch(/<Canaux /);
-    expect(lire("src/app/moi/identite/Canaux.tsx")).toMatch(/<ProofBlock kind="phone"/);
+  it("l'identité, l'e-mail et le téléphone vivent une fois, sur « Mes pièces », avec leur preuve", () => {
+    const pieces = lire("src/app/ouvrir-un-compte/page.tsx");
+    expect(pieces).toMatch(/id="profil-et-coordonnees"/);
+    expect(pieces).toMatch(/<Identite /);
+    expect(pieces).toMatch(/<Canaux /);
+    expect(lire("src/app/ouvrir-un-compte/Canaux.tsx")).toMatch(/<ProofBlock kind="phone"/);
     for (const f of ["src/app/parametres/page.tsx", "src/app/moi/securite/SecurityPanel.tsx"]) {
       expect(lire(f), `${f} reparle des coordonnées`).not.toMatch(/ProofBlock|ContactForm|Mes coordonnées|Mes deux canaux/);
     }
@@ -39,9 +42,18 @@ describe("Mon compte, consolidé", () => {
     const deconnexion = hub.slice(debut, hub.indexOf("export function DeconnexionPartout", debut));
     expect(deconnexion).not.toMatch(/partout/i);
   });
-  it("le sommaire mène aussi aux textes et à l'aide, plus bas", () => {
+  it("le sommaire mène aux textes, plus bas, et n'a plus ni aide ni contact (21 novembre 2026)", () => {
     const hub = lire("src/app/moi/compte/page.tsx");
     expect(hub).toMatch(/href: "\/moi\/textes"/);
-    expect(hub).toMatch(/href: "\/info\/aide"/);
+    expect(hub, "l'aide ou le contact sont revenus au compte").not.toMatch(/\/info\/aide|\/moi\/contact|Aide et contact/);
+  });
+  it("la sortie mène à la porte du code, pas à la vitrine d'inscription (21 novembre 2026)", () => {
+    const a = lire("src/app/connexion/actions.ts");
+    for (const nom of ["logout", "logoutEverywhere"]) {
+      const debut = a.indexOf(`export async function ${nom}(`);
+      const corps = a.slice(debut, a.indexOf("\n}", debut));
+      expect(corps, `${nom} renvoie encore à la vitrine`).toMatch(/redirect\("\/connexion"\)/);
+      expect(corps, `${nom} efface l'appareil reconnu`).not.toMatch(/oublierAppareil/);
+    }
   });
 });

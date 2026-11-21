@@ -55,9 +55,19 @@ async function supabasePhoneDoor(phone: string) {
 }
 
 /** Sends a code to a phone (WhatsApp; SMS when a provider is wired). */
+/* UN NUMÉRO NE SERT QU'À UN COMPTE (21 novembre 2026, le client : « l'app ne détecte pas les e-mails et numéros déjà utilisés et permet une nouvelle inscription avec des accréditations déjà en place »).
+   La preuve par WhatsApp n'était comparée à aucun autre compte : le même numéro pouvait être prouvé deux fois. On refuse avant d'envoyer le code, et encore avant de le valider. */
+export const MESSAGE_NUMERO_PRIS = "Ce numéro est déjà utilisé par un compte. Connectez-vous avec lui, ou indiquez un autre numéro.";
+async function numeroPris(userId: string | undefined, phone: string): Promise<boolean> {
+  if (!userId) return false;
+  const proprietaire = await repo().channelOwner("phone", phone).catch(() => undefined);
+  return Boolean(proprietaire && proprietaire !== userId);
+}
+
 export async function requestPhoneProof(userId: string | undefined, rawPhone: string): Promise<ProofRequest> {
   const phone = normalizePhone(rawPhone);
   if (!/^\+\d{8,15}$/.test(phone)) return { ok: false, error: "Numéro au format international, ex. +237 6 87 67 67 67." };
+  if (await numeroPris(userId, phone)) return { ok: false, error: MESSAGE_NUMERO_PRIS };
   if (supabasePhoneOtp()) {
     const { sb, door } = await supabasePhoneDoor(phone);
     // `phone_change` takes no channel: Supabase sends it on the provider's own, SMS by default.
@@ -102,6 +112,7 @@ export async function confirmPhoneProof(userId: string | undefined, rawPhone: st
   const phone = normalizePhone(rawPhone);
   const code = rawCode.replace(/\D/g, "");
   if (code.length !== 6) return { ok: false, error: "Le code comporte 6 chiffres." };
+  if (await numeroPris(userId, phone)) return { ok: false, error: MESSAGE_NUMERO_PRIS };
   if (supabasePhoneOtp()) {
     // Supabase's code never reached our table: we hand it back to Supabase to check.
     const { sb, door } = await supabasePhoneDoor(phone);

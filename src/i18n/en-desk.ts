@@ -272,6 +272,7 @@ export const EN_MORE: Record<string, string> = {
   "réf.": "ref.",
   "Étape {n} sur 5": "Step {n} of 5",
   "Mes coordonnées": "My contact details",
+  "Mon identité et mes coordonnées": "My identity and contact details",
   "à compléter": "to complete",
   "Alertes sur cet appareil": "Alerts on this device",
   "Lignes suivies": "Followed lines",

@@ -2510,6 +2510,12 @@ export const supabaseRepository: Repository = {
     const { error } = await db().from("profiles").upsert({ id: userId, ...row }, { onConflict: "id" });
     if (error) fail("markChannelVerified", error);
   },
+  async channelOwner(channel, target) {
+    const colonnes = channel === "phone" ? { valeur: "phone", preuve: "phone_verified_at" } : { valeur: "email", preuve: "email_verified_at" };
+    const { data, error } = await db().from("profiles").select("id").eq(colonnes.valeur, target).not(colonnes.preuve, "is", null).limit(1).maybeSingle();
+    if (error) fail("channelOwner", error);
+    return data ? String((data as { id: string }).id) : undefined;
+  },
   async createChannelCode(c) {
     await db().from("channel_codes").delete().eq("channel", c.channel).eq("target", c.target).is("verified_at", null);
     const { data, error } = await db().from("channel_codes").insert({ user_id: c.userId ?? null, channel: c.channel, target: c.target, code_hash: c.codeHash, expires_at: c.expiresAt }).select("*").single();

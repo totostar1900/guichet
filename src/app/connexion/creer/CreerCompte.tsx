@@ -17,7 +17,7 @@ import { creerEnregistrerPrenom, creerEnvoyerCodeEmail, creerVerifierCodeEmail }
 import styles from "./creer.module.css";
 
 export type EtapeDeDepart = "email" | "telephone" | "prenom" | "appareil";
-type Etape = "email" | "email-code" | "telephone" | "telephone-code" | "prenom" | "avant" | "code" | "code-bis";
+type Etape = "email" | "email-code" | "existant" | "telephone" | "telephone-code" | "prenom" | "avant" | "code" | "code-bis";
 
 /** Combien de secondes avant de pouvoir demander un nouveau code. */
 const ATTENTE = 60;
@@ -88,7 +88,7 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
       const r = await creerVerifierCodeEmail(email, code);
       if (!r.ok) return setErreur(r.error);
       router.refresh();
-      vers("telephone");
+      vers(r.existant ? "existant" : "telephone");
     });
   const envoyerTelephone = () =>
     start(async () => {
@@ -223,6 +223,18 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
             <button className={styles.valider} type="submit" disabled={enCours || code.replace(/\s/g, "").length < 6}>{enCours ? <Attend>{t("Vérification…")}</Attend> : t("Continuer")}</button>
           </div>
         </form>
+      )}
+
+      {etape === "existant" && (
+        <div className={styles.corps}>
+          <header className={styles.tete}>
+            <h1 className="display">{t("Cette adresse a déjà un compte")}</h1>
+            <p>{t("Vous êtes connecté. Rien n'est recommencé : la prochaine fois, votre code suffit.")}</p>
+          </header>
+          <div className={styles.bas}>
+            <button className={styles.valider} type="button" onClick={fin}>{t("Continuer")}</button>
+          </div>
+        </div>
       )}
 
       {etape === "telephone" && (

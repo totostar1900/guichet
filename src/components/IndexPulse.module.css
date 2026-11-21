@@ -25,6 +25,10 @@
    propre marge : elle s'ajouterait à l'écart. C'est la leçon que la bande des
    attentes a déjà tirée. Les deux pages du marché gardent la variante pleine
    et sa marge. */
+/* Avec le titre à plat, la carte n'a plus la barre de côté : le trait est celui du titre (21 novembre 2026). */
+.pulse.sansBarre {
+  border-left: var(--tuile-bord);
+}
 .compact {
   padding: 6px 12px;
   margin: 0;
@@ -104,11 +108,6 @@
   gap: 4px;
   align-self: start;
 }
-.coinLien {
-  font-size: var(--t-2);
-  font-weight: 700;
-  color: var(--gold-ink);
-}
 .tag {
   flex: none;
   font-size: 0.62rem;
@@ -130,12 +129,7 @@
     position: relative;
   }
   /* Sur un téléphone la carte est une colonne : le lien reste au coin haut droit, en face du nom de l'indice. */
-  .coinLien {
-    position: absolute;
-    top: 8px;
-    right: 14px;
-  }
-  .coin {
+    .coin {
     align-items: flex-start;
   }
 }

@@ -480,6 +480,8 @@ export interface Repository {
   setConsent(userId: string, version: string): Promise<void>;
   getChannelStatus(userId: string): Promise<ChannelStatus>;
   markChannelVerified(userId: string, channel: "phone" | "email", target: string): Promise<void>;
+  /** Le compte qui porte déjà ce numéro ou cette adresse, PROUVÉ : un canal ne sert qu'à un compte (21 novembre 2026). */
+  channelOwner(channel: "phone" | "email", target: string): Promise<string | undefined>;
   createChannelCode(c: Omit<ChannelCode, "id" | "createdAt" | "attempts">): Promise<ChannelCode>;
   findChannelCode(channel: ProofChannel, target: string): Promise<ChannelCode | undefined>;
   updateChannelCode(id: string, patch: Partial<Pick<ChannelCode, "attempts" | "verifiedAt">>): Promise<void>;

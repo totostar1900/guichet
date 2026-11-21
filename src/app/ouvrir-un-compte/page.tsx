@@ -10,6 +10,8 @@ import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
+import { Identite } from "./Identite";
+import { Canaux } from "./Canaux";
 
 export const dynamic = "force-dynamic";
 /** The tab and the phone header read this title: in the reader's language. */
@@ -25,7 +27,13 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
   const sp = await searchParams;
   const s = await requireSession("/ouvrir-un-compte");
   const r = repo();
-  const enregistre = await r.getClientFileByUser(s.userId);
+  const [enregistre, canaux, contact] = await Promise.all([
+    r.getClientFileByUser(s.userId),
+    r.getChannelStatus(s.userId).catch(() => undefined),
+    r.getContact(s.userId).catch(() => undefined),
+  ]);
+  /* Les coordonnées viennent de la table, pas de la session : un jeton dure, une adresse change. */
+  const canauxVus = { ...canaux, email: canaux?.email ?? contact?.email ?? s.email, phone: canaux?.phone ?? contact?.phone ?? s.phone };
   /* LE DOSSIER NE NAÎT PLUS D'UN REGARD.
      Ouvrir la page créait la ligne en base, avant la moindre saisie : le desk
      voyait arriver des dossiers vides, et le visiteur lisait « Brouillon » au-
@@ -197,6 +205,16 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
             convention ferme la page : dans l'ordre du temps, elle vient après
             l'envoi du dossier et après la décision du desk. */}
         {!signable && (!pasAPas || demande === "envoyer") && conventionBloc}
+
+        {/* IDENTITÉ ET COORDONNÉES, SUR « MES PIÈCES » (21 novembre 2026, le client : « intégrer les éléments de profil et coordonnées dans mes pièces, ensuite supprimer profil et coordonnées »).
+            Le nom qui s'imprime sur les bulletins et les deux canaux prouvés ne sont pas dans les pièces du dossier : ils s'y ajoutent, une fois l'envoi fait. Pendant la saisie pas à pas, la page reste l'ouverture. */}
+        {!pasAPas && (
+          <section className={styles.sec} id="profil-et-coordonnees">
+            <h2 className="display">{t("Mon identité et mes coordonnées")}</h2>
+            <Identite nom={s.name} segment={s.segment} />
+            <Canaux channels={canauxVus} sessionEmail={s.email} />
+          </section>
+        )}
       </div>
     </Glissement>
   );

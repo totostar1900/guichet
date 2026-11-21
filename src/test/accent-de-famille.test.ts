@@ -81,9 +81,11 @@ describe("le Marché sans « Ce qui s'est échangé »", () => {
     expect(page).not.toMatch(/Les \{n\} autres, et toutes/);
     expect(page).not.toMatch(/ce qui s'est échangé/);
   });
-  it("garde une porte vers le tableau des séances, au pied de la carte de l'indice", () => {
-    expect(page).toMatch(/seances=\{\{ href: "\/indice#seances"/);
-    expect(lire("src/components/IndexPulse.tsx")).toMatch(/seances && !pied && !aPlat/);
+  it("n'a plus la porte « Les séances » sur la carte de l'indice ; l'indice a son titre à plat et son lien « L'indice » (21 novembre 2026)", () => {
+    expect(page, "« Les séances » est revenu sur la carte de l'indice").not.toMatch(/seances=/);
+    const carte = lire("src/components/IndexPulse.tsx");
+    expect(carte, "la propriété « seances » existe encore").not.toMatch(/seances\??:/);
+    expect(carte, "le titre à plat « BVMAC Index » n'est plus donné à la page qui demande un en-tête sans titre").toMatch(/titre: "BVMAC Index", href: entete\.lien\.href, mot: entete\.lien\.mot/);
   });
   it("ses sections ont le titre de l'Accueil, à plat, au-dessus de la carte", () => {
     expect((page.match(/<TitreDeBloc /g) ?? []).length).toBe(6);
