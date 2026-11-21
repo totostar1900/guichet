@@ -209,8 +209,7 @@ export default async function MarchePage() {
               })}
             </div>
             <p className={styles.note}>
-              {t("Ces trois-là pèsent {p} de la capitalisation, {c} FCFA au total dont {f} de flottant coté.", { p: fmtPct(partDeTete, 1), c: money(capTotal), f: money(capFloat) })}{" "}
-              {t("Les {n} autres, et toutes les colonnes, sur leur page.", { n: weights.length - tete.length })}
+              {t("Ces trois-là pèsent {p} de la capitalisation, {c} FCFA au total dont {f} de flottant coté.", { p: fmtPct(partDeTete, 1), c: money(capTotal), f: money(capFloat) })}
             </p>
           </section>
         )}
