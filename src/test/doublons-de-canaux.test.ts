@@ -49,3 +49,14 @@ describe("une adresse déjà inscrite ne refait pas l'inscription", () => {
     expect(bloc, "l'écran du compte existant redemande une saisie").not.toMatch(/<input/);
   });
 });
+
+describe("un compte existant qui revient ne recommence pas l'inscription (21 novembre 2026)", () => {
+  it("avec son prénom déjà connu, une nouvelle version des textes n'ouvre que les textes", () => {
+    const p = lire("src/app/connexion/creer/page.tsx");
+    expect(p, "le prénom connu n'est plus lu").toMatch(/prenomConnu = Boolean\(contact\?\.name/);
+    expect(p, "un compte à prénom connu repasse par « Comment vous appelle-t-on ? »").toMatch(/LEGAL_VERSION \? \(prenomConnu \? "avant" : "prenom"\)/);
+    const c = lire("src/app/connexion/creer/CreerCompte.tsx");
+    expect(c).toMatch(/EtapeDeDepart = "email" \| "telephone" \| "prenom" \| "avant" \| "appareil"/);
+    expect(c, "l'écran des textes ne dit plus qu'il s'agit d'une mise à jour").toMatch(/depart === "avant" \? "Nos textes ont été mis à jour"/);
+  });
+});

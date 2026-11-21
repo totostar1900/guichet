@@ -193,6 +193,8 @@ export const EN_VITRINE: Record<string, string> = {
   "Un code à quatre chiffres protège l'accès à votre compte sur cet appareil.": "A four-digit code protects access to your account on this device.",
   "Code reçu par e-mail": "Code received by e-mail",
   "Cette adresse a déjà un compte": "This address already has an account",
+  "Nos textes ont été mis à jour": "Our texts have been updated",
+  "Vous avez déjà un compte : rien d'autre n'est redemandé. Relisez les trois points, puis continuez.": "You already have an account: nothing else is asked again. Read the three points again, then continue.",
   "Vous êtes connecté. Rien n'est recommencé : la prochaine fois, votre code suffit.": "You are signed in. Nothing starts over: next time, your code is enough.",
   "Ce numéro est déjà utilisé par un compte. Connectez-vous avec lui, ou indiquez un autre numéro.": "This number is already used by an account. Sign in with it, or enter another number.",
   "Code reçu par SMS": "Code received by SMS",

@@ -64,7 +64,7 @@ describe("la création d'un compte", () => {
   });
 
   it("le parcours se reprend là où il s'est arrêté", () => {
-    expect(page).toMatch(/!\(canaux\.phoneVerifiedAt \|\| session\.phoneVerified\) \? "telephone" : consentement\.version !== LEGAL_VERSION \? "prenom" : "appareil"/);
+    expect(page).toMatch(/!\(canaux\.phoneVerifiedAt \|\| session\.phoneVerified\) \? "telephone" : consentement\.version !== LEGAL_VERSION \? \(prenomConnu \? "avant" : "prenom"\) : "appareil"/);
   });
 });
 

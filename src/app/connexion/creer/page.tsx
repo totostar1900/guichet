@@ -39,9 +39,12 @@ export default async function CreerUnComptePage({ searchParams }: { searchParams
   let codeExiste = false;
   if (session) {
     adresse = session.email ?? "";
-    const [canaux, consentement] = await Promise.all([repo().getChannelStatus(session.userId), repo().getConsent(session.userId)]);
+    const [canaux, consentement, contact] = await Promise.all([repo().getChannelStatus(session.userId), repo().getConsent(session.userId), repo().getContact(session.userId).catch(() => undefined)]);
+    /* UN COMPTE QUI A DÉJÀ SON PRÉNOM NE RECOMMENCE PAS L'INSCRIPTION (21 novembre 2026, le client : « la déconnexion renvoie encore à la procédure d'inscription »).
+       Depuis le 20 novembre les textes ont une nouvelle version : tout compte qui entrait par l'adresse repassait par « Comment vous appelle-t-on ? » puis « Avant d'entrer », comme un nouveau venu. Avec son prénom déjà connu, il ne voit que les textes à relire. */
+    const prenomConnu = Boolean(contact?.name && !contact.name.includes("@") && contact.name.trim().length >= 2);
     codeExiste = (await repo().listDevices(session.userId).catch(() => [])).some((d) => d.kind === "code");
-    depart = !(canaux.phoneVerifiedAt || session.phoneVerified) ? "telephone" : consentement.version !== LEGAL_VERSION ? "prenom" : "appareil";
+    depart = !(canaux.phoneVerifiedAt || session.phoneVerified) ? "telephone" : consentement.version !== LEGAL_VERSION ? (prenomConnu ? "avant" : "prenom") : "appareil";
   }
   return (
     <Glissement>

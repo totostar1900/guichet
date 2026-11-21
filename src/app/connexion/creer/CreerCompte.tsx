@@ -16,7 +16,7 @@ import { poserLeCode, verifierLeCode } from "@/app/verrou/actions";
 import { creerEnregistrerPrenom, creerEnvoyerCodeEmail, creerVerifierCodeEmail } from "./actions";
 import styles from "./creer.module.css";
 
-export type EtapeDeDepart = "email" | "telephone" | "prenom" | "appareil";
+export type EtapeDeDepart = "email" | "telephone" | "prenom" | "avant" | "appareil";
 type Etape = "email" | "email-code" | "existant" | "telephone" | "telephone-code" | "prenom" | "avant" | "code" | "code-bis";
 
 /** Combien de secondes avant de pouvoir demander un nouveau code. */
@@ -274,8 +274,8 @@ export function CreerCompte({ depart, adresse, next, demo, legalVersion, codeExi
       {etape === "avant" && (
         <form className={styles.corps} onSubmit={(e) => { e.preventDefault(); accepter(); }}>
           <header className={styles.tete}>
-            <h1 className="display">{t("Avant d'entrer")}</h1>
-            <p>{t("Trois choses à savoir. Vous lisez tout, quand vous voulez.")}</p>
+            <h1 className="display">{t(depart === "avant" ? "Nos textes ont été mis à jour" : "Avant d'entrer")}</h1>
+            <p>{t(depart === "avant" ? "Vous avez déjà un compte : rien d'autre n'est redemandé. Relisez les trois points, puis continuez." : "Trois choses à savoir. Vous lisez tout, quand vous voulez.")}</p>
           </header>
           <ol className={styles.trois}>
             <li><b>{t("Qui nous sommes")}</b><span>{t("Purpose Capital S.A., société de bourse agréée par la COSUMAF.")}</span></li>

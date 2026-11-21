@@ -119,6 +119,7 @@ export async function logout(): Promise<void> {
   redirect("/connexion");
 }
 
+/* « PARTOUT » ARRIVE À L'ACCUEIL, « CET APPAREIL » À LA PORTE DU CODE (21 novembre 2026, le client). Après un geste de sécurité on ne propose pas d'entrer d'un toucher : la vitrine garde « Se connecter » dans sa bande du bas. */
 /** « Se déconnecter partout » : every session of this account, on every device, ends now; the trusted devices stay listed under Sécurité. */
 export async function logoutEverywhere(): Promise<void> {
   if (authMode() === "supabase") {
@@ -128,7 +129,7 @@ export async function logoutEverywhere(): Promise<void> {
   } else {
     await clearDevSession();
   }
-  redirect("/connexion");
+  redirect("/");
 }
 
 /* ---------- Appareils de confiance : le code à six chiffres de ce navigateur ---------- */

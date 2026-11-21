@@ -47,13 +47,14 @@ describe("Mon compte, consolidé", () => {
     expect(hub).toMatch(/href: "\/moi\/textes"/);
     expect(hub, "l'aide ou le contact sont revenus au compte").not.toMatch(/\/info\/aide|\/moi\/contact|Aide et contact/);
   });
-  it("la sortie mène à la porte du code, pas à la vitrine d'inscription (21 novembre 2026)", () => {
+  it("« cet appareil » mène à la porte du code, « partout » à l'accueil (21 novembre 2026)", () => {
     const a = lire("src/app/connexion/actions.ts");
-    for (const nom of ["logout", "logoutEverywhere"]) {
+    const corps = (nom: string) => {
       const debut = a.indexOf(`export async function ${nom}(`);
-      const corps = a.slice(debut, a.indexOf("\n}", debut));
-      expect(corps, `${nom} renvoie encore à la vitrine`).toMatch(/redirect\("\/connexion"\)/);
-      expect(corps, `${nom} efface l'appareil reconnu`).not.toMatch(/oublierAppareil/);
-    }
+      return a.slice(debut, a.indexOf("\n}", debut));
+    };
+    expect(corps("logout"), "« cet appareil » ne mène plus à la porte du code").toMatch(/redirect\("\/connexion"\)/);
+    expect(corps("logoutEverywhere"), "« partout » ne mène plus à l'accueil").toMatch(/redirect\("\/"\)/);
+    for (const nom of ["logout", "logoutEverywhere"]) expect(corps(nom), `${nom} efface l'appareil reconnu`).not.toMatch(/oublierAppareil/);
   });
 });

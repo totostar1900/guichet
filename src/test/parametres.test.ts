@@ -95,7 +95,7 @@ describe("La première connexion : e-mail, téléphone, prénom ; les pièces vi
     expect(c).toMatch(/creerVerifierCodeEmail[\s\S]*vers\(r\.existant \? "existant" : "telephone"\)/);
     expect(c).toMatch(/checkPhoneProof[\s\S]*vers\("prenom"\)/);
     expect(c).toMatch(/creerEnregistrerPrenom\(prenom\)[\s\S]*vers\("avant"\)/);
-    expect(lire("src/app/connexion/creer/page.tsx")).toMatch(/"prenom" : "appareil"/);
+    expect(lire("src/app/connexion/creer/page.tsx")).toMatch(/"prenom"\) : "appareil"/);
   });
   it("le prénom est seul : aucune pièce ne se demande à la création", () => {
     const c = lire("src/app/connexion/creer/CreerCompte.tsx");
