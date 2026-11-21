@@ -9,7 +9,7 @@ import { authMode } from "@/lib/auth";
 import { clearDevSession, writeDevSession } from "@/lib/auth/dev";
 import type { Session } from "@/lib/auth/types";
 
-export type LoginState = { step: "email"; error?: string } | { step: "code"; email: string; error?: string; withCode?: boolean } | { step: "phone"; error?: string } | { step: "phone-code"; phone: string; error?: string };
+export type LoginState = { step: "email"; error?: string; /** l'adresse n'a pas de compte : on propose d'en créer un */ inconnu?: boolean } | { step: "code"; email: string; error?: string; withCode?: boolean } | { step: "phone"; error?: string } | { step: "phone-code"; phone: string; error?: string };
 
 const safeNext = (n: unknown): string => (typeof n === "string" && n.startsWith("/") && !n.startsWith("//") ? n : "/");
 
@@ -24,7 +24,9 @@ export async function sendCode(_prev: LoginState, form: FormData): Promise<Login
   const host = (await headers()).get("host");
   const base = isDeskHost(host) ? deskOrigin() : (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000");
   const { sendSignInCode } = await import("@/lib/auth/email-code");
-  const sent = await sendSignInCode(email.data, base, next);
+  /* SE CONNECTER N'OUVRE PAS DE COMPTE : une adresse inconnue est refusée, et l'écran propose d'en créer un. */
+  const sent = await sendSignInCode(email.data, base, next, { creer: false });
+  if (sent.inconnu) return { step: "email", inconnu: true, error: "Aucun compte avec cette adresse." };
   if (!sent.ok) return { step: "email", error: sent.error };
   return { step: "code", email: email.data, withCode: sent.withCode };
 }
@@ -54,7 +56,8 @@ export async function sendPhoneCode(_prev: LoginState, form: FormData): Promise<
   const { supabaseAuthClient } = await import("@/lib/auth/supabase");
   const sb = await supabaseAuthClient();
   const channel = process.env.PHONE_OTP_CHANNEL === "whatsapp" ? "whatsapp" : "sms";
-  const { error } = await sb.auth.signInWithOtp({ phone, options: { channel, shouldCreateUser: true } });
+  const { error } = await sb.auth.signInWithOtp({ phone, options: { channel, shouldCreateUser: false } });
+  if (error && /signups? not allowed|not found/i.test(error.message)) return { step: "phone", error: "Aucun compte avec ce numéro. Créez votre compte avec votre adresse e-mail." };
   if (error) return { step: "phone", error: `Envoi impossible : ${error.message}` };
   return { step: "phone-code", phone };
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useT } from "@/i18n/client";
 import { useActionState, useState } from "react";
 import { sendCode, sendPhoneCode, verifyCode, verifyPhoneCode, type LoginState } from "./actions";
@@ -8,7 +9,7 @@ import styles from "./page.module.css";
 
 /** One-time code by e-mail or by phone (SMS / WhatsApp, per Supabase provider). */
 /** `withCode`: the Guichet sends its own e-mail (Resend set): the code is what to expect; otherwise a link. */
-export function EmailOtpForm({ next, phoneEnabled, withCode }: { next: string; phoneEnabled: boolean; withCode: boolean }) {
+export function EmailOtpForm({ next, phoneEnabled, withCode, creerLien = false }: { next: string; phoneEnabled: boolean; withCode: boolean; /** la porte du client propose « Créer un compte » ; celle du desk non */ creerLien?: boolean }) {
   const [mode, setMode] = useState<"email" | "phone">("email");
   const [state, action, pending] = useActionState<LoginState, FormData>(async (prev, form) => {
     if (form.get("restart")) return { step: form.get("mode") === "phone" ? "phone" : "email" };
@@ -17,6 +18,7 @@ export function EmailOtpForm({ next, phoneEnabled, withCode }: { next: string; p
     return form.get("mode") === "phone" ? sendPhoneCode(prev, form) : sendCode(prev, form);
   }, { step: "email" });
   const t = useT();
+  const inconnu = state.step === "email" && Boolean(state.inconnu);
 
   if (state.step === "code" || state.step === "phone-code") {
     const to = state.step === "code" ? state.email : state.phone;
@@ -70,10 +72,21 @@ export function EmailOtpForm({ next, phoneEnabled, withCode }: { next: string; p
           <input name="phone" type="tel" autoComplete="tel" placeholder="+237 6 87 67 67 67" required />
         </label>
       )}
-      {state.error && <div className={styles.error}>{state.error}</div>}
+      {inconnu ? (
+        <div className={styles.error} role="alert">
+          {t("Aucun compte avec cette adresse.")} <Link href={`/connexion/creer?next=${encodeURIComponent(next)}`}>{t("Créer un compte")}</Link>
+        </div>
+      ) : (
+        state.error && <div className={styles.error}>{state.error}</div>
+      )}
       <button className="btn primary" type="submit" disabled={pending}>
         {t(pending ? "Envoi…" : mode === "email" && !withCode ? "Recevoir mon lien de connexion" : "Recevoir un code")}
       </button>
+      {creerLien && !inconnu && (
+        <p className={styles.hint}>
+          {t("Pas encore de compte ?")} <Link href={`/connexion/creer?next=${encodeURIComponent(next)}`}>{t("Créer un compte")}</Link>
+        </p>
+      )}
     </form>
   );
 }

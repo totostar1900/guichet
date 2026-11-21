@@ -103,7 +103,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                 </>
               }
             >
-              <EmailOtpForm next={administration ? next : `/connexion/creer?next=${encodeURIComponent(next)}`} phoneEnabled={telephoneOuvert} withCode={Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM && process.env.SUPABASE_SERVICE_ROLE_KEY)} />
+              <EmailOtpForm next={next} creerLien={!administration} phoneEnabled={telephoneOuvert} withCode={Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM && process.env.SUPABASE_SERVICE_ROLE_KEY)} />
             </PorteDeConnexion>
           ) : (
             <>

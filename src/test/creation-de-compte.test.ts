@@ -111,8 +111,8 @@ describe("la connexion sur un appareil reconnu", () => {
     expect(porte).toMatch(/marquerCodeOublie\(\);\s*setAutre\(true\)/);
     expect(porte, "l'empreinte est revenue sur la porte").not.toMatch(/startAuthentication|passkey|empreinte/i);
   });
-  it("le formulaire e-mail ne s'affiche qu'à travers la porte, et mène à la création du code de l'appareil", () => {
-    expect(page).toMatch(/<PorteDeConnexion[\s\S]*<EmailOtpForm next=\{administration \? next : `\/connexion\/creer\?next=/);
+  it("le formulaire e-mail ne s'affiche qu'à travers la porte, et entre directement dans l'application (il n'ouvre plus la création de compte)", () => {
+    expect(page).toMatch(/<PorteDeConnexion[\s\S]*<EmailOtpForm next=\{next\} creerLien=\{!administration\}/);
   });
   it("rien n'est montré avant l'hydratation : pas de formulaire e-mail qui clignote sous un appareil reconnu", () => {
     expect(porte).toMatch(/if \(!pret\)[\s\S]*<div className=\{styles\.masque\}>/);

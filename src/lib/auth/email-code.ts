@@ -22,17 +22,22 @@ export interface CodeSent {
   /** Vrai quand la lettre part de chez nous, avec le code dedans. */
   withCode: boolean;
   error?: string;
+  /** « Se connecter » n'ouvre pas de compte : l'adresse n'en a pas. */
+  inconnu?: boolean;
 }
 
 export const ownSenderReady = (): boolean => Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM && process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-export async function sendSignInCode(email: string, base: string, next = "/"): Promise<CodeSent> {
+/* « SE CONNECTER » N'OUVRE PAS DE COMPTE (21 novembre 2026, le client : « refuser et proposer la création »). `creer: false` : une adresse sans compte reçoit un refus, pas une lettre ; seule la création de compte (`creer` par défaut) fabrique l'utilisateur. */
+export async function sendSignInCode(email: string, base: string, next = "/", options: { creer?: boolean } = {}): Promise<CodeSent> {
+  const creer = options.creer !== false;
   const { emailConfigured, sendEmail } = await import("@/lib/notify/providers");
   const { createClient } = await import("@supabase/supabase-js");
 
   if (emailConfigured() && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
     let { data, error } = await admin.auth.admin.generateLink({ type: "magiclink", email });
+    if (error && /not found/i.test(error.message) && !creer) return { ok: false, withCode: true, inconnu: true, error: "Aucun compte avec cette adresse." };
     if (error && /not found/i.test(error.message)) {
       await admin.auth.admin.createUser({ email, email_confirm: true });
       ({ data, error } = await admin.auth.admin.generateLink({ type: "magiclink", email }));
@@ -52,7 +57,8 @@ export async function sendSignInCode(email: string, base: string, next = "/"): P
   // voulu, un lien PKCE ne s'ouvrirait que dans le navigateur qui l'a demandé,
   // alors qu'on lit son courrier sur le téléphone et qu'on tape depuis la boîte.
   const plain = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { flowType: "implicit", persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
-  const { error } = await plain.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: `${base}/auth/callback?next=${encodeURIComponent(next)}` } });
+  const { error } = await plain.auth.signInWithOtp({ email, options: { shouldCreateUser: creer, emailRedirectTo: `${base}/auth/callback?next=${encodeURIComponent(next)}` } });
+  if (error && !creer && /signups? not allowed|not found/i.test(error.message)) return { ok: false, withCode: false, inconnu: true, error: "Aucun compte avec cette adresse." };
   if (error) return { ok: false, withCode: false, error: `Envoi impossible : ${error.message}` };
   return { ok: true, withCode: false };
 }
