@@ -40,10 +40,11 @@
   color: var(--ink-2);
 }
 .champ input {
+  /* LES MÊMES ANGLES QUE « PAR WHATSAPP / SMS » (22 novembre 2026) : « --radius », comme les boutons de la maison ; champs, boutons et zones de texte de la création de compte étaient des pastilles de 999 px (ou 12 px). */
   width: 100%;
   min-height: 3rem;
   padding: 0 var(--s-7);
-  border-radius: 999px;
+  border-radius: var(--radius);
   font-size: var(--t-5);
 }
 .erreur {
@@ -84,7 +85,7 @@
 .secondaire {
   width: 100%;
   min-height: 3rem;
-  border-radius: 999px;
+  border-radius: var(--radius);
   font: inherit;
   font-size: var(--t-4);
   font-weight: 700;
@@ -153,7 +154,7 @@
   gap: var(--s-6);
   padding: var(--s-6);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius);
   text-align: left;
   font-size: var(--t-3);
   line-height: 1.5;

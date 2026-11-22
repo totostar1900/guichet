@@ -17,7 +17,6 @@ import { GrilleInvestir } from "@/components/accueil/GrilleInvestir";
 import { DossierAccueil } from "@/components/accueil/DossierAccueil";
 import { joursEnMots } from "@/lib/domain/echeances";
 import { IndexPulse } from "@/components/IndexPulse";
-import { CeQuiPerforme } from "@/components/CeQuiPerforme";
 import { BlocApprendre } from "@/components/accueil/BlocApprendre";
 import { TitreDeBloc } from "@/components/TitreDeBloc";
 import { TotalCollant } from "./TotalCollant";
@@ -518,12 +517,7 @@ export async function Console({ session }: { session: Session }) {
           la page la plus visitée de la maison. L'indice en coûte une. */}
       <IndexPulse compact aPlat={{ titre: "BVMAC Index", href: "/marche", mot: "La place" }} />
 
-      {/* 8. CE QUI PERFORME, juste après l'indice : le niveau de la place,
-          puis les lignes qui l'ont fait bouger. Sa lecture lui est propre et
-          tient en trois requêtes bornées — voir « market/performe » —, et
-          elle s'efface quand rien n'a bougé sur la fenêtre, ce qui arrive sur
-          cette cote. */}
-      <CeQuiPerforme />
+      {/* « CE QUI PERFORME » N'EST PLUS ICI (22 novembre 2026, le client) : son classement est le contenu du bloc « Titres » du chapitre « Investir », à la place où ce bloc était (voir « GrilleInvestir »). */}
 
       {/* 9. À LA UNE : UN ARTICLE, ET CE QU'IL CHANGE.
           Le même que la page des actualités met en tête, par « aLaUne » : ce

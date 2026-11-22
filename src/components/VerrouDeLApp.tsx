@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore, useTran
 import { usePathname } from "next/navigation";
 import { useT } from "@/i18n/client";
 import { EcranDeCode } from "@/components/EcranDeCode";
-import { appareilOublieVoulu, codeDeCetAppareil, confianceVoulue, deviceLabel, effacerConfiance, enregistrerLeCode, marquerCodeOublie, newDeviceToken, readDevice } from "@/lib/device-client";
+import { CLE_RECONNAISSANCE, codeDeCetAppareil, confianceVoulue, deviceLabel, effacerConfiance, enregistrerLeCode, marquerCodeOublie, newDeviceToken, readDevice } from "@/lib/device-client";
 import { CLE_GRACE, CLE_VERROU, faudraitVerrouiller } from "@/lib/verrou";
 import { logoutVersLaPorte } from "@/app/connexion/actions";
 import { poserLeCode, verifierLeCode } from "@/app/verrou/actions";
@@ -13,7 +13,7 @@ import { useVerrouDeDefilement } from "@/components/mobile/verrou-defilement";
 import styles from "./VerrouDeLApp.module.css";
 
 /* Une fois par visite, tant que ce navigateur n'a pas de code : l'écran de code se pose de lui-même, et le code saisi enrôle l'appareil. */
-const CLE_RECO = "guichet_reconnaissance";
+const CLE_RECO = CLE_RECONNAISSANCE;
 const aReconnaitreIci = (): boolean => {
   try {
     return typeof window !== "undefined" && !codeDeCetAppareil(readDevice()) && sessionStorage.getItem(CLE_RECO) !== "1";
@@ -148,11 +148,8 @@ export function VerrouDeLApp({ aUnCode, prenom }: { aUnCode: boolean; /** le pr�
 
 type Traduire = ReturnType<typeof useT>;
 
-/* L'APPAREIL SE RECONNAÎT TOUT SEUL (21 novembre 2026, le client : « l'enregistrement de l'appareil se fait automatiquement » ; « à la connexion par e-mail, une case à cocher »). La question à trois réponses est partie : la case « Reconnaître cet appareil » de la connexion par e-mail, cochée d'emblée, la remplace. Le code est demandé UNE fois après l'e-mail ; si la case n'est pas décochée (ou n'a pas été vue), le navigateur est enregistré avec ce code. Un appareil que le client a fait oublier lui-même ne se reconnaît pas de lui-même, sauf s'il recoche la case. */
-const doitReconnaitre = (): boolean => {
-  const voulu = confianceVoulue();
-  return voulu === null ? !appareilOublieVoulu() : voulu;
-};
+/* L'APPAREIL SE RECONNAÎT SUR DEMANDE, PAR UNE CASE (22 novembre 2026, le client : « décocher la case par défaut »). La case « Reconnaître cet appareil » de la connexion par e-mail est décochée d'emblée : le navigateur n'est enregistré, avec le code saisi, que si le client l'a cochée. Le code est demandé UNE fois après l'e-mail, case cochée ou non. */
+const doitReconnaitre = (): boolean => confianceVoulue() === true;
 
 /* CE NAVIGATEUR SE FAIT RECONNAÎTRE QUAND LE CODE EST SAISI ICI (21 novembre 2026, le client : « après la déconnexion de cet appareil, la reconnexion renvoie vers l'inscription »).
    Le verrou posait le code du COMPTE, mais jamais l'appareil : aucun compte qui avait reçu son code par le verrou (tous ceux d'avant le parcours de création à code) n'était reconnu sur son navigateur. La sortie de « cet appareil » menait donc au champ e-mail, puis à « Créer votre compte ». On enrôle ce navigateur avec le MÊME code, une fois, à la pose comme au premier déverrouillage ; si le navigateur est déjà reconnu, ou si le serveur refuse, on ne fait rien (le code reste valable, rien n'est perdu). */
@@ -162,9 +159,11 @@ async function reconnaitreCeNavigateur(code: string, prenom?: string): Promise<v
     const token = newDeviceToken();
     const r = await enrolPin(token, code, deviceLabel());
     if (r.ok) enregistrerLeCode({ id: r.device.id, token, who: prenom?.trim().split(/\s+/)[0] ?? "", name: r.device.name, since: r.device.createdAt });
-    effacerConfiance();
   } catch {
     /* un échec ne doit jamais empêcher d'entrer */
+  } finally {
+    /* la case ne vaut que pour CETTE connexion */
+    effacerConfiance();
   }
 }
 

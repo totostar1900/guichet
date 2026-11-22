@@ -59,8 +59,17 @@ export function appareilOublieVoulu(): boolean {
 
 /**
  * LA CASE « RECONNAÎTRE CET APPAREIL » DE LA CONNEXION PAR E-MAIL (21 novembre 2026, le client : « lors de la connexion par e-mail, l'application proposera de reconnaître l'appareil par une case à cocher ; les prochaines connexions se feront avec le code seul » ; « l'enregistrement se fait automatiquement »).
- * La case est cochée d'emblée. Son état est gardé ici le temps que le code du compte soit saisi (le code seul permet d'enrôler le navigateur) ; absente, c'est « oui », sauf pour un appareil que le client a lui-même fait oublier.
+ * La case est DÉCOCHÉE d'emblée (22 novembre 2026, le client : « décocher la case par défaut ») : un téléphone ne devient reconnu que si le client le coche. Son état est gardé ici le temps que le code du compte soit saisi (le code seul permet d'enrôler le navigateur) ; absente, c'est « non ».
  */
+/** Le drapeau d'onglet « le code a été demandé après l'e-mail » : il tombe à chaque passage par la porte, sans quoi une deuxième connexion dans le même onglet ne redemandait ni le code ni l'enrôlement. */
+export const CLE_RECONNAISSANCE = "guichet_reconnaissance";
+export function oublierLaReconnaissance(): void {
+  try {
+    sessionStorage.removeItem(CLE_RECONNAISSANCE);
+  } catch {
+    // rien à effacer
+  }
+}
 const CONFIANCE = "guichet_confiance";
 export function marquerConfiance(oui: boolean): void {
   try {

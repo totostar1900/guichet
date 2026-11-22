@@ -10,8 +10,9 @@ const securite = readFileSync("src/app/moi/securite/SecurityPanel.tsx", "utf8");
 const appareil = readFileSync("src/lib/device-client.ts", "utf8");
 
 describe("la connexion par e-mail porte la case « Reconnaître cet appareil »", () => {
-  it("la case est cochée d'emblée, sur la porte du client seulement (pas celle du desk)", () => {
-    expect(formulaire).toMatch(/<input type="checkbox" name="confiance" defaultChecked \/>/);
+  it("la case est DÉCOCHÉE d'emblée (22 novembre 2026), sur la porte du client seulement (pas celle du desk)", () => {
+    expect(formulaire).toMatch(/<input type="checkbox" name="confiance" \/>/);
+    expect(formulaire, "la case est de nouveau cochée d'emblée").not.toMatch(/name="confiance" defaultChecked/);
     expect(formulaire).toMatch(/t\("Reconnaître cet appareil : mes prochaines connexions se feront avec mon code seul, sans code e-mail\."\)/);
     expect(page).toMatch(/<EmailOtpForm next=\{next\} creerLien=\{!administration\} confiance=\{!administration\}/);
   });
@@ -21,15 +22,21 @@ describe("la connexion par e-mail porte la case « Reconnaître cet appareil »"
   });
 });
 
-describe("le code du compte est demandé une fois après l'e-mail, et l'appareil s'enregistre de lui-même", () => {
+describe("le code du compte est demandé une fois après l'e-mail, et l'appareil s'enregistre si la case est cochée", () => {
+  it("passer par la porte remet la reconnaissance à zéro : le drapeau d'onglet ne survit pas à la déconnexion (22 novembre 2026)", () => {
+    const porte = readFileSync("src/app/connexion/PorteDeConnexion.tsx", "utf8");
+    expect(porte).toMatch(/useEffect\(\(\) => \{\s*oublierLaReconnaissance\(\);\s*\}, \[\]\);/);
+    expect(appareil).toMatch(/export const CLE_RECONNAISSANCE = "guichet_reconnaissance";/);
+    expect(verrou).toMatch(/const CLE_RECO = CLE_RECONNAISSANCE;/);
+  });
   it("le code est demandé à l'ouverture tant que ce navigateur n'a pas de code", () => {
     expect(verrou).toMatch(/!codeDeCetAppareil\(readDevice\(\)\) && sessionStorage\.getItem\(CLE_RECO\) !== "1"/);
     expect(verrou).toMatch(/sessionStorage\.setItem\(CLE_RECO, "1"\)/);
     expect(verrou).toMatch(/const ouvert = \(verrouille \|\| aPoser \|\| reconnaitre\) && !surLaPorte;/);
   });
-  it("plus de question : l'enrôlement part du code saisi, sauf case décochée ou appareil que le client a fait oublier", () => {
+  it("plus de question : l'enrôlement part du code saisi, et seulement si le client a coché la case", () => {
     expect(verrou, "la question de confiance est revenue").not.toMatch(/Faire confiance à cet appareil|Pas cette fois|Ne plus demander|setConfiance/);
-    expect(verrou).toMatch(/const doitReconnaitre = \(\): boolean => \{\s*const voulu = confianceVoulue\(\);\s*return voulu === null \? !appareilOublieVoulu\(\) : voulu;/);
+    expect(verrou).toMatch(/const doitReconnaitre = \(\): boolean => confianceVoulue\(\) === true;/);
     expect(verrou).toMatch(/if \(codeDeCetAppareil\(readDevice\(\)\) \|\| !doitReconnaitre\(\)\) return;/);
     expect(verrou).toMatch(/if \(reconnaitre\) await reconnaitreCeNavigateur\(code, prenom\);/);
     expect(verrou).toMatch(/await reconnaitreCeNavigateur\(code, prenom\);\s*onCodePose\(\);/);

@@ -44,7 +44,7 @@ export function EmailOtpForm({ next, phoneEnabled, withCode, creerLien = false, 
         </label>
         {confiance && (
           <label className={styles.confiance}>
-            <input type="checkbox" name="confiance" defaultChecked />
+            <input type="checkbox" name="confiance" />
             <span>{t("Reconnaître cet appareil : mes prochaines connexions se feront avec mon code seul, sans code e-mail.")}</span>
           </label>
         )}

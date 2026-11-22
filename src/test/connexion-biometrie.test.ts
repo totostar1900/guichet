@@ -37,8 +37,9 @@ describe("la page de connexion : une colonne centrée, des champs et des boutons
     expect(css).toMatch(/\.card\.large \{[^}]*width: min\(720px, 100%\);/);
     expect(p).toMatch(/mode === "supabase" \? "" : styles\.large/);
   });
-  it("les champs et les boutons du code sont à bouts ronds et pleine largeur", () => {
-    expect(css).toMatch(/\.otp :global\(\.field\) input \{[^}]*width: 100%;[^}]*border-radius: 999px;/);
+  it("les champs et les boutons du code sont pleine largeur, aux angles des boutons de la maison (« --radius », comme « Par WhatsApp / SMS » : 22 novembre 2026)", () => {
+    expect(css).toMatch(/\.otp :global\(\.field\) input \{[^}]*width: 100%;[^}]*border-radius: var\(--radius\);/);
+    expect(css, "une pastille de 999 px est revenue sur la porte").not.toMatch(/border-radius: 999px/);
     expect(css, "la porte Google est revenue dans la feuille").not.toMatch(/\.google/);
   });
   it("plus de « Vous découvrez Guichet ? » ni de bloc d'empreinte sous le formulaire", () => {

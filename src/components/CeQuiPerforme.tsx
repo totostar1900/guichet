@@ -1,7 +1,7 @@
 import { getT } from "@/i18n/server";
 import { repo } from "@/lib/data";
 import { fmtDate } from "@/lib/format";
-import { performanceSur } from "@/lib/market/performe";
+import { performanceSur, type Classement } from "@/lib/market/performe";
 import { SensDuClassement } from "./SensDuClassement";
 import { TitreDeBloc } from "./TitreDeBloc";
 import styles from "./CeQuiPerforme.module.css";
@@ -29,17 +29,19 @@ import styles from "./CeQuiPerforme.module.css";
  * au-dessus du seuil d'affichage, ou pas assez d'histoire pour couvrir la
  * fenêtre. Une section qui annonce une performance et montre des zéros vaut
  * moins que pas de section.
+ *
+ * C'EST LE BLOC « TITRES » DE L'ACCUEIL, À SA PLACE D'ORIGINE (22 novembre 2026, le client : « remplacer le bloc Titres par celui de Ce qui performe, en conservant le titre Titres et le lien Tout voir, sans changer de position ; Ce qui performe n'est plus ailleurs »). Le titre est « Titres », le lien « Tout voir » mène à la liste des titres ; la fenêtre et le classement sont inchangés. `GrilleInvestir` le pose en première place de « Investir » et lui passe le classement qu'il a déjà lu (`classement`, `null` quand la place s'est tue) : une seule lecture pour toute la page.
  */
-export async function CeQuiPerforme({ max = 3 }: { max?: number }) {
+export async function CeQuiPerforme({ max = 3, classement: lu }: { max?: number; /** le classement déjà lu par l'accueil ; `null` : il n'y en a pas ; absent : on le lit */ classement?: Classement | null }) {
   const t = await getT();
-  const classement = await performanceSur();
+  const classement = lu === undefined ? await performanceSur() : lu;
   if (!classement) return null;
   /* CHAQUE LIGNE OUVRE SA LIGNE (2 novembre 2026) : la fiche de la ligne quand le catalogue la porte, sinon la page de la société. Jamais un lien vers rien. */
   const ouvertes = new Set((await repo().listOffers().catch(() => [])).filter((o) => !o.hidden).map((o) => o.id));
 
   return (
     <section className={styles.bloc} data-anim="bloc" aria-labelledby="ce-qui-performe">
-      <TitreDeBloc id="ce-qui-performe" titre="Ce qui performe" href="/societes" tout="Les sociétés" />
+      <TitreDeBloc id="ce-qui-performe" titre="Titres" href="/titres" tout="Tout voir" />
       <div className={styles.corps}>
       {/* LA FENÊTRE EST DANS LA PHRASE, PAS DANS UNE NOTE DE BAS DE BLOC : un
           pourcentage sans sa période se lit comme celui du jour, et c'est

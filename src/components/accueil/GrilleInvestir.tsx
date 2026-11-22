@@ -8,6 +8,7 @@ import { repo } from "@/lib/data";
 import { echantillonner } from "@/lib/domain/fund-curve";
 import { performanceSur } from "@/lib/market/performe";
 import { ligneDeFonds } from "@/app/fonds/ligne-de-fonds";
+import { CeQuiPerforme } from "@/components/CeQuiPerforme";
 import { FournisseurDeSuivis } from "./FournisseurDeSuivis";
 import { BlocDeCartes, type CarteDeBloc } from "./BlocDeCartes";
 
@@ -57,7 +58,8 @@ export async function GrilleInvestir({ offres }: { offres: Offer[] }) {
   return (
     <FournisseurDeSuivis ids={[...suivis]}>
       <section className="pile" aria-label={t("Investir")}>
-        <BlocDeCartes id="investir-titres" titre={page("titres").label} href={page("titres").href} cartes={actions} suivis={suivis} now={now} />
+        {/* LE BLOC « TITRES » PORTE « CE QUI PERFORME », À SA PLACE (22 novembre 2026, le client : « remplacer le bloc Titres par celui de Ce qui performe, sans changer de position ; Ce qui performe n'est plus ailleurs »). Titre « Titres », lien « Tout voir », contenu du classement des actions sur trois mois. Sans classement (place muette, pas de bulletin), les trois cartes d'avant restent : l'accueil ne perd jamais ses titres. */}
+        {trois ? <CeQuiPerforme classement={trois} /> : <BlocDeCartes id="investir-titres" titre={page("titres").label} href={page("titres").href} cartes={actions} suivis={suivis} now={now} />}
         <BlocDeCartes id="investir-fonds" titre={page("fonds").label} href={page("fonds").href} cartes={fonds} suivis={suivis} now={now} />
         <BlocDeCartes id="investir-adjudications" titre={page("calendrier").label} href={page("calendrier").href} cartes={seances} suivis={suivis} now={now} />
       </section>

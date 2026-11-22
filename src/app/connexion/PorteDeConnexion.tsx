@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useSyncExternalStore, useTransition } from "react";
+import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
 import { useT } from "@/i18n/client";
 import { EcranDeCode } from "@/components/EcranDeCode";
 import { LogoDAttente } from "@/components/LogoDAttente";
-import { clearDevice, codeDeCetAppareil, codeOublie, marquerCodeOublie, readDevice } from "@/lib/device-client";
+import { clearDevice, codeDeCetAppareil, codeOublie, marquerCodeOublie, oublierLaReconnaissance, readDevice } from "@/lib/device-client";
 import { pinLogin } from "./actions";
 import styles from "./page.module.css";
 
@@ -28,6 +28,10 @@ const snapshot = () => {
  */
 export function PorteDeConnexion({ next, retenu, enTete, children }: { next: string; /** l'appareil que le serveur a retenu (cookie), quand le navigateur a perdu le sien ; sans le jeton */ retenu: { id: string; who: string; name: string } | null; /** le titre et la phrase de la vue « Se connecter » */ enTete: React.ReactNode; /** l'adresse e-mail et ce qui l'accompagne */ children: React.ReactNode }) {
   const t = useT();
+  /* PASSER PAR LA PORTE REMET LA RECONNAISSANCE À ZÉRO (22 novembre 2026, le client : « j'ai coché la case, mais après la déconnexion l'app redemande le code par e-mail »). Le drapeau d'onglet « le code a déjà été demandé » survivait à la déconnexion : la connexion suivante, dans le même onglet, ne redemandait ni le code ni l'enrôlement, et l'appareil n'était jamais enregistré. */
+  useEffect(() => {
+    oublierLaReconnaissance();
+  }, []);
   const raw = useSyncExternalStore(noop, snapshot, () => "");
   const pret = useSyncExternalStore(noop, () => true, () => false);
   /* Le navigateur d'abord ; à défaut, ce que le serveur a retenu (Safari efface le stockage d'un site resté une semaine sans visite). Sans jeton ici : le serveur le lit dans son cookie. */

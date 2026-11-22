@@ -263,9 +263,9 @@ describe("les chapitres d'une page d'arrivée", () => {
   });
   it("n'ont pour enfants que des piles ou des pièces qui se taisent", () => {
     const src = sansNotes(lire("src/app/Console.tsx"));
-    /* DEUX PILES : les devoirs, le relevé. Les autres chapitres sont des pièces qui rendent « null » sans rien — « TuilesDuHaut », « IndexPulse », « CeQuiPerforme », « DossierAccueil » — : un conteneur sans condition à leur place laisserait deux écarts de 44 px quand elles se taisent. */
+    /* DEUX PILES : les devoirs, le relevé. Les autres chapitres sont des pièces qui rendent « null » sans rien — « TuilesDuHaut », « IndexPulse », « DossierAccueil » (« Ce qui performe » n'est plus un chapitre : c'est le bloc Titres de « GrilleInvestir ») — : un conteneur sans condition à leur place laisserait deux écarts de 44 px quand elles se taisent. */
     expect((src.match(/<div className="pile">/g) ?? []).length, "la page n'a plus ses deux chapitres en pile").toBe(2);
-    for (const piece of ["TuilesDuHaut", "GrilleInvestir", "IndexPulse", "CeQuiPerforme", "DossierAccueil"]) {
+    for (const piece of ["TuilesDuHaut", "GrilleInvestir", "IndexPulse", "DossierAccueil"]) {
       expect(src, `« ${piece} » n'est plus un chapitre de la page`).toMatch(new RegExp(`<${piece}\\b`));
     }
     for (const f of ["src/components/accueil/TuilesDuHaut.tsx", "src/components/accueil/DossierAccueil.tsx"]) {
