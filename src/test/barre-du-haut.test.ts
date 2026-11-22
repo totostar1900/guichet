@@ -285,7 +285,7 @@ describe("la loupe et l'étoile", () => {
     for (const surface of [/favoris: Boolean\(favoris\)/, /favoris=\{Boolean\(favoris\)\} desk=/, /favoris=\{Boolean\(favoris\)\} \/> : undefined/]) expect(l, `une surface ne reçoit plus l'indicateur : ${surface.source}`).toMatch(surface);
   });
 
-  it("le menu est une page pleine, fermée par sa croix ou d'un glissement vers le bas, sans rebond ; il ouvre « Mon activité »", () => {
+  it("le menu est une page pleine, fermée par sa croix ou d'un glissement vers le bas, sans rebond ; ni « Mon activité » ni « Mes ordres », et le contenu de « Mon compte » y est", () => {
     const b = sansNotes(lire("src/components/mobile/BarreDuHaut.tsx"));
     expect(b, "le glissement ne ferme plus le menu").toMatch(/onTouchStart=\{commencer\} onTouchMove=\{suivre\} onTouchEnd=\{relacher\}/);
     expect(b, "la fermeture ne reprend plus là où est le doigt, à la courbe des feuilles").toMatch(/el\.style\.transition = `transform \$\{ms\}ms \$\{COURBE_DES_FEUILLES\}`;\s*el\.style\.transform = "translateY\(105%\)";/);
@@ -296,7 +296,11 @@ describe("la loupe et l'étoile", () => {
     expect(css, "le menu ne monte plus du bas").toMatch(/transform: translateY\(100%\);/);
     expect(css, "le menu perd touch-action pan-y").toMatch(/touch-action: pan-y;/);
     expect(b, "la croix a disparu").toMatch(/styles\.fermer/);
-    expect(b, "le menu n'ouvre plus « Mon activité »").toMatch(/href="\/activite"[\s\S]*Mon activité/);
+    expect(b, "« Mon activité » est revenue dans le menu").not.toMatch(/href="\/activite"/);
+    expect(b, "« Mes ordres » est revenue dans le menu").not.toMatch(/href="\/moi\/ordres"/);
+    expect(b, "la ligne « Mon compte » qui mène à la page est revenue : le contenu doit être dans le menu").not.toMatch(/href="\/moi\/compte"/);
+    expect(b, "les rubriques du compte ne sont plus lues dans le menu").toMatch(/COMPTE_PAGES\.map/);
+    expect(b, "« Textes et conditions » n'est plus dans le menu").toMatch(/href="\/moi\/textes"/);
   });
 
   it("le menu garde toujours le lien « Ce qui ferme bientôt » : seule l'icône de la barre disparaît quand sa page est vide", () => {

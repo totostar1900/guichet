@@ -355,10 +355,11 @@ describe("bulles d'information au milieu, menu sans identité, résultat de séa
     expect(s).toMatch(/Exceptions/);
     expect(lire("ETALON.md")).toMatch(/### 8\.9 Les bulles d'information/);
   });
-  it("le menu ☰ n'a plus d'identité en haut : ni initiale, ni nom ; « Mon compte » reste une ligne de la liste", () => {
+  it("le menu ☰ n'a plus d'identité en haut : ni initiale, ni nom ; « Mon compte » est un groupe dont les rubriques sont dans la liste (22 novembre 2026)", () => {
     const b = lire("src/components/mobile/BarreDuHaut.tsx");
     expect(b, "l'identité est revenue en haut du menu").not.toMatch(/styles\.identite|styles\.init|const initial/);
-    expect(b.match(/href="\/moi\/compte"/g)?.length, "« Mon compte » n'est plus joignable depuis le menu").toBe(1);
+    expect(b, "le groupe « Mon compte » a disparu du menu").toMatch(/styles\.rub\}>\{t\("Mon compte"\)\}/);
+    expect(b, "les rubriques du compte ne sont plus dans le menu").toMatch(/COMPTE_PAGES\.map/);
     expect(lire("src/components/mobile/BarreDuHaut.module.css")).not.toMatch(/\.identite|\.init \{/);
   });
   it("le résultat de séance : plus de « Taux servi … précompté » chez le client, plus de phrase sur les soumissions, le communiqué est un document", () => {

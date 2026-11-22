@@ -9,6 +9,7 @@ import { estFavori, basculerFavori } from "@/app/favoris/actions";
 import { logout } from "@/app/connexion/actions";
 import { useLang, useT } from "@/i18n/client";
 import { cheminDeFavori } from "@/lib/domain/favoris";
+import { COMPTE_PAGES } from "@/lib/nav-groups";
 import { estRacine } from "@/lib/nav-profondeur";
 import type { Attente } from "@/lib/domain/services";
 import { LangSwitch } from "../LangSwitch";
@@ -54,15 +55,15 @@ const ICONE = {
   horloge: "M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17zM12 7.5V12l3 2",
   etoile: "M12 3.3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.6l-5.5 2.9 1-6.2L3 9.9l6.2-.9z",
   cloche: "M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 20h4",
-  ordres: "M5 4h10l4 4v12H5zM9 12h6M9 16h6",
   documents: "M4 6h16v12H4zM4 10h16",
-  compte: "M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0zM4 21c0-4 4-7 8-7s8 3 8 7",
   parametres: "M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6",
   contact: "M3 6h18v12H3zM3.5 7l8.5 6 8.5-6",
   aide: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9.6 9.3a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.5M12 17h.01",
   langue: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18",
   sortie: "M10 5H5v14h5M14 8l4 4-4 4M18 12H9",
-  activite: "M3 12h4l3-7 4 14 3-7h4",
+  profil: "M4 19V9M10 19V5M16 19v-8M22 19H2",
+  pieces: "M6 3h9l4 4v14H6zM14 3v5h5M9 12h6M9 16h6",
+  textes: "M4 5h6a2 2 0 0 1 2 2v13a1.5 1.5 0 0 0-1.5-1.5H4zM20 5h-6a2 2 0 0 0-2 2v13a1.5 1.5 0 0 1 1.5-1.5H20z",
   loupe: "M11 4.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM16 16l4 4",
 };
 /** Les trois pages d'Instruments, et le brief que chacune porte. */
@@ -301,22 +302,23 @@ export function BarreDuHaut({ attentes, echeances, favoris }: BarreDuHautProps) 
                 )}
 
                 <div className={styles.rub}>{t("Mon dossier")}</div>
-                {/* « MON ACTIVITÉ » RASSEMBLE CE QUE « PLUS » OUVRAIT À L'ACCUEIL (10 novembre 2026) : ordres, sondages, coupons, rentabilité, provision, versements, prélèvements, documents. */}
-                <Link href="/activite" className={styles.ligne} onClick={fermer}>
-                  <Trace d={ICONE.activite} />
-                  <span>{t("Mon activité")}</span>
-                </Link>
-                <Link href="/moi/ordres" className={styles.ligne} onClick={fermer}>
-                  <Trace d={ICONE.ordres} />
-                  <span>{t("Mes ordres")}</span>
-                </Link>
+                {/* « MON ACTIVITÉ » ET « MES ORDRES » ONT QUITTÉ LE MENU (22 novembre 2026, le client) : on les atteint par l'accueil et « Mon argent », où ils sont déjà. */}
                 <Link href="/moi/documents" className={styles.ligne} onClick={fermer}>
                   <Trace d={ICONE.documents} />
                   <span>{t("Mes documents")}</span>
                 </Link>
-                <Link href="/moi/compte" className={styles.ligne} onClick={fermer}>
-                  <Trace d={ICONE.compte} />
-                  <span>{t("Mon compte")}</span>
+
+                {/* LE CONTENU DE « MON COMPTE » EST DANS LE MENU (22 novembre 2026, le client : « remonte le contenu de mon compte directement dans le menu »). Les rubriques viennent de `COMPTE_PAGES`, que la page lit aussi ; la ligne « Mon compte » qui menait à cette page n'existe plus. */}
+                <div className={styles.rub}>{t("Mon compte")}</div>
+                {COMPTE_PAGES.map((p) => (
+                  <Link key={p.key} href={p.href} className={styles.ligne} onClick={fermer}>
+                    <Trace d={p.key === "profil" ? ICONE.profil : ICONE.pieces} />
+                    <span>{t(p.label)}</span>
+                  </Link>
+                ))}
+                <Link href="/moi/textes" className={styles.ligne} onClick={fermer}>
+                  <Trace d={ICONE.textes} />
+                  <span>{t("Textes et conditions")}</span>
                 </Link>
                 {/* « PARAMÈTRES » SORT DE « MON COMPTE » (19 novembre 2026, planche « Paramètres et connexion », 1A) : une ligne à part, sous lui, pour Face ID, le code et les notifications. */}
                 <Link href="/parametres" className={styles.ligne} onClick={fermer}>

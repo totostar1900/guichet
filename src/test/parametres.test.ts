@@ -9,9 +9,9 @@ const lire = (f: string) => readFileSync(f, "utf8").replace(/\/\*[\s\S]*?\*\//g,
  * Le client : « Paramètres remonte et sort de Mon compte » ; Face ID, alertes et informations en interrupteurs ; le code se change sur sa page, code actuel exigé ; la méthode choisie s'offre toute seule à la connexion et au verrou.
  */
 describe("Paramètres : une ligne du menu, hors de Mon compte (1A)", () => {
-  it("le menu a sa ligne, juste sous « Mon compte »", () => {
+  it("le menu a sa ligne, dans le groupe « Mon compte », après ses rubriques", () => {
     const menu = lire("src/components/mobile/BarreDuHaut.tsx");
-    expect(menu).toMatch(/href="\/moi\/compte"[\s\S]{0,200}Mon compte[\s\S]{0,120}href="\/parametres"[\s\S]{0,200}Paramètres/);
+    expect(menu).toMatch(/COMPTE_PAGES\.map[\s\S]{0,900}href="\/moi\/textes"[\s\S]{0,700}href="\/parametres"[\s\S]{0,200}Paramètres/);
     expect(PARAMETRES_PAGES.map((p) => p.href)).toEqual(["/parametres"]);
   });
 });
