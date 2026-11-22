@@ -29,7 +29,8 @@
   place-items: center;
   width: 52px;
   height: 52px;
-  border-radius: 14px;
+  /* LES MÊMES ANGLES QUE « TITRES, FONDS, ADJUDICATIONS » (21 novembre 2026, le client : « aligner la forme des angles des tuiles tout, actions, états… sur celle de titres, fonds et adjudications ») : l'angle de la maison, « --radius », celui des onglets du marché ; il était de 14 px ici. */
+  border-radius: var(--radius);
   /* RELIEF DOUX (21 novembre 2026, planche « Tuiles et thèmes », 1A) : un reflet en haut et une ombre en bas, lus aux jetons du thème (--reflet, --tuile-ombre). */
   background: linear-gradient(180deg, var(--reflet), transparent 70%), var(--surface);
   border: 1px solid var(--line);

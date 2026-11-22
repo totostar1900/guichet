@@ -57,6 +57,35 @@ export function appareilOublieVoulu(): boolean {
   }
 }
 
+/**
+ * LA CASE « RECONNAÎTRE CET APPAREIL » DE LA CONNEXION PAR E-MAIL (21 novembre 2026, le client : « lors de la connexion par e-mail, l'application proposera de reconnaître l'appareil par une case à cocher ; les prochaines connexions se feront avec le code seul » ; « l'enregistrement se fait automatiquement »).
+ * La case est cochée d'emblée. Son état est gardé ici le temps que le code du compte soit saisi (le code seul permet d'enrôler le navigateur) ; absente, c'est « oui », sauf pour un appareil que le client a lui-même fait oublier.
+ */
+const CONFIANCE = "guichet_confiance";
+export function marquerConfiance(oui: boolean): void {
+  try {
+    localStorage.setItem(CONFIANCE, oui ? "1" : "0");
+  } catch {
+    // stockage refusé : la valeur par défaut s'applique
+  }
+}
+/** `true` / `false` si le client a coché ou décoché la case, `null` s'il ne l'a pas vue. */
+export function confianceVoulue(): boolean | null {
+  try {
+    const v = localStorage.getItem(CONFIANCE);
+    return v === "1" ? true : v === "0" ? false : null;
+  } catch {
+    return null;
+  }
+}
+export function effacerConfiance(): void {
+  try {
+    localStorage.removeItem(CONFIANCE);
+  } catch {
+    // rien à effacer
+  }
+}
+
 export function saveDevice(d: RememberedDevice): void {
   try {
     localStorage.removeItem(OUBLI_VOULU);

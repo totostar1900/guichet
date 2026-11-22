@@ -27,19 +27,27 @@
   border-color: var(--ink-3);
 }
 /* « Partout » se demande et ne s'offre pas : il retire aussi la clé des
-   autres appareils. Texte nu, et une confirmation avant. */
-.sortieNon {
-  border: 0;
-  background: none;
-  padding: 0;
+   autres appareils. Une confirmation avant, et DEUX VRAIS BOUTONS (21 novembre 2026, le client : « Oui, partout » et « Annuler » étaient très peu visibles : deux liens soulignés de 12 px, l'un en gris tertiaire). Même taille que « Se déconnecter de cet appareil » ; « Oui, partout » est cerclé et écrit en rouge d'alerte, « Annuler » en encre pleine. */
+.sortieNon,
+.sortieOui {
+  display: inline-flex;
+  align-items: center;
+  /* une cible de 44 px au moins : ce sont deux boutons d'un geste qui engage */
+  min-height: 44px;
+  padding: 0 var(--s-7);
+  border-radius: 999px;
+  background: var(--surface);
   font: inherit;
-  font-size: var(--t-1);
-  color: var(--ink-3);
-  text-decoration: underline;
+  font-size: var(--ctrl-t, 0.82rem);
+  font-weight: 700;
   cursor: pointer;
 }
-.sortieNon:hover {
+.sortieNon {
+  border: 1px solid var(--ink-2);
   color: var(--ink);
+}
+.sortieNon:hover {
+  border-color: var(--ink);
 }
 .sortieConfirme {
   display: flex;
@@ -50,13 +58,9 @@
   color: var(--ink-2);
 }
 .sortieOui {
-  border: 0;
-  background: none;
-  padding: 0;
-  font: inherit;
-  font-size: var(--t-1);
-  font-weight: 600;
+  border: 1.5px solid var(--crit);
   color: var(--crit);
-  text-decoration: underline;
-  cursor: pointer;
+}
+.sortieOui:hover {
+  background: color-mix(in srgb, var(--crit) 10%, var(--surface));
 }

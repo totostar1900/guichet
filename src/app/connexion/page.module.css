@@ -166,3 +166,21 @@
   color: var(--ink-3);
   font-size: var(--t-3);
 }
+
+/* LA CASE « RECONNAÎTRE CET APPAREIL » (21 novembre 2026) : cochée d'emblée, sous le champ du code. */
+.confiance {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-5);
+  font-size: var(--t-2);
+  line-height: 1.45;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.confiance input {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.1rem;
+  accent-color: var(--ink);
+}

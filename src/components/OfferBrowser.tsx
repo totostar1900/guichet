@@ -1262,6 +1262,27 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
                 }
               }}
             />
+            {/* LA CROIX EST À NOUS (21 novembre 2026, le client : « faciliter la suppression de la recherche ; la croix laissait la liste déroulante visible »). Celle du navigateur vide le champ mais laisse le champ actif, donc la liste des récents s'ouvre dessous. Cette croix vide le champ, retire le filtre, ferme la liste et quitte le champ, d'un seul toucher de 44 px. */}
+            {(Boolean(q) || draft !== "") && (
+              <button
+                type="button"
+                className={styles.effacer}
+                aria-label={t("Effacer la recherche")}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  const champDeSaisie = searchInput.current;
+                  if (champDeSaisie) champDeSaisie.value = "";
+                  setDraft("");
+                  setChamp(false);
+                  update({ q: undefined });
+                  champDeSaisie?.blur();
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+                  <path d="M6 6l12 12M18 6 6 18" />
+                </svg>
+              </button>
+            )}
             {/* what the typed letters match: lines, issuers, ISINs; a tap fills the field and filters the list */}
             {suggestions.length > 0 && (
               <ul className={styles.suggest} role="listbox">

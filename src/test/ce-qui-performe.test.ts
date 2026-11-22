@@ -51,7 +51,11 @@ describe("ce qui performe, à l'écran", () => {
     const src = code(SENS);
     expect(src, "un côté vide se nomme de nouveau : le classement ne complète plus avec des lignes à 0,0 %").not.toContain("Aucune ligne n'a reculé");
     expect(src, "le classement refiltre sur le signe : un marché calme vide de nouveau le bloc").not.toMatch(/variationPct\s*[<>]\s*0\)/);
-    expect(src, "les baisses ne sont plus la queue du classement, retournée").toMatch(/\(baisse \? \[\.\.\.lignes\]\.reverse\(\) : lignes\)\.slice\(0, max\)/);
+    expect(src, "les baisses ne sont plus la queue du classement, retournée").toMatch(/sens === "baisse"\s*\? \[\.\.\.lignes\]\.reverse\(\)\.slice\(0, max\)/);
+    expect(src, "les hausses ne sont plus la tête du classement").toMatch(/sens === "hausse"\s*\? lignes\.slice\(0, max\)/);
+    /* L'APERÇU (21 novembre 2026, le client : « deux titres positifs et un négatif ») : les deux plus fortes hausses, puis la plus forte baisse. */
+    expect(src, "l'aperçu n'est plus deux hausses et une baisse").toMatch(/\[\.\.\.lignes\.slice\(0, max - 1\), lignes\[lignes\.length - 1\]\]/);
+    expect(src, "l'ouverture n'est plus l'aperçu").toMatch(/useState<"apercu" \| "hausse" \| "baisse">\("apercu"\)/);
   });
 
   /* LE PETIT GRAPHE EST AU MILIEU DE LA LIGNE : la forme du cours sur la fenêtre, entre le nom et le cours. */

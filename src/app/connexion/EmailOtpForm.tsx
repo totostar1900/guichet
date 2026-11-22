@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useT } from "@/i18n/client";
 import { useActionState, useState } from "react";
 import { sendCode, sendPhoneCode, verifyCode, verifyPhoneCode, type LoginState } from "./actions";
+import { marquerConfiance } from "@/lib/device-client";
 import { Attend, MessageDAttente } from "@/components/MessageDAttente";
 import styles from "./page.module.css";
 
 /** One-time code by e-mail or by phone (SMS / WhatsApp, per Supabase provider). */
 /** `withCode`: the Guichet sends its own e-mail (Resend set): the code is what to expect; otherwise a link. */
-export function EmailOtpForm({ next, phoneEnabled, withCode, creerLien = false }: { next: string; phoneEnabled: boolean; withCode: boolean; /** la porte du client propose « Créer un compte » ; celle du desk non */ creerLien?: boolean }) {
+export function EmailOtpForm({ next, phoneEnabled, withCode, creerLien = false, confiance = false }: { next: string; phoneEnabled: boolean; withCode: boolean; /** la porte du client propose « Créer un compte » ; celle du desk non */ creerLien?: boolean; /** la porte du client propose la case « Reconnaître cet appareil » ; celle du desk non */ confiance?: boolean }) {
   const [mode, setMode] = useState<"email" | "phone">("email");
   const [state, action, pending] = useActionState<LoginState, FormData>(async (prev, form) => {
     if (form.get("restart")) return { step: form.get("mode") === "phone" ? "phone" : "email" };
@@ -23,7 +24,14 @@ export function EmailOtpForm({ next, phoneEnabled, withCode, creerLien = false }
   if (state.step === "code" || state.step === "phone-code") {
     const to = state.step === "code" ? state.email : state.phone;
     return (
-      <form action={action} className={styles.otp}>
+      <form
+        action={action}
+        className={styles.otp}
+        onSubmit={(e) => {
+          /* l'état de la case est gardé avant l'envoi : la connexion recharge la page */
+          if (confiance && !(e.nativeEvent as SubmitEvent).submitter?.hasAttribute("name")) marquerConfiance(new FormData(e.currentTarget).get("confiance") === "on");
+        }}
+      >
         <input type="hidden" name={state.step === "code" ? "email" : "phone"} value={to} />
         <input type="hidden" name="next" value={next} />
         <input type="hidden" name="mode" value={mode} />
@@ -34,6 +42,12 @@ export function EmailOtpForm({ next, phoneEnabled, withCode, creerLien = false }
           {t(state.step === "code" && !state.withCode ? "Code à 6 chiffres (si l'e-mail en montre un)" : "Code à 6 chiffres")}
           <input name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9 ]*" maxLength={8} autoFocus={state.step !== "code" || Boolean(state.withCode)} required />
         </label>
+        {confiance && (
+          <label className={styles.confiance}>
+            <input type="checkbox" name="confiance" defaultChecked />
+            <span>{t("Reconnaître cet appareil : mes prochaines connexions se feront avec mon code seul, sans code e-mail.")}</span>
+          </label>
+        )}
         {state.error && <div className={styles.error}>{state.error}</div>}
         {pending && <MessageDAttente avecBouton={false} depuis={2} />}
         <div className={styles.row}>

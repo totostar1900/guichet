@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore, useTran
 import { usePathname } from "next/navigation";
 import { useT } from "@/i18n/client";
 import { EcranDeCode } from "@/components/EcranDeCode";
-import { appareilOublieVoulu, codeDeCetAppareil, deviceLabel, enregistrerLeCode, marquerAppareilOublie, marquerCodeOublie, newDeviceToken, readDevice } from "@/lib/device-client";
+import { appareilOublieVoulu, codeDeCetAppareil, confianceVoulue, deviceLabel, effacerConfiance, enregistrerLeCode, marquerCodeOublie, newDeviceToken, readDevice } from "@/lib/device-client";
 import { CLE_GRACE, CLE_VERROU, faudraitVerrouiller } from "@/lib/verrou";
 import { logoutVersLaPorte } from "@/app/connexion/actions";
 import { poserLeCode, verifierLeCode } from "@/app/verrou/actions";
@@ -148,17 +148,21 @@ export function VerrouDeLApp({ aUnCode, prenom }: { aUnCode: boolean; /** le pr�
 
 type Traduire = ReturnType<typeof useT>;
 
-/* « FAIRE CONFIANCE À CET APPAREIL ? » SE DEMANDE, ET SE REFUSE POUR DE BON (21 novembre 2026, le client : « demander au client si l'appareil doit être enregistré, avec un "ne plus demander" »). Après le code, une question à trois réponses : oui (le navigateur est enregistré, la porte ne demandera plus que le code), pas cette fois (on entre, la question reviendra à la prochaine connexion par e-mail), ne plus demander (le drapeau reste dans ce navigateur). Le code est demandé UNE fois après l'e-mail, que l'appareil soit enregistré ou non ; ensuite le verrou le reprend après une inertie, jusqu'à la sortie formelle. */
-const peutDemanderLaConfiance = (): boolean => !codeDeCetAppareil(readDevice()) && !appareilOublieVoulu();
+/* L'APPAREIL SE RECONNAÎT TOUT SEUL (21 novembre 2026, le client : « l'enregistrement de l'appareil se fait automatiquement » ; « à la connexion par e-mail, une case à cocher »). La question à trois réponses est partie : la case « Reconnaître cet appareil » de la connexion par e-mail, cochée d'emblée, la remplace. Le code est demandé UNE fois après l'e-mail ; si la case n'est pas décochée (ou n'a pas été vue), le navigateur est enregistré avec ce code. Un appareil que le client a fait oublier lui-même ne se reconnaît pas de lui-même, sauf s'il recoche la case. */
+const doitReconnaitre = (): boolean => {
+  const voulu = confianceVoulue();
+  return voulu === null ? !appareilOublieVoulu() : voulu;
+};
 
 /* CE NAVIGATEUR SE FAIT RECONNAÎTRE QUAND LE CODE EST SAISI ICI (21 novembre 2026, le client : « après la déconnexion de cet appareil, la reconnexion renvoie vers l'inscription »).
    Le verrou posait le code du COMPTE, mais jamais l'appareil : aucun compte qui avait reçu son code par le verrou (tous ceux d'avant le parcours de création à code) n'était reconnu sur son navigateur. La sortie de « cet appareil » menait donc au champ e-mail, puis à « Créer votre compte ». On enrôle ce navigateur avec le MÊME code, une fois, à la pose comme au premier déverrouillage ; si le navigateur est déjà reconnu, ou si le serveur refuse, on ne fait rien (le code reste valable, rien n'est perdu). */
 async function reconnaitreCeNavigateur(code: string, prenom?: string): Promise<void> {
   try {
-    if (codeDeCetAppareil(readDevice())) return;
+    if (codeDeCetAppareil(readDevice()) || !doitReconnaitre()) return;
     const token = newDeviceToken();
     const r = await enrolPin(token, code, deviceLabel());
     if (r.ok) enregistrerLeCode({ id: r.device.id, token, who: prenom?.trim().split(/\s+/)[0] ?? "", name: r.device.name, since: r.device.createdAt });
+    effacerConfiance();
   } catch {
     /* un échec ne doit jamais empêcher d'entrer */
   }
@@ -168,8 +172,6 @@ function Ecran({ aPoser, reconnaitre, onLeve, onCodePose, onReporter, prenom, t 
   const [premier, setPremier] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [panne, setPanne] = useState(false);
-  /* le code saisi, gardé le temps de la question de confiance */
-  const [confiance, setConfiance] = useState<string | null>(null);
   const [enCours, start] = useTransition();
 
   const sortir = () =>
@@ -204,8 +206,8 @@ function Ecran({ aPoser, reconnaitre, onLeve, onCodePose, onReporter, prenom, t 
             setPremier(null);
             return setErreur(r.error);
           }
+          await reconnaitreCeNavigateur(code, prenom);
           onCodePose();
-          if (peutDemanderLaConfiance()) return setConfiance(code);
           onLeve();
         } catch {
           /* UNE PANNE NE DOIT PAS ENFERMER UN CLIENT : si le serveur ne peut pas écrire le code, on le dit, et l'on laisse continuer jusqu'au prochain chargement. */
@@ -217,53 +219,15 @@ function Ecran({ aPoser, reconnaitre, onLeve, onCodePose, onReporter, prenom, t 
       }
       const r = await verifierLeCode(code);
       if (r.ok) {
-        if (reconnaitre && peutDemanderLaConfiance()) return setConfiance(code);
+        if (reconnaitre) await reconnaitreCeNavigateur(code, prenom);
         return onLeve();
       }
       setErreur(r.error);
       if (r.bloque) await logoutVersLaPorte();
     });
 
-  if (confiance !== null) {
-    return (
-      <div className={styles.verrou} role="dialog" aria-modal="true" aria-label={t("Faire confiance à cet appareil ?")}>
-        <div className={styles.corps}>
-          <h2 className="display">{t("Faire confiance à cet appareil ?")}</h2>
-          <p>{t("Ici, votre code seul vous ouvrira Guichet : plus besoin d'attendre un code par e-mail.")}</p>
-          <div className={styles.choix}>
-            <button
-              type="button"
-              className="btn primary"
-              disabled={enCours}
-              onClick={() =>
-                start(async () => {
-                  await reconnaitreCeNavigateur(confiance, prenom);
-                  onLeve();
-                })
-              }
-            >
-              {t("Oui, faire confiance")}
-            </button>
-            <button type="button" className="btn ghost" disabled={enCours} onClick={onLeve}>
-              {t("Pas cette fois")}
-            </button>
-            <button
-              type="button"
-              className={styles.lien}
-              disabled={enCours}
-              onClick={() => {
-                marquerAppareilOublie();
-                onLeve();
-              }}
-            >
-              {t("Ne plus demander")}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  const titre = aPoser ? (premier === null ? "Choisissez votre code" : "Saisissez-le encore") : reconnaitre ? "Reconnaître cet appareil" : undefined;
+  /* « Bonjour {prénom} » pour la reconnaissance comme pour le verrou (le client : « Reconnaître cet appareil a remplacé le bonjour prénom, le remettre ») : seul le choix du code porte un titre. */
+  const titre = aPoser ? (premier === null ? "Choisissez votre code" : "Saisissez-le encore") : undefined;
   return (
     <div className={styles.verrou} role="dialog" aria-modal="true" aria-label={t(titre ?? "Guichet est verrouillé")}>
       <div className={styles.corps}>

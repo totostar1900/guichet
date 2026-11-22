@@ -7,6 +7,7 @@ import { ClavierCode } from "@/components/ClavierCode";
 import { MessageDAttente } from "@/components/MessageDAttente";
 import { codeDeCetAppareil, deviceLabel, enregistrerLeCode, newDeviceToken, readDevice } from "@/lib/device-client";
 import { logoutVersLaPorte } from "@/app/connexion/actions";
+import { reculer } from "@/components/mobile/retour";
 import { modifierLeCode, verifierLeCode } from "@/app/verrou/actions";
 import { enrolPin, forgetDeviceAction } from "@/app/moi/securite/actions";
 import styles from "./modifier.module.css";
@@ -20,6 +21,7 @@ type Etape = "actuel" | "nouveau" | "confirmer" | "fait";
  *
  * Changer le code du compte oublie les codes des autres navigateurs (leurs chiffres ne seraient plus les mêmes) : celui de CE navigateur reprend donc les nouveaux chiffres, pour que la porte l'ouvre encore.
  */
+/* LE RETOUR REVIENT OÙ ÉTAIT LE LIEN (21 novembre 2026, le client : « le bouton retour dans la page Paramètres renvoie sur des hauteurs différentes »). « Terminer » et « Annuler » REMPLAÇAIENT l'écran par « /parametres » : l'historique gardait deux fois la page Paramètres, l'une à l'endroit du lien « Changer le code », l'autre en haut. Selon qu'on sortait par ces boutons ou par la flèche, on retombait à des hauteurs différentes, et la flèche suivante revenait encore sur Paramètres. Ils reculent maintenant dans l'historique (`reculer`) : on retrouve la page à la hauteur où on l'a quittée, et la flèche du haut dit la même chose. */
 export function ModifierLeCode({ aUnCode }: { aUnCode: boolean }) {
   const t = useT();
   const routeur = useRouter();
@@ -94,7 +96,7 @@ export function ModifierLeCode({ aUnCode }: { aUnCode: boolean }) {
           <h1 className="display">{t("Code modifié")}</h1>
           <p>{t("Votre nouveau code ouvre Guichet sur tous vos appareils.")}</p>
         </div>
-        <button type="button" className={styles.terminer} onClick={() => routeur.replace("/parametres")}>
+        <button type="button" className={styles.terminer} onClick={() => reculer(routeur, "/parametres")}>
           {t("Terminer")}
         </button>
       </div>
@@ -106,7 +108,7 @@ export function ModifierLeCode({ aUnCode }: { aUnCode: boolean }) {
       <h1 className="display">{t(titre)}</h1>
       <p>{t(phrase)}</p>
       <ClavierCode onFini={saisi} occupe={enCours} cle={etape} erreur={erreur ? <div className={styles.erreur} role="alert">{t(erreur)}</div> : enCours ? <MessageDAttente /> : null} enErreur={Boolean(erreur)} />
-      <button type="button" className={styles.annuler} onClick={() => routeur.replace("/parametres")}>
+      <button type="button" className={styles.annuler} onClick={() => reculer(routeur, "/parametres")}>
         {t("Annuler")}
       </button>
     </div>

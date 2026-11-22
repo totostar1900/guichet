@@ -68,7 +68,10 @@ describe("ce qui performe : trois mois, un graphe par ligne", () => {
     const m = lire("src/components/MiniCourbe.tsx");
     expect(m, "le graphe n'est plus teinté par le signe").toMatch(/fin > serie\[0\] \? styles\.hausse : fin < serie\[0\] \? styles\.baisse : styles\.stable/);
     expect(m, "le cours de départ n'est plus en pointillé").toMatch(/className=\{styles\.depart\}/);
-    expect(m, "le graphe est devenu client").not.toMatch(/"use client"/);
+    /* IL EST CLIENT DEPUIS LE 21 NOVEMBRE 2026 (« animer les courbes à l'affichage »), pour UNE chose : déclencher le tracé quand la courbe est vue. Il reste sans état de données : pas d'état React, la série arrive entière du serveur. */
+    expect(m, "le graphe porte un état de données").not.toMatch(/useState/);
+    expect(m, "le graphe ne se trace plus quand on le voit").toMatch(/IntersectionObserver/);
+    expect(m, "le graphe ne se rend plus entier sans script ni avec « moins de mouvement »").toMatch(/prefers-reduced-motion: reduce/);
   });
 });
 

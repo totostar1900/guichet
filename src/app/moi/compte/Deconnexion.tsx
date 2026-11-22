@@ -42,7 +42,7 @@ export function DeconnexionPartout() {
     <section className={styles.sortie}>
       {partout ? (
         <form action={logoutEverywhere} className={styles.sortieConfirme}>
-          <span>{t("Déconnecter tous vos appareils ? Il faudra se reconnecter sur chacun.")}</span>
+          <span>{t("Déconnecter tous vos appareils ?")}</span>
           <button type="submit" className={styles.sortieOui}>
             {t("Oui, partout")}
           </button>

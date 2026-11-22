@@ -49,7 +49,7 @@ export const EN_COMPTE: Record<string, string> = {
   "alertes et couleurs": "alerts and colours",
 
   /* ---------- la sortie ---------- */
-  "Déconnecter tous vos appareils ? Il faudra se reconnecter sur chacun.": "Sign out of every device? You will have to sign in again on each one.",
+  "Déconnecter tous vos appareils ?": "Sign out of every device?",
   "Oui, partout": "Yes, everywhere",
 
   /* ---------- qui vous êtes ---------- */

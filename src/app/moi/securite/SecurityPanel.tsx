@@ -44,7 +44,6 @@ export function SecurityPanel({ devices }: { devices: TrustedDevice[] }) {
     <section className="panel">
       <div className="panel-h">
         <h2>{t("Mes appareils")}</h2>
-        <span className={styles.sub}>{t("Chaque ajout et chaque retrait vous sont annoncés sur les deux canaux.")}</span>
       </div>
       {devices.length === 0 ? <p className={styles.empty}>{t("Aucun appareil pour l'instant : la connexion passe par le code e-mail.")}</p> : null}
       <ul className={styles.devices}>

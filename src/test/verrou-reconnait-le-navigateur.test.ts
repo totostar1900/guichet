@@ -1,40 +1,48 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 
-/* L'APPAREIL SE RECONNAÎT PAR UNE QUESTION (21 novembre 2026, le client : « demander si l'appareil doit être enregistré, avec un "ne plus demander" ; avec l'e-mail, demander le code une fois l'adresse confirmée ; le verrou se lève avec le code jusqu'à la sortie formelle »).
-   Avant : le verrou enrôlait le navigateur sans le demander, et seulement s'il se posait (après cinq minutes d'inertie). */
+/* L'APPAREIL SE RECONNAÎT TOUT SEUL, PAR UNE CASE (21 novembre 2026, le client : « l'enregistrement de l'appareil se fait automatiquement » ; « à la connexion par e-mail, une case à cocher : les prochaines connexions se font avec le code seul » ; « remettre Bonjour prénom »).
+   Avant : une question à trois réponses, puis « Reconnaître cet appareil » à la place du « Bonjour ». */
 const verrou = readFileSync("src/components/VerrouDeLApp.tsx", "utf8");
+const formulaire = readFileSync("src/app/connexion/EmailOtpForm.tsx", "utf8");
+const page = readFileSync("src/app/connexion/page.tsx", "utf8");
 const securite = readFileSync("src/app/moi/securite/SecurityPanel.tsx", "utf8");
 const appareil = readFileSync("src/lib/device-client.ts", "utf8");
 
-describe("le code est demandé une fois après l'e-mail ; la confiance est une question", () => {
-  it("le code est demandé à l'ouverture tant que ce navigateur n'a pas de code, qu'on ait refusé la confiance ou non", () => {
+describe("la connexion par e-mail porte la case « Reconnaître cet appareil »", () => {
+  it("la case est cochée d'emblée, sur la porte du client seulement (pas celle du desk)", () => {
+    expect(formulaire).toMatch(/<input type="checkbox" name="confiance" defaultChecked \/>/);
+    expect(formulaire).toMatch(/t\("Reconnaître cet appareil : mes prochaines connexions se feront avec mon code seul, sans code e-mail\."\)/);
+    expect(page).toMatch(/<EmailOtpForm next=\{next\} creerLien=\{!administration\} confiance=\{!administration\}/);
+  });
+  it("son état est gardé avant l'envoi du code, et lu après la saisie du code du compte", () => {
+    expect(formulaire).toMatch(/marquerConfiance\(new FormData\(e\.currentTarget\)\.get\("confiance"\) === "on"\)/);
+    expect(appareil).toMatch(/export function confianceVoulue\(\): boolean \| null/);
+  });
+});
+
+describe("le code du compte est demandé une fois après l'e-mail, et l'appareil s'enregistre de lui-même", () => {
+  it("le code est demandé à l'ouverture tant que ce navigateur n'a pas de code", () => {
     expect(verrou).toMatch(/!codeDeCetAppareil\(readDevice\(\)\) && sessionStorage\.getItem\(CLE_RECO\) !== "1"/);
-    expect(verrou, "le « ne plus demander » ne doit pas supprimer le code après l'e-mail").not.toMatch(/!codeDeCetAppareil\(readDevice\(\)\) && !appareilOublieVoulu\(\) && sessionStorage/);
     expect(verrou).toMatch(/sessionStorage\.setItem\(CLE_RECO, "1"\)/);
     expect(verrou).toMatch(/const ouvert = \(verrouille \|\| aPoser \|\| reconnaitre\) && !surLaPorte;/);
   });
-  it("la question a trois réponses : oui (enrôle), pas cette fois, ne plus demander (drapeau)", () => {
-    expect(verrou).toMatch(/const peutDemanderLaConfiance = \(\): boolean => !codeDeCetAppareil\(readDevice\(\)\) && !appareilOublieVoulu\(\);/);
-    expect(verrou).toMatch(/t\("Faire confiance à cet appareil \?"\)/);
-    expect(verrou).toMatch(/await reconnaitreCeNavigateur\(confiance, prenom\);\s*onLeve\(\);/);
-    expect(verrou).toMatch(/marquerAppareilOublie\(\);\s*onLeve\(\);/);
-    expect(verrou).toMatch(/t\("Pas cette fois"\)/);
+  it("plus de question : l'enrôlement part du code saisi, sauf case décochée ou appareil que le client a fait oublier", () => {
+    expect(verrou, "la question de confiance est revenue").not.toMatch(/Faire confiance à cet appareil|Pas cette fois|Ne plus demander|setConfiance/);
+    expect(verrou).toMatch(/const doitReconnaitre = \(\): boolean => \{\s*const voulu = confianceVoulue\(\);\s*return voulu === null \? !appareilOublieVoulu\(\) : voulu;/);
+    expect(verrou).toMatch(/if \(codeDeCetAppareil\(readDevice\(\)\) \|\| !doitReconnaitre\(\)\) return;/);
+    expect(verrou).toMatch(/if \(reconnaitre\) await reconnaitreCeNavigateur\(code, prenom\);/);
+    expect(verrou).toMatch(/await reconnaitreCeNavigateur\(code, prenom\);\s*onCodePose\(\);/);
+    expect(verrou).toMatch(/effacerConfiance\(\);/);
   });
-  it("on n'enrôle JAMAIS sans réponse : ni à la pose du code, ni au déverrouillage ordinaire", () => {
-    expect(verrou).toMatch(/if \(peutDemanderLaConfiance\(\)\) return setConfiance\(code\);/);
-    expect(verrou).toMatch(/if \(reconnaitre && peutDemanderLaConfiance\(\)\) return setConfiance\(code\);/);
-    expect(verrou.match(/await reconnaitreCeNavigateur\(/g)?.length, "l'enrôlement ne part que de la réponse « oui »").toBe(1);
-  });
-  it("le déverrouillage ordinaire (inertie) ne repose pas la question ; la sortie formelle seule oblige à ressaisir l'adresse", () => {
-    expect(verrou).toMatch(/reconnaitre && peutDemanderLaConfiance/);
-    expect(verrou).toMatch(/await logoutVersLaPorte\(\)/);
+  it("l'écran du code redit « Bonjour {prénom} » : seul le choix du code porte un titre", () => {
+    expect(verrou).toMatch(/const titre = aPoser \? \(premier === null \? "Choisissez votre code" : "Saisissez-le encore"\) : undefined;/);
+    expect(verrou, "« Reconnaître cet appareil » est revenu comme titre").not.toMatch(/"Reconnaître cet appareil"/);
   });
   it("une clé d'accès d'avant le 20 novembre ne compte pas pour un appareil reconnu : c'est le CODE du navigateur qui compte", () => {
     expect(verrou).not.toMatch(/if \(readDevice\(\) \|\|/);
-    expect(verrou).toMatch(/if \(codeDeCetAppareil\(readDevice\(\)\)\) return;/);
   });
-  it("« Oublier cet appareil » éteint la question ; enrôler efface le drapeau", () => {
+  it("« Oublier cet appareil » éteint l'enrôlement automatique ; enrôler efface le drapeau", () => {
     expect(securite).toMatch(/clearDevice\(\);\s*marquerAppareilOublie\(\);/);
     expect(appareil).toMatch(/localStorage\.removeItem\(OUBLI_VOULU\);\s*localStorage\.setItem\(KEY/);
   });

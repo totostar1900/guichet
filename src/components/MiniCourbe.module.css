@@ -26,3 +26,37 @@
 .stable {
   color: var(--ink-3);
 }
+
+/* LE TRAIT SE DESSINE À L'AFFICHAGE (21 novembre 2026) : la polyline a « pathLength=1 », le pointillé du départ et le point d'arrivée restent ; le point d'arrivée paraît quand le trait y arrive. Sans « data-pret » (pas de script, « moins de mouvement »), tout est entier. */
+.trait {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.courbe[data-pret="oui"] .trait {
+  stroke-dashoffset: 1;
+}
+.courbe[data-pret="oui"] .fin {
+  opacity: 0;
+}
+.courbe[data-vu="oui"] .trait {
+  animation: tracer-courbe 1.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.courbe[data-vu="oui"] .fin {
+  animation: paraitre-courbe 0.3s ease-out 1.2s both;
+}
+@keyframes tracer-courbe {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes paraitre-courbe {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
