@@ -93,10 +93,11 @@ describe("la vitrine : sept écrans, un par lecture, qui s'arrêtent comme des s
     for (const pays of ["Tchad", "Cameroun", "République centrafricaine", "Gabon", "Congo", "Guinée équatoriale"]) expect(carte, `le pays « ${pays} » manque à la carte`).toContain(`data-pays="${pays}"`);
     expect((carte.match(/data-trait=""/g) ?? []).length).toBe(6);
     expect((courbe.match(/data-ligne=/g) ?? []).length, "la courbe n'a plus son cours et sa moyenne").toBe(2);
-    expect(v, "la carte ne se trace plus avec le défilement").toMatch(/<TraceAuDefilement className=\{styles\.fond\}>\s*<CarteCemac/);
+    expect(v, "la carte ne se trace plus d'un seul geste à l'entrée de l'écran, comme la famille").toMatch(/<TraceSurVue className=\{styles\.fond\}>\s*<CarteCemac/);
+    expect(v, "le tracé de la carte est redevenu lié au défilement").not.toMatch(/TraceAuDefilement/);
     expect(css, "le filigrane de la carte n'est plus à 14 %").toMatch(/\.carte path \{[^}]*14%/);
-    expect(css, "l'écran de la carte n'est plus un écran haut, à contenu collé").toMatch(/\.longue \{[^}]*min-height: 250svh/);
-    expect(css).toMatch(/\.colle \{[^}]*position: sticky/);
+    expect(css, "l'écran de la carte est redevenu un écran allongé à contenu collé").not.toMatch(/\.longue|\.colle/);
+    expect(css).toMatch(/\.fond\[data-vu="oui"\] \.carte path \{/);
     expect(css).toMatch(/\.fond\[data-vu="oui"\] \.courbe \[data-trait\] \{/);
     expect(css, "un fond dessiné prend le toucher").toMatch(/\.fond \{[^}]*pointer-events: none;/);
   });

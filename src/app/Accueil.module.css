@@ -41,27 +41,6 @@
   scroll-snap-align: start;
   scroll-snap-stop: always;
 }
-.longue {
-  /* L'ÉCRAN DE LA CARTE FAIT DEUX ÉCRANS ET DEMI DE HAUT (21 novembre 2026, le client : « la carte qui se dessine avec le défilement », redit). Tracé sur un seul écran, le dessin se jouait dans la dernière fraction de seconde de l'arrêt automatique : on le voyait se jouer, on ne le conduisait pas. Ici le contenu reste collé (« .colle ») pendant qu'on traverse l'écran, et la carte se trace à la vitesse du doigt. L'arrêt automatique laisse défiler librement un écran plus haut que le téléphone. */
-  display: block;
-  padding: 0;
-  min-height: 250svh;
-}
-.colle {
-  position: sticky;
-  top: 0;
-  box-sizing: border-box;
-  isolation: isolate;
-  display: flex;
-  align-items: center;
-  min-height: calc(100svh - 3.5rem);
-  padding: var(--s-11) var(--s-8) calc(var(--bande) + env(safe-area-inset-bottom, 0px));
-}
-@media (prefers-reduced-motion: reduce) {
-  .longue {
-    min-height: calc(100svh - 3.5rem);
-  }
-}
 .col {
   width: 100%;
   max-width: var(--mesure-texte);
@@ -185,13 +164,24 @@
   translate: -50% 0;
 }
 .carte path {
-  /* ENCORE PLUS DISCRÈTE (21 novembre 2026, le client : « la carte plus discrète », une seconde fois) : trait à 14 % (c'était 38 %, puis 22 %), fond à 2 %. Le tracé suit le défilement : voir TraceAuDefilement. */
+  /* ENCORE PLUS DISCRÈTE (21 novembre 2026, le client : « la carte plus discrète », une seconde fois) : trait à 14 % (c'était 38 %, puis 22 %), fond à 2 %. */
   fill: color-mix(in srgb, var(--on-navy) 2%, transparent);
   stroke: color-mix(in srgb, var(--on-navy) 14%, transparent);
   stroke-width: 1.4px;
   vector-effect: non-scaling-stroke;
   stroke-dasharray: 1;
   stroke-dashoffset: 0;
+}
+.fond[data-pret="oui"] .carte path {
+  stroke-dashoffset: 1;
+  fill-opacity: 0;
+}
+/* D'UN SEUL GESTE, COMME LA FAMILLE (21 novembre 2026, le client : « la carte doit se dessiner en une fois comme la famille le fait, et non sur plusieurs défilements »). Les six pays se tracent l'un après l'autre à l'entrée dans l'écran, une fois, puis la carte reste entière. Le tracé lié au défilement, sur un écran allongé, est retiré. */
+.fond[data-vu="oui"] .carte path {
+  animation:
+    tracer 2.4s cubic-bezier(0.4, 0, 0.2, 1) both,
+    apparait 1.2s ease-out 1.4s both;
+  animation-delay: var(--d, 0s), calc(var(--d, 0s) + 1.4s);
 }
 @keyframes apparait {
   from {

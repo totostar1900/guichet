@@ -7,7 +7,6 @@ import { CarteCemac } from "@/components/accueil/CarteCemac";
 import { CourbeFinanciere } from "@/components/accueil/CourbeFinanciere";
 import { C, ListeAPlat, T, type Rangee } from "@/components/accueil/ListeAPlat";
 import { TraceSurVue } from "@/components/accueil/TraceSurVue";
-import { TraceAuDefilement } from "@/components/accueil/TraceAuDefilement";
 import styles from "./Accueil.module.css";
 
 /**
@@ -106,17 +105,15 @@ export async function Accueil() {
       </section>
 
       {/* ÉCRAN 4 · LA RÉGION : un seul message, sur la carte de la zone CEMAC. */}
-      <section className={`${styles.ecran} ${styles.longue}`}>
-        <div className={styles.colle}>
-          <TraceAuDefilement className={styles.fond}>
-            <CarteCemac className={styles.carte} />
-          </TraceAuDefilement>
-          <div className={styles.col}>
-            <h2 data-anim="">{titre(m.region)}</h2>
-            <p className={styles.chapeau} data-anim="">
-              {t("Les fonds levés sur ce marché financent des projets de la région : le marché existe pour les rendre possibles.")}
-            </p>
-          </div>
+      <section className={styles.ecran}>
+        <TraceSurVue className={styles.fond}>
+          <CarteCemac className={styles.carte} />
+        </TraceSurVue>
+        <div className={styles.col}>
+          <h2 data-anim="">{titre(m.region)}</h2>
+          <p className={styles.chapeau} data-anim="">
+            {t("Les fonds levés sur ce marché financent des projets de la région : le marché existe pour les rendre possibles.")}
+          </p>
         </div>
       </section>
 
