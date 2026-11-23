@@ -100,7 +100,7 @@ export function intentUpdated(i: Intent, o: Offer, state: IntentState, advisor?:
         ? `Votre versement programmé ${i.ref} est parti : ${fmt(i.amount ?? 0)} FCFA sur ${o.title}, couverts par votre provision. Rien à faire de votre côté.`
         : `Votre versement programmé ${i.ref} est enregistré : ${fmt(i.amount ?? 0)} FCFA sur ${o.title}. Virez ce montant en citant ${i.ref} ; l'appel de fonds, dans vos documents, porte les coordonnées.`
       : i.type === "ferme"
-        ? `Votre prise ferme est confirmée${advisor ? ` par ${advisor}` : ""}. Le bulletin à signer et l'appel de fonds suivent dans ce fil.`
+        ? `Votre prise ferme est confirmée${advisor ? ` par ${advisor}` : ""}. L'appel de fonds suit dans ce fil.`
         : /* UN ORDRE DÉJÀ SIGNÉ NE SE FAIT PAS SIGNER DEUX FOIS.
              Le message annonçait « le bulletin à signer suit dans ce fil » :
              c'était l'aller-retour. Quand le client a signé en passant l'ordre,
