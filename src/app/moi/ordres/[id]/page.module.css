@@ -72,41 +72,12 @@
   margin: var(--s-5) 0 0;
   font-size: var(--t-3);
 }
-.destinataire {
-  margin: 0;
-  padding: var(--s-4) var(--s-6);
-  border-left: 2px solid var(--gold);
-  background: var(--surface-2);
-  font-size: var(--t-3);
-  color: var(--ink-2);
-  line-height: 1.5;
-}
-.destinataire b {
-  color: var(--ink);
-}
-.bloc {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-5);
-  align-items: flex-start;
-}
-.attente {
-  margin: 0;
-  font-size: var(--t-2);
-  color: var(--ink-3);
-  font-variant-numeric: tabular-nums;
-}
+
 .err {
   color: var(--crit);
   font-size: var(--t-3);
 }
-.demo {
-  background: var(--gold-soft);
-  color: var(--gold-ink);
-  border-radius: var(--radius);
-  padding: var(--s-4) var(--s-6);
-  font-size: var(--t-3);
-}
+
 .hint {
   margin: 0;
   color: var(--ink-2);
@@ -122,24 +93,7 @@
   font-size: var(--t-3);
   line-height: 1.5;
 }
-.aide {
-  font-size: var(--t-3);
-  color: var(--ink-2);
-}
-.aide > summary {
-  cursor: pointer;
-  color: var(--ink);
-  font-weight: 700;
-  padding: var(--s-3) 0;
-}
-.aide ul {
-  margin: var(--s-3) 0 0;
-  padding-left: var(--s-8);
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-4);
-  line-height: 1.5;
-}
+
 /* Trois cases, pas un diagramme : il reste UN seul geste après la signature. */
 
 /* Signer au doigt : le bloc de l'appareil, au-dessus du code reçu. Il se
@@ -243,46 +197,4 @@
   font-size: var(--t-6);
   font-weight: 700;
   color: var(--ink);
-}
-.resume {
-  display: grid;
-  gap: var(--s-2);
-  padding: var(--tuile-pad-y) var(--tuile-pad-x);
-  background: var(--tuile-fond);
-  border: var(--tuile-bord);
-  border-bottom: var(--tuile-trait);
-  border-radius: var(--tuile-rayon);
-}
-.resume span {
-  font-size: var(--t-1);
-  color: var(--ink-3);
-}
-.resume b {
-  font-size: var(--t-3);
-}
-.resume small {
-  font-size: var(--t-2);
-  color: var(--ink-2);
-}
-.codeChamp {
-  font-family: var(--mono, ui-monospace, monospace);
-  font-size: var(--t-5);
-  letter-spacing: 0.3em;
-  text-align: center;
-}
-.lien {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0;
-  font: inherit;
-  font-weight: 700;
-  color: var(--gold-ink);
-  background: none;
-  border: 0;
-  cursor: pointer;
-}
-.lien:disabled {
-  color: var(--ink-3);
-  cursor: default;
 }

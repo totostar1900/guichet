@@ -8,8 +8,8 @@ const ordre = (o: Partial<Intent>): Intent =>
   ({ id: "i1", ref: "R1", offerId: "x", clientId: "c", type: "souscription", state: "recue", createdAt: "2026-11-17T08:00:00Z", amount: 500000, ...o }) as Intent;
 const SIGNE = "2026-11-17T09:00:00Z";
 
-/* Décidé le 17 novembre 2026, planche « Feuilles et ordres » (2A, 3) : seuls les fonds sont confirmés par la signature ; un ordre ferme ou d'achat sur un titre va au desk, plafond ou non. */
-describe("la piste d'un ordre de fonds signé", () => {
+/* 17 novembre 2026, planche « Feuilles et ordres » (2A) : la signature confirme l'ordre, la piste commence à « signé ». Le point 3 (« les titres vont au desk ») est LEVÉ le 23 novembre 2026, planche « Signer tous les ordres » : toute transaction se signe, la piste vaut pour tout ordre signé. */
+describe("la piste d'un ordre signé", () => {
   it("commence à « signé » : ni « reçue » ni « confirmée »", () => {
     const p = pisteDe(ordre({ state: "confirmee", signedAt: SIGNE }));
     expect(p.arrets).toEqual(["signé", "transmis", "exécuté", "parts inscrites"]);
@@ -27,14 +27,20 @@ describe("la piste d'un ordre de fonds signé", () => {
     expect(etatDe(o)).toBe("À signer");
     expect(pisteDe(o).arrets).toEqual([]);
   });
-  it("un ordre que le desk mène garde ses cinq arrêts", () => {
-    const p = pisteDe(ordre({ type: "ferme", state: "recue", maxAmount: 9_000_000 }));
+  it("un ordre qui ne se signe pas (un appétit) garde ses cinq arrêts", () => {
+    const p = pisteDe(ordre({ type: "appetit", state: "recue" }));
     expect(p.arrets).toHaveLength(5);
     expect(p.arrets[0]).toBe("reçue");
   });
-  it("un titre ne se signe pas dans l'app, même avec un plafond", () => {
-    expect(ordreSignable(ordre({ type: "ferme", maxAmount: 9_000_000 }))).toBe(false);
-    expect(ordreSignable(ordre({ type: "achat", maxAmount: 9_000_000 }))).toBe(false);
+  it("un titre signé a sa piste : signé, transmis, servi, réglé ; une vente finit sur le produit viré", () => {
+    expect(pisteDe(ordre({ type: "ferme", state: "confirmee", signedAt: SIGNE })).arrets).toEqual(["signé", "transmis", "servi", "réglé"]);
+    expect(pisteDe(ordre({ type: "achat", state: "transmise", signedAt: SIGNE })).etape).toBe(1);
+    expect(pisteDe(ordre({ type: "vente", state: "reglee", signedAt: SIGNE })).arrets[3]).toBe("produit viré");
+    expect(etatDe(ordre({ type: "ferme", state: "confirmee", signedAt: SIGNE }))).toBe("Signé");
+  });
+  it("toute transaction se signe dans l'app, titre compris (23 novembre 2026)", () => {
+    for (const type of ["souscription", "rachat", "ferme", "achat", "vente", "cession"] as const) expect(ordreSignable(ordre({ type })), type).toBe(true);
+    for (const type of ["appetit", "info", "rappel"] as const) expect(ordreSignable(ordre({ type })), type).toBe(false);
   });
 });
 

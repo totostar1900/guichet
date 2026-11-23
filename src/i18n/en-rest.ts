@@ -1437,7 +1437,7 @@ export const EN_REST: Record<string, string> = {
   "Je signe mon ordre": "I sign my order",
   "Un code vaut dix minutes ; passé ce délai, demandez-en un autre.": "A code lasts ten minutes; after that, ask for another one.",
   "Rien ne marche ? Écrivez-nous depuis vos messages : votre ordre vous attend ici.": "Nothing works? Write to us from your messages: your order is waiting for you here.",
-  "Il vous reste à lire et signer votre ordre, ici même : c'est le dernier geste, le desk n'a rien à valider.": "It remains for you to read and sign your order, right here: it is the last step, the desk has nothing to validate.",
+  "Il vous reste à signer votre ordre avec votre code : c'est le dernier geste, le desk n'a rien à valider.": "You still need to sign your order with your code: it is the last step, the desk has nothing to validate.",
   "Lire et signer mon ordre": "Read and sign my order",
   "Votre ordre est enregistré. Il se signera dès que votre dossier sera approuvé et votre convention acceptée.":
     "Your order is recorded. It can be signed as soon as your file is approved and your agreement accepted.",

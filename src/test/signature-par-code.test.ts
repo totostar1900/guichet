@@ -2,39 +2,46 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 /**
- * TOUTE SIGNATURE SE FAIT AVEC UN CODE (16 novembre 2026).
+ * TOUTE SIGNATURE D'ORDRE SE FAIT AU PIN DU COMPTE (23 novembre 2026, le client : « la signature se fait avec le pin code »).
  *
- * La page « Signer mon ordre » proposait aussi Face ID, l'empreinte et le code de l'appareil. Elle n'offre plus que le code reçu : une seule preuve à expliquer, la même
- * que la convention et le mandat. Les appareils servent à se connecter, plus à signer.
+ * Le 16 novembre 2026 la page « Signer mon ordre » n'offrait plus que le code reçu (plus de Face ID ni d'empreinte). Elle n'offre plus que le code à six chiffres du compte, celui qui ouvre l'application :
+ * plus de code à usage unique envoyé, attendu, renvoyé. Le PDF n'est pas affiché : il part par e-mail et sur WhatsApp à la signature.
  */
 const ACTIONS = readFileSync("src/app/moi/ordres/[id]/actions.ts", "utf8");
 const PAGE = readFileSync("src/app/moi/ordres/[id]/page.tsx", "utf8");
 const SIGNATURE = readFileSync("src/app/moi/ordres/[id]/Signature.tsx", "utf8");
 const DEVICES = readFileSync("src/lib/auth/devices.ts", "utf8");
 
-describe("l'ordre ne se signe que par le code reçu", () => {
+describe("l'ordre ne se signe que par le PIN du compte", () => {
   it("aucune action de signature par l'appareil ne subsiste", () => {
     expect(ACTIONS).not.toMatch(/signerAvecLaClef|signerAvecLeCodeDeLAppareil|optionsDeClefAction|confirmerPar/);
     expect(DEVICES).not.toMatch(/export async function confirmerPar/);
     expect(PAGE).not.toMatch(/AuDoigt/);
   });
-  it("la seule méthode écrite à la signature est le code à usage unique", () => {
-    const appels = ACTIONS.match(/acheverLaSignature\(/g) ?? [];
-    expect(appels.length, "la définition et l'appel du code reçu").toBe(2);
-    expect(ACTIONS).toMatch(/acheverLaSignature\(intent, mien\.userId, "code à usage unique"/);
+  it("plus de code à usage unique : rien ne part, rien n'attend, rien ne se renvoie", () => {
+    expect(ACTIONS).not.toMatch(/envoyerCodeOrdreAction|signerOrdreAction|notifyCode|nouveauCode/);
+    expect(SIGNATURE).not.toMatch(/Recevoir le code|Renvoyer|Saisir le code|reporterLeVerrou/);
   });
-  it("l'action refuse un ordre déjà signé ou qui ne se signe plus", () => {
-    const i = ACTIONS.indexOf("export async function signerOrdreAction");
-    const corps = ACTIONS.slice(i, i + 900);
+  it("la seule méthode écrite à la signature est le code du compte, vérifié sur le serveur", () => {
+    const appels = ACTIONS.match(/acheverLaSignature\(/g) ?? [];
+    expect(appels.length, "la définition et l'appel du PIN").toBe(2);
+    expect(ACTIONS).toMatch(/acheverLaSignature\(intent, userId, "code du compte"\)/);
+    expect(ACTIONS).toMatch(/verifierCodeDuCompte\(s, pin\)/);
+  });
+  it("l'action refuse un ordre déjà signé ou qui ne se signe plus, avant de vérifier le code", () => {
+    const i = ACTIONS.indexOf("export async function signerParPin");
+    const corps = ACTIONS.slice(i, i + 1100);
     expect(corps).toMatch(/intent\.signedAt/);
     expect(corps).toMatch(/ordreSignable\(intent\)/);
+    expect(corps.indexOf("ordreSignable(intent)")).toBeLessThan(corps.indexOf("verifierCodeDuCompte"));
   });
 });
 
 describe("les gestes de l'ordre vivent dans la barre du bas", () => {
-  it("signer et supprimer, côte à côte, sans « Modifier » ni bloc « Ensuite »", () => {
+  it("le clavier du code signe, la barre porte « Supprimer », sans « Modifier » ni bloc « Ensuite »", () => {
     expect(SIGNATURE).toMatch(/<BarreDEtape/);
-    expect(SIGNATURE).toMatch(/t\("Je signe mon ordre"\)/);
+    expect(SIGNATURE).toMatch(/<ClavierCode/);
+    expect(SIGNATURE).toMatch(/signerParPin\(id, code\)/);
     expect(SIGNATURE).toMatch(/t\("Supprimer"\)/);
     expect(SIGNATURE, "il n'y a pas de modification d'un ordre").not.toMatch(/t\("Modifier"\)/);
     expect(PAGE, "le bloc « Ensuite » est retiré").not.toMatch(/styles\.suite|t\("Ensuite"\)|Le desk donne le go/);
@@ -61,17 +68,18 @@ describe("la signature confirme l'ordre : pas de validation du desk (16 novembre
   });
 });
 
-describe("le code de l'ordre marche jusqu'au bout (16 novembre 2026)", () => {
-  it("l'instant d'envoi ne se recalcule pas à chaque rendu : le compte à rebours baisse", () => {
-    /* Mesuré : « Renvoyer dans 45 s » restait à 45 s indéfiniment et la validité à 10:00, parce que « new Date() » était appelé à chaque rendu. */
-    expect(SIGNATURE).toMatch(/useMemo\(\(\) => \(envoi\?\.ok \? new Date\(\)\.toISOString\(\) : undefined\), \[envoi\]\)/);
-    expect(SIGNATURE, "la date est revenue dans le rendu").not.toMatch(/const parti = envoi\?\.ok \? new Date/);
-  });
-  it("chaque signature envoie son exemplaire par e-mail, sans jamais bloquer la signature", () => {
-    expect(ACTIONS).toMatch(/notifyDocument\(doc, "email"\)/);
+describe("le PDF part par e-mail et sur WhatsApp, il ne s'affiche pas (23 novembre 2026)", () => {
+  it("chaque signature envoie son exemplaire sur les deux canaux, sans jamais bloquer la signature", () => {
+    expect(ACTIONS).toMatch(/\["email", "whatsapp"\] as const/);
+    expect(ACTIONS).toMatch(/notifyDocument\(doc, canal\)/);
     const i = ACTIONS.indexOf("notifyDocument(doc");
-    expect(ACTIONS.slice(i - 400, i)).toMatch(/try \{/);
-    expect(ACTIONS, "l'envoi doit se faire après l'écriture de la signature").toMatch(/signedAt: signeLe[\s\S]*notifyDocument\(doc, "email"\)/);
+    expect(ACTIONS.slice(i - 300, i)).toMatch(/try \{/);
+    expect(ACTIONS, "l'envoi doit se faire après l'écriture de la signature").toMatch(/signedAt: signeLe[\s\S]*notifyDocument\(doc, canal\)/);
+    expect(ACTIONS, "un exemplaire qu'aucun canal n'a pu porter est signalé au desk").toMatch(/avis_manque/);
+  });
+  it("le PDF n'est pas lu à l'écran avant la signature : le lien « Lire l'ordre complet » a disparu, seul « Lire l'ordre signé » reste", () => {
+    expect(PAGE).not.toMatch(/Lire l'ordre complet/);
+    expect(PAGE).toMatch(/intent\.signedAt && \(\s*<p className=\{styles\.lire\}>/);
   });
 });
 
@@ -85,28 +93,29 @@ describe("l'e-mail d'un ordre signé ne demande pas de le signer (16 novembre 20
   });
 });
 
-describe("signer en deux étapes, puis une page de confirmation (17 novembre 2026, planche « Signer et suivre », 3A et 4A)", () => {
-  it("les deux étapes ont chacune leur bouton : « Recevoir le code » puis « Je signe mon ordre », jamais les deux ensemble", () => {
-    expect(SIGNATURE).toMatch(/const enCode = Boolean\(parti\) && !retour && !confirme/);
-    expect(SIGNATURE).toMatch(/\) : enCode \? \(/);
-    expect(SIGNATURE).toMatch(/t\("Étape 1 sur 2 · relire"\)/);
-    expect(SIGNATURE).toMatch(/t\("Étape 2 sur 2 · code"\)/);
-    /* « Retour » revient à la relecture sans perdre le code envoyé. */
-    expect(SIGNATURE).toMatch(/onClick=\{\(\) => setRetour\(true\)\}/);
+describe("signer sur un écran, puis une page de confirmation (23 novembre 2026, planche « Signer tous les ordres », 1B)", () => {
+  it("un seul écran : le récapitulatif en haut, le clavier du code dessous", () => {
+    expect(SIGNATURE).toMatch(/t\("Étape 2 sur 2 · signer"\)/);
+    expect(SIGNATURE).toMatch(/\{relire\}[\s\S]*<ClavierCode/);
   });
-  it("le serveur passe le récapitulatif à l'étape 1 et masque l'adresse du code", () => {
+  it("le serveur passe le récapitulatif ; l'adresse du code n'est plus masquée, il n'y a plus de code envoyé", () => {
     expect(PAGE).toMatch(/relire=\{/);
-    expect(PAGE).toMatch(/masquerLAdresse\(canal\.to\)/);
-    expect(readFileSync("src/lib/kyc/canal.ts", "utf8")).toMatch(/export function masquerLAdresse/);
+    expect(PAGE).not.toMatch(/masquerLAdresse|canalDuCode/);
   });
-  it("la signature acquise ouvre la page de confirmation, qui dit l'e-mail réellement parti", () => {
+  it("« Envoyer » ouvre la signature : le reçu ne s'intercale pas", () => {
+    const f = readFileSync("src/components/IntentForm.tsx", "utf8");
+    expect(f).toMatch(/routeur\.push\(`\/moi\/ordres\/\$\{versLaSignature\}`\)/);
+  });
+  it("la signature acquise ouvre la page de confirmation, qui dit les canaux réellement partis", () => {
     /* Depuis le serveur : une navigation côté client ne partait pas, le composant étant démonté par le rendu « signé » (mesuré). */
     expect(ACTIONS).toMatch(/if \(fin\.ok\) redirect\(`\/moi\/ordres\/\$\{intent\.id\}\/signe`\)/);
     expect(SIGNATURE, "la navigation côté client est revenue").not.toMatch(/router\.replace/);
     const p = readFileSync("src/app/moi/ordres/[id]/signe/page.tsx", "utf8");
     expect(p).toMatch(/if \(!intent\.signedAt\) redirect\(`\/moi\/ordres\/\$\{id\}`\)/);
-    expect(p, "l'e-mail se lit de ce qui est parti").toMatch(/listNotifications\(500\)/);
+    expect(p, "les canaux se lisent de ce qui est parti").toMatch(/listNotifications\(500\)/);
     expect(p).toMatch(/n\.status !== "skipped" && n\.status !== "failed"/);
+    expect(p).toMatch(/n\.channel === "whatsapp"/);
     expect(p).toContain('href="/moi/ordres"');
+    expect(p, "les étapes suivantes ont leur composant").toMatch(/<EtapesSuivantes intent=\{intent\}/);
   });
 });

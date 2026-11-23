@@ -4,7 +4,7 @@ import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { INTENT_LABEL, INTENT_STATE_LABEL } from "@/lib/domain/intent";
 import { ordreSignable } from "@/lib/domain/intent";
-import { aCouvrirPour, plafondEnVigueur, prixDuPlafond, seSigneAuPlafond } from "@/lib/domain/plafond";
+import { aCouvrirPour, plafondEnVigueur, prixDuPlafond, rapporteAuLieuDeCouter, seSigneAuPlafond } from "@/lib/domain/plafond";
 import { disponibleDe } from "@/lib/domain/provision";
 import { ordreAcceptable } from "@/lib/domain/ouverture";
 import { positionFor } from "@/lib/documents/position";
@@ -13,10 +13,9 @@ import { peutOPCVM } from "@/lib/auth/types";
 import { fmt, fmtDate, fmtDateTime, localIso } from "@/lib/format";
 import { rachatNet, souscriptionNette } from "@/lib/domain/frais-fonds";
 import { getT } from "@/i18n/server";
-import { canalDuCode } from "@/lib/kyc/canal";
 import { SignatureOrdre } from "./Signature";
 import { PourFinir } from "./PourFinir";
-import { masquerLAdresse } from "@/lib/kyc/canal";
+import { EtapesSuivantes } from "./EtapesSuivantes";
 import styles from "./page.module.css";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
@@ -85,7 +84,11 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
      la vraie condition : dossier approuvé, convention à jour, et le
      sous-compte seulement pour un non-résident. */
   const titre = seSigneAuPlafond(intent.type);
-  const habilite = titre ? ordreAcceptable(intent.type, dossier) : peutOPCVM(s);
+  /* UNE VENTE OU UNE CESSION RAPPORTE AU LIEU DE COÛTER : pas de plafond à borner, elle se signe au prix du jour (23 novembre 2026). Un fonds (souscription, rachat) demande l'habilitation OPCVM ;
+     tout titre, y compris une vente, demande seulement un ordre acceptable. */
+  const reduit = rapporteAuLieuDeCouter(intent.type);
+  const sousTitre = !titre && (intent.type === "vente" || intent.type === "cession");
+  const habilite = intent.type === "souscription" || intent.type === "rachat" ? peutOPCVM(s) : ordreAcceptable(intent.type, dossier);
   /* LA BONNE NOUVELLE SE DIT AVANT, PAS APRÈS.
      « Votre provision couvre cet ordre, vous n'aurez rien à virer » change la
      décision qu'on est en train de prendre : l'apprendre après la signature,
@@ -103,19 +106,11 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
   const couvrirait = !intent.signedAt && aRegler > 0 && dispo >= aRegler;
   const couvert = Boolean(intent.coveredAt);
   const signable = ordreSignable(intent) && habilite && Boolean(dossier);
-  const canal = signable && dossier ? await canalDuCode(s.userId, dossier) : undefined;
 
   /* POUR FINIR : UN ORDRE SIGNÉ SUFFIT, la page dit comment le régler (16 novembre 2026, planche 6A). Les coordonnées viennent du desk (Référentiel › Règlement), le motif est la
      référence de l'ordre. Rien à virer quand la provision a couvert l'ordre, ni pour un rachat : le produit part sur le compte de règlement. */
 
   const fraisDuTitre = titre ? positionFor(intent, offer, prixDuPlafond(intent, offer) != null ? { pricePct: prixDuPlafond(intent, offer) } : {}).commission : 0;
-
-  /* LE RÉSUMÉ DE L'ÉTAPE DU CODE : une ligne, ce qu'on est en train de signer (planche du 16 novembre 2026, 3A). */
-  const resumeChiffre = titre
-    ? `${positionFor(intent, offer).label} · ${t("au plus {m} FCFA", { m: fmt(plafondEnVigueur(intent, offer)) })}`
-    : rachat
-      ? `${t("{n} parts", { n: montant.toLocaleString("fr-FR", { maximumFractionDigits: 3 }) })} · ≈ ${fmt(produit)} FCFA`
-      : t("{m} FCFA", { m: fmt(montant) });
 
   const recapNode = (
     <section className={styles.recap}>
@@ -145,6 +140,18 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
             <div>
               <dt>{t("Vous engagez au plus")}</dt>
               <dd>{fmt(plafondEnVigueur(intent, offer))} FCFA</dd>
+            </div>
+          </>
+        ) : sousTitre ? (
+          /* UNE VENTE SE SIGNE AU PRIX DU JOUR, SANS PRIX MINIMUM (23 novembre 2026) : la quantité est ferme, le produit se découvre à l'exécution. */
+          <>
+            <div>
+              <dt>{t(intent.type === "cession" ? "Quantité cédée" : "Quantité vendue")}</dt>
+              <dd>{positionFor(intent, offer).label}</dd>
+            </div>
+            <div>
+              <dt>{t("Produit estimé")}</dt>
+              <dd className={styles.approx}>≈ {fmt(Math.round(Math.abs(positionFor(intent, offer).total)))} FCFA</dd>
             </div>
           </>
         ) : rachat ? (
@@ -197,6 +204,8 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
       <p className={styles.ferme}>
         {titre
           ? t("C'est ce plafond que vous signez, et rien au-delà. Si le prix servi est meilleur, vous payez moins ; s'il dépasse, l'ordre n'est pas exécuté pour vous. Vous pouvez aussi n'être servi qu'en partie : vous ne payez alors que ce qui vous revient.")
+          : sousTitre
+            ? t("La quantité est ferme. Le produit sera celui du prix d'exécution : l'estimation ci-dessus peut varier, et vous pouvez n'être servi qu'en partie.")
           : rachat
             ? t("Le nombre de parts est ferme. Le montant sera celui de la VL de rachat retenue à la centralisation{c}.", { c: f?.cutoff ? `, ${f.cutoff}` : "" })
             : t("Le montant est ferme. Le nombre de parts sera celui de la VL retenue à la centralisation{c}.", { c: f?.cutoff ? `, ${f.cutoff}` : "" })}
@@ -213,9 +222,12 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
       ) : titre ? (
         <p className={styles.fin}>{t("Vous ne payez jamais plus que le plafond. Servi en partie, vous ne payez que votre part ; non servi, tout vous revient, et le solde part sous 72 heures ouvrables si vous le demandez.")}</p>
       ) : null}
-      <p className={styles.lire}>
-        <Link href={`/moi/ordres/${intent.id}/lire`}>{intent.signedAt ? t("Lire l'ordre signé") : t("Lire l'ordre complet")}</Link>
-      </p>
+      {/* LE PDF N'EST PAS LU À L'ÉCRAN AVANT LA SIGNATURE (23 novembre 2026) : il part par e-mail et sur WhatsApp une fois l'ordre signé. Signé, on le relit ici. */}
+      {intent.signedAt && (
+        <p className={styles.lire}>
+          <Link href={`/moi/ordres/${intent.id}/lire`}>{t("Lire l'ordre signé")}</Link>
+        </p>
+      )}
     </section>
   );
   const arbitrageNode = arb ? (
@@ -277,8 +289,6 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
           <SignatureOrdre
             id={intent.id}
             ref_={intent.ref}
-            canal={canal ? { to: masquerLAdresse(canal.to), channel: canal.channel } : undefined}
-            codeEnvoyeLe={intent.pendingCodeAt}
             ouvertDoffice={"retirer" in ((await searchParams) ?? {})}
             relire={
               <>
@@ -286,7 +296,6 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
                 {arbitrageNode}
               </>
             }
-            resume={{ titre: `${t(INTENT_LABEL[intent.type])} · ${offer.title}`, chiffre: resumeChiffre }}
           />
         ) : ordreSignable(intent) && !habilite ? (
           <p className={styles.hint}>
@@ -297,7 +306,8 @@ export default async function OrdrePage({ params, searchParams }: { params: Prom
           <p className={styles.hint}>{t("Cet ordre n'est plus à signer ici : le desk l'a pris en main. Vous le suivez dans vos documents.")}</p>
         )}
 
-        {intent.signedAt && <PourFinir intent={intent} aRegler={aRegler} titre={titre} rachat={rachat} couvert={couvert} />}
+        {intent.signedAt && <PourFinir intent={intent} aRegler={aRegler} titre={titre} rachat={reduit} couvert={couvert} />}
+        {intent.signedAt && <EtapesSuivantes intent={intent} offer={offer} aRegler={aRegler} couvert={couvert} />}
 
       </div>
     </Glissement>

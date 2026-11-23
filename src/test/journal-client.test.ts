@@ -87,8 +87,7 @@ const DISPENSEES: Record<string, string> = {
   checkPhoneProof: "noté par « canal.prouve » dans la même fonction",
   contacterSurLigne: "noté par « message.envoye » dans la même fonction",
   saveProfile: "noté par « dossier.finances » dans la même fonction",
-  envoyerCodeOrdreAction: "le code part, l ordre se note à la signature",
-  signerOrdreAction: "noté par « ordre.signe » dans la même fonction",
+  signerParPin: "noté par « ordre.signe » (fin de la signature) et « securite.verrou.bloque » dans la même fonction",
 };
 
 const lire = (f: string) => readFileSync(path.join(ROOT, f), "utf8");

@@ -7,7 +7,6 @@ import { noter } from "@/lib/journal";
 import { garde } from "@/lib/garde";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { attenteAvantRenvoi, empreinte, nouveauCode, verifier } from "@/lib/signature/code";
 import { ordreSignable } from "@/lib/domain/intent";
 import { aCouvrirPour } from "@/lib/domain/plafond";
 import { disponibleDe } from "@/lib/domain/provision";
@@ -27,54 +26,27 @@ async function monOrdre(id: string): Promise<{ intent: Intent; userId: string } 
 }
 
 
-export async function envoyerCodeOrdreAction(_p: OrdreResult | null, form: FormData): Promise<OrdreResult> {
-  const id = String(form.get("id") ?? "");
+/**
+ * SIGNER AVEC LE PIN DU COMPTE (23 novembre 2026, le client : « la signature se fait avec le pin code »).
+ *
+ * Le code à six chiffres qui ouvre l'application et sert au verrou est aussi la preuve de la signature : plus de code à usage unique à envoyer, à attendre et à renvoyer. Il se vérifie ici, sur
+ * le serveur, avec les mêmes garde-fous que le verrou : cinq codes faux et la session se ferme. Seule la MANIÈRE change au journal : « code du compte ».
+ */
+export async function signerParPin(id: string, pin: string): Promise<OrdreResult> {
   const mien = await monOrdre(id);
   if (!mien) return { ok: false, error: "Ordre introuvable." };
   const { intent, userId } = mien;
-  if (intent.signedAt) return { ok: false, error: "Cet ordre est déjà signé." };
-  if (!ordreSignable(intent)) return { ok: false, error: "Cet ordre ne se signe plus ici : le desk l'a déjà pris en main." };
-  const attente = attenteAvantRenvoi(intent.pendingCodeAt);
-  if (attente) return { ok: false, error: `Un code vient de partir. Attendez ${attente} secondes avant d'en demander un autre.` };
-
-  const r = repo();
-  const file = await r.getClientFileByUser(userId);
-  if (!file) return { ok: false, error: "Dossier introuvable." };
-  const { canalDuCode, nommerCanal } = await import("@/lib/kyc/canal");
-  const canal = await canalDuCode(userId, file);
-  const code = nouveauCode();
-  const { notifyCode } = await import("@/lib/kyc/notify");
-  const envoi = await notifyCode(file, code, canal);
-  /* L'ancien code n'est remplacé que si le nouveau est bien parti : un envoi
-     refusé brûlerait celui que le client a peut-être sous les yeux. */
-  if (envoi.via === "echec") return { ok: false, error: `Le code n'a pas pu partir vers ${envoi.to} : ${envoi.raison}. Réessayez dans un instant.` };
-  await r.updateIntent(intent.id, { pendingCodeHash: empreinte(code), pendingCodeAt: new Date().toISOString(), pendingCodeTries: 0, pendingCodeTo: canal?.to });
-  revalidatePath(chemin(id));
-  if (envoi.via === "demo") return { ok: true, message: "Mode démonstration : le code s'affiche ci-dessous.", code };
-  return { ok: true, message: `Code envoyé par ${nommerCanal(canal)}.` };
-}
-
-export async function signerOrdreAction(_p: OrdreResult | null, form: FormData): Promise<OrdreResult> {
-  const id = String(form.get("id") ?? "");
-  const mien = await monOrdre(id);
-  if (!mien) return { ok: false, error: "Ordre introuvable." };
-  const { intent } = mien;
   if (intent.signedAt) return { ok: true, message: "Cet ordre est déjà signé." };
   if (!ordreSignable(intent)) return { ok: false, error: "Cet ordre ne se signe plus ici : le desk l'a déjà pris en main." };
-
-  const verdict = verifier(String(form.get("code") ?? ""), { hash: intent.pendingCodeHash, at: intent.pendingCodeAt, tries: intent.pendingCodeTries, to: intent.pendingCodeTo });
-  const r = repo();
-  if (!verdict.ok) {
-    if (verdict.essais !== (intent.pendingCodeTries ?? 0)) {
-      await r.updateIntent(intent.id, { pendingCodeTries: verdict.essais });
-      revalidatePath(chemin(id));
-    }
-    return { ok: false, error: verdict.erreur };
+  const s = await requireSession(chemin(id));
+  const { verifierCodeDuCompte } = await import("@/lib/auth/devices");
+  const v = await verifierCodeDuCompte(s, pin);
+  if (!v.ok) {
+    if (v.bloque) await noter("securite.verrou.bloque", { detail: "cinq codes faux, à la signature d'un ordre" });
+    return { ok: false, error: v.error };
   }
-
-  const fin = await acheverLaSignature(intent, mien.userId, "code à usage unique", intent.pendingCodeTo);
-  /* LA PAGE DE CONFIRMATION S'OUVRE DEPUIS LE SERVEUR : la signature acquise, la page de l'ordre se rend déjà « signée » et le formulaire qui la portait disparaît avec son effet, de sorte qu'une
-     navigation lancée côté client ne partait jamais (mesuré le 17 novembre 2026, comme pour la révocation d'un mandat). La redirection reste hors de tout try/catch. */
+  const fin = await acheverLaSignature(intent, userId, "code du compte");
+  /* LA PAGE DE CONFIRMATION S'OUVRE DEPUIS LE SERVEUR : la signature acquise, la page de l'ordre se rend déjà « signée » ; la redirection reste hors de tout try/catch. */
   if (fin.ok) redirect(`/moi/ordres/${intent.id}/signe`);
   return fin;
 }
@@ -146,22 +118,27 @@ async function acheverLaSignature(intent: Intent, userId: string, methode: strin
     html: `<b>Ordre signé</b> par ${intent.clientName} · ${intent.ref} · ${doc.number}${couverture ? ` · <b>couvert sur sa provision</b> (${fmt(du)} FCFA réservés)` : ""}`,
   });
   await noter("ordre.signe", { objet: intent.ref, detail: doc.number });
-  /* CHAQUE SIGNATURE ENVOIE SON EXEMPLAIRE PAR E-MAIL (16 novembre 2026) : le client a signé, il reçoit la pièce qu'il a signée, sans avoir à la chercher. L'envoi ne bloque jamais la
-     signature, qui est déjà acquise : s'il échoue ou si le client n'a pas d'adresse, la pièce reste dans ses documents et l'écran le dit. */
-  let envoi = "";
-  const pasPartie = " Votre exemplaire n'a pas pu partir par e-mail : il vous attend dans vos documents.";
-  try {
-    const { notifyDocument } = await import("@/lib/notify/dispatch");
-    const n = await notifyDocument(doc, "email");
-    if (n && n.status !== "skipped" && n.status !== "failed") envoi = " Votre exemplaire part aussi par e-mail.";
-    else {
-      envoi = pasPartie;
-      /* UN AVIS DÛ ET NON REMIS S'INSCRIT SOUS « avis_manque » : c'est le genre que la page Santé du desk relit, pour dire la pièce de la main (cliquet de avis-etat.test.ts). */
-      await r.logEvent({ kind: "avis_manque", intentId: intent.id, html: `Ordre <b>${intent.ref}</b> : <b>exemplaire non envoyé</b> au client · ${n?.error ?? "adresse e-mail injoignable"} · à lui remettre de la main` });
+  /* LE PDF N'EST PAS AFFICHÉ, IL EST ENVOYÉ (23 novembre 2026, le client : « le PDF est partagé par e-mail et WhatsApp »). Chaque signature envoie son exemplaire sur les deux canaux, sans que l'un attende
+     l'autre. L'envoi ne bloque jamais la signature, déjà acquise : si aucun canal ne l'a pu, la pièce reste dans les documents du client et l'écran le dit. */
+  const pasPartie = " Votre exemplaire n'a pas pu partir : il vous attend dans vos documents.";
+  let raison = "adresse e-mail et numéro WhatsApp injoignables";
+  const { notifyDocument } = await import("@/lib/notify/dispatch");
+  const partis: ("email" | "whatsapp")[] = [];
+  for (const canal of ["email", "whatsapp"] as const) {
+    try {
+      const n = await notifyDocument(doc, canal);
+      if (n && n.status !== "skipped" && n.status !== "failed") partis.push(canal);
+      else if (n?.error) raison = n.error;
+    } catch (e) {
+      raison = e instanceof Error ? e.message : "erreur";
     }
-  } catch (e) {
-    envoi = pasPartie;
-    await r.logEvent({ kind: "avis_manque", intentId: intent.id, html: `Ordre <b>${intent.ref}</b> : <b>exemplaire non envoyé</b> au client · ${e instanceof Error ? e.message : "erreur"} · à lui remettre de la main` });
+  }
+  let envoi = pasPartie;
+  if (partis.length === 2) envoi = " Votre exemplaire part aussi par e-mail et sur WhatsApp.";
+  else if (partis.length === 1) envoi = partis[0] === "email" ? " Votre exemplaire part aussi par e-mail." : " Votre exemplaire part aussi sur WhatsApp.";
+  else {
+    /* UN AVIS DÛ ET NON REMIS S'INSCRIT SOUS « avis_manque » : c'est le genre que la page Santé du desk relit, pour dire la pièce de la main (cliquet de avis-etat.test.ts). */
+    await r.logEvent({ kind: "avis_manque", intentId: intent.id, html: `Ordre <b>${intent.ref}</b> : <b>exemplaire non envoyé</b> au client · ${raison} · à lui remettre de la main` });
   }
   revalidatePath(chemin(intent.id));
   revalidatePath("/");

@@ -8,7 +8,7 @@ export const FONCTIONNEMENT: DocPage = {
   visibility: "desk",
   audience: ["desk", "admin"],
   order: 1,
-  checkedOn: "2026-11-20",
+  checkedOn: "2026-11-23",
   owner: "Georges",
   chapters: [
     {
@@ -146,7 +146,7 @@ export const FONCTIONNEMENT: DocPage = {
           head: [l("Type", "Type"), l("Sens", "Meaning"), l("Référence", "Reference")],
           rows: [
             [l("Appétit", "Interest"), l("« Je serais intéressé pour environ tel montant » ; sans engagement, rappel du conseiller.", "\"I would be interested for roughly this amount\"; no commitment, adviser calls back."), l("AP-", "AP-")],
-            [l("Prise ferme", "Firm order"), l("« Je souscris ce montant » ; bulletin d'ordre à signer et appel de fonds.", "\"I subscribe this amount\"; order form to sign and call for funds."), l("PF-", "PF-")],
+            [l("Prise ferme", "Firm order"), l("« Je souscris ce montant » ; signée tout de suite avec le code du compte, le bulletin d'ordre signé part sur WhatsApp et par e-mail.", "\"I subscribe this amount\"; signed right away with the account code, the signed order form is sent on WhatsApp and by e-mail."), l("PF-", "PF-")],
             [l("Cession", "Sale"), l("Sur un rachat ou le marché : « je vends tant de titres ».", "On a buyback or the market: \"I sell this many securities\"."), l("CS-", "CS-")],
             [l("Achat / Vente", "Buy / Sell"), l("Marché secondaire, avec ou sans prix limite.", "Secondary market, with or without a limit price."), l("OA- / OV-", "OA- / OV-")],
             [l("Souscription / Rachat de fonds", "Fund subscription / redemption"), l("Parts d'OPCVM à la prochaine valeur liquidative.", "Fund units at the next NAV."), l("SO- / RA-", "SO- / RA-")],

@@ -40,7 +40,7 @@ describe("les ordres : « Mes ordres » partout", () => {
   it("les phrases de suite ne parlent plus du parcours d'avant (bulletin à signer, appel de fonds)", () => {
     const o = lire("src/app/moi/ordres/page.tsx");
     expect(o).toMatch(/const suiteDe = \(i: Intent\)/);
-    expect(o).toMatch(/Il reste à signer votre ordre : un code reçu suffit\./);
+    expect(o).toMatch(/Il reste à signer votre ordre : votre code suffit\./);
     /* Un rachat à signer lit « il reste à signer », et signé « rien à virer » : il ne parle plus de souscription ni de virement (mesuré le 17 novembre 2026 sur « i-023 »). */
     expect(o).toMatch(/i\.type === "rachat" \|\| i\.type === "vente" \|\| i\.type === "cession"\) return "Signé : rien à virer/);
   });

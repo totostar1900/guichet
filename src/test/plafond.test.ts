@@ -91,15 +91,13 @@ describe("ce que la borne interdit", () => {
   });
 });
 
-describe("un titre ne se signe pas dans l'app, plafond ou non", () => {
-  /* Décidé le 17 novembre 2026 (planche « Feuilles et ordres », 3) : seuls les fonds sont
-     confirmés par la signature. Un ordre ferme ou d'achat sur un titre va au desk, même avec
-     son plafond « au plus » : le plafond reste porté pour que le desk exécute dans la borne. */
-  it("l'ordre sur titre va au desk, avec ou sans borne", () => {
-    expect(ordreSignable(ordre({ maxAmount: 9_500_000 }))).toBe(false);
-    expect(ordreSignable(ordre({ type: "achat", maxAmount: 9_500_000 }))).toBe(false);
-    expect(ordreSignable(ordre())).toBe(false);
-    expect(ordreSignable(ordre({ maxAmount: 0 }))).toBe(false);
+describe("un titre se signe dans l'app, à son plafond", () => {
+  /* La décision du 17 novembre 2026 (planche « Feuilles et ordres », 3 : « les titres vont au desk ») est LEVÉE le 23 novembre 2026 (planche « Signer tous les ordres ») : une prise ferme et un
+     ordre d'achat se signent au PIN du compte, à leur plafond « au plus », fixé à la déclaration. Le desk exécute dans la borne et refuse au-delà. */
+  it("l'ordre sur titre se signe, avec ou sans borne posée", () => {
+    expect(ordreSignable(ordre({ maxAmount: 9_500_000 }))).toBe(true);
+    expect(ordreSignable(ordre({ type: "achat", maxAmount: 9_500_000 }))).toBe(true);
+    expect(ordreSignable(ordre())).toBe(true);
   });
 
   it("le desk refuse d'exécuter au-delà, et le dit avec l'écart", () => {

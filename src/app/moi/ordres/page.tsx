@@ -61,7 +61,7 @@ const EN_COURS: Intent["state"][] = ["recue", "contre_proposee", "confirmee", "t
  * pour le parcours d'avant : le bulletin se signe dans l'application, et le virement se lit sur la page de l'ordre. Un rachat y disait même « souscription » et « virement ».
  */
 const suiteDe = (i: Intent): string | undefined => {
-  if (ordreSignable(i)) return "Il reste à signer votre ordre : un code reçu suffit.";
+  if (ordreSignable(i)) return "Il reste à signer votre ordre : votre code suffit.";
   if (i.state === "confirmee" && i.signedAt) {
     if (i.coveredAt) return "Signé et couvert par votre provision : rien à virer.";
     if (i.type === "rachat" || i.type === "vente" || i.type === "cession") return "Signé : rien à virer, le produit sera viré sur votre compte de règlement.";
@@ -240,7 +240,7 @@ export default async function OrdresPage() {
           <section className={styles.sec}>
             <div className={styles.secTete}>
               <h2>{t("À signer")}</h2>
-              <span className="muted">{t("un code reçu suffit")}</span>
+              <span className="muted">{t("votre code suffit")}</span>
             </div>
             <div className="panel">
               <div className={styles.cards}>{cartes(aSigner)}</div>

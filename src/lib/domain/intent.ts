@@ -186,11 +186,11 @@ export const STATE_ACTION_LABEL: Partial<Record<IntentState, string>> = {
 export const ordreSignable = (i: Intent): boolean =>
   !i.signedAt &&
   (i.state === "recue" || i.state === "confirmee") &&
-  /* LES FONDS SEULS SE SIGNENT DANS L'APPLICATION (17 novembre 2026, planche « Feuilles et ordres », 3).
-     Sur une part, le montant versé est ferme et la signature confirme l'ordre. Un ordre ferme ou d'achat
-     sur un titre va au desk, qui le mène par son canal : il n'est pas géré automatiquement, même quand il
-     porte un plafond « au plus » (le plafond reste porté pour le desk). La vente et la cession y sont déjà. */
-  (i.type === "souscription" || i.type === "rachat");
+  /* TOUTE TRANSACTION ÉMISE SE SIGNE DANS L'APPLICATION, AU PIN DU COMPTE (23 novembre 2026, le client : « signer l'ordre directement, de même pour toutes les transactions émises »).
+     Souscription, rachat, prise ferme, achat, vente, cession : six types, une signature. Elle lève la décision du 17 novembre (« les fonds seuls se signent dans l'application ») : un titre se signe
+     à son plafond « au plus » (fixé à la déclaration), une vente ou une cession au prix du jour. Ce qui reste propre aux fonds, c'est qu'ils s'exécutent sans attendre : la signature lance la
+     centralisation. Un titre signé attend encore la couverture puis la transmission au marché, que le desk fait. L'appétit, l'information et le rappel n'engagent rien : ils ne se signent pas. */
+  FIRM_TYPES.includes(i.type);
 
 /**
  * CE QUE LA BANDE COMPTE SOUS « VOTRE SIGNATURE », ET POURQUOI C'EST LA MÊME

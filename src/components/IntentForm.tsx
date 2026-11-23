@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { repere as noterLaPlace, restituer, type Repere as PlaceNotee } from "@/lib/ui/garder-la-place";
 import { poserLeBrouillon } from "@/lib/brouillon";
@@ -78,6 +79,12 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
   const nameParts = name.trim().split(/\s+/).filter(Boolean);
   const [firstName, lastName] = nameParts.length >= 2 ? [nameParts[0], nameParts.slice(1).join(" ")] : ["", ""];
   const [state, action, pending] = useActionState<IntentResult | null, FormData>(submitIntent, null);
+  const routeur = useRouter();
+  /* « ENVOYER » OUVRE LA SIGNATURE (23 novembre 2026, planche « Signer tous les ordres », 1B) : toute transaction se signe tout de suite, au code du compte ; le reçu ne s'intercale plus, l'accusé part avec l'exemplaire signé. */
+  const versLaSignature = state?.ok && state.aSigner ? state.id : undefined;
+  useEffect(() => {
+    if (versLaSignature) routeur.push(`/moi/ordres/${versLaSignature}`);
+  }, [versLaSignature, routeur]);
   const { fmtDate } = useDates();
   const t = useT();
   const lang = useLang();
@@ -481,12 +488,12 @@ export function IntentForm({ offer, types, initialType, initialAmount, held = 0,
                 lieu d'annoncer une attente. L'ancienne phrase promettait un
                 bulletin par e-mail, donc un aller-retour : c'est exactement ce
                 qu'on supprime. */}
-            <li>{state.aSigner ? t("Il vous reste à lire et signer votre ordre, ici même : c'est le dernier geste, le desk n'a rien à valider.") : t("L'appel de fonds arrive par e-mail ; l'exécution vous est confirmée sur les deux canaux.")}</li>
+            <li>{state.aSigner ? t("Il vous reste à signer votre ordre avec votre code : c'est le dernier geste, le desk n'a rien à valider.") : t("L'appel de fonds arrive par e-mail ; l'exécution vous est confirmée sur les deux canaux.")}</li>
           </ul>
           {state.aSigner && (
             <div className={styles.needAccount}>
               <Link className="btn primary sm" href={`/moi/ordres/${state.id}`}>
-                {t("Lire et signer mon ordre")}
+                {t("Signer mon ordre")}
               </Link>
             </div>
           )}

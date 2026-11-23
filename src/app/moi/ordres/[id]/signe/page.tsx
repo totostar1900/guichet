@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { requireSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { INTENT_LABEL } from "@/lib/domain/intent";
-import { aCouvrirPour, seSigneAuPlafond } from "@/lib/domain/plafond";
+import { aCouvrirPour, rapporteAuLieuDeCouter, seSigneAuPlafond } from "@/lib/domain/plafond";
 import { fmtDateTime } from "@/lib/format";
 import { masquerLAdresse } from "@/lib/kyc/canal";
 import { getT } from "@/i18n/server";
@@ -12,6 +12,7 @@ import { EnTete } from "@/components/EnTete";
 import { BarreCollante } from "@/components/mobile/BarreDEtape";
 import barre from "@/components/mobile/BarreDEtape.module.css";
 import { PourFinir } from "../PourFinir";
+import { EtapesSuivantes } from "../EtapesSuivantes";
 import styles from "../page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -40,13 +41,14 @@ export default async function OrdreSignePage({ params }: { params: Promise<{ id:
   const offer = await r.getOffer(intent.offerId);
   if (!offer) notFound();
 
-  const rachat = intent.type === "rachat";
+  const reduit = rapporteAuLieuDeCouter(intent.type);
   const titre = seSigneAuPlafond(intent.type);
   const aRegler = aCouvrirPour(intent, offer);
   const couvert = Boolean(intent.coveredAt);
-  /* L'E-MAIL SE LIT DE CE QUI EST PARTI, pas de ce qu'on espérait : l'envoi est enregistré à la signature, et l'écran dit l'un ou l'autre. */
-  const parti = (await r.listNotifications(500)).find((n) => n.intentId === intent.id && n.kind === "document" && n.channel === "email" && n.status !== "skipped" && n.status !== "failed");
-  const suite = couvert ? t("Votre provision a couvert l'ordre : le desk le transmet. Vous le suivez dans Mes ordres.") : rachat ? t("Le desk exécute à la prochaine valeur liquidative de rachat, puis le produit est viré sur votre compte. Vous le suivez dans Mes ordres.") : t("Le desk constate votre règlement, puis transmet l'ordre. Vous le suivez dans Mes ordres.");
+  /* LES CANAUX SE LISENT DE CE QUI EST PARTI, pas de ce qu'on espérait : l'envoi est enregistré à la signature, et l'écran dit l'un ou l'autre (23 novembre 2026 : le PDF part par e-mail ET sur WhatsApp). */
+  const envois = (await r.listNotifications(500)).filter((n) => n.intentId === intent.id && n.kind === "document" && n.status !== "skipped" && n.status !== "failed");
+  const mail = envois.find((n) => n.channel === "email");
+  const whatsapp = envois.find((n) => n.channel === "whatsapp");
   const exemplaire = intent.orderDocId ? `/moi/documents/${intent.orderDocId}?de=${encodeURIComponent(`/moi/ordres/${id}/signe`)}` : "/moi/documents/signes";
 
   return (
@@ -60,15 +62,10 @@ export default async function OrdreSignePage({ params }: { params: Promise<{ id:
         </div>
         <EnTete surTitre={t(INTENT_LABEL[intent.type])} titre={t("Ordre signé")} phrase={`${intent.ref} · ${fmtDateTime(intent.signedAt)}`} />
         <div className={styles.signe} role="status">
-          {parti ? t("Votre exemplaire est parti par e-mail, à {a}. Il est aussi dans Mes documents.", { a: masquerLAdresse(parti.to) }) : t("Votre exemplaire n'a pas pu partir par e-mail : il vous attend dans Mes documents.")}
+          {mail && whatsapp ? t("Votre exemplaire est parti par e-mail, à {a}, et sur WhatsApp. Il est aussi dans Mes documents.", { a: masquerLAdresse(mail.to) }) : mail ? t("Votre exemplaire est parti par e-mail, à {a}. Il est aussi dans Mes documents.", { a: masquerLAdresse(mail.to) }) : whatsapp ? t("Votre exemplaire est parti sur WhatsApp. Il est aussi dans Mes documents.") : t("Votre exemplaire n'a pas pu partir par e-mail : il vous attend dans Mes documents.")}
         </div>
-        <PourFinir intent={intent} aRegler={aRegler} titre={titre} rachat={rachat} couvert={couvert} />
-        <section className={styles.recap}>
-          <div className={styles.recapH}>{t("Et ensuite")}</div>
-          <p className={styles.fin} style={{ margin: 0 }}>
-            {suite}
-          </p>
-        </section>
+        <PourFinir intent={intent} aRegler={aRegler} titre={titre} rachat={reduit} couvert={couvert} />
+        <EtapesSuivantes intent={intent} offer={offer} aRegler={aRegler} couvert={couvert} />
         <BarreCollante>
           <Link href={exemplaire} className={`btn ${barre.retour}`}>
             {t("Mon exemplaire")}

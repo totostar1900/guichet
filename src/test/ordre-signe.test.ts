@@ -30,14 +30,10 @@ const ordre = (p: Partial<Intent> = {}): Intent => ({
  * montant. Il ajoutait une décision, et une décision ne demande pas deux allers.
  */
 describe("quels ordres se signent dans l'app", () => {
-  it("les parts d'OPCVM, et elles seules pour l'instant", () => {
-    expect(ordreSignable(ordre({ type: "souscription" }))).toBe(true);
-    expect(ordreSignable(ordre({ type: "rachat" }))).toBe(true);
-    // Sur un titre, le montant dépend du prix servi : il faudra signer un plafond.
-    expect(ordreSignable(ordre({ type: "ferme" }))).toBe(false);
-    expect(ordreSignable(ordre({ type: "achat" }))).toBe(false);
-    // Ni une question, ni une demande de rappel : rien à signer.
-    expect(ordreSignable(ordre({ type: "info" }))).toBe(false);
+  it("toute transaction émise : fonds, titres, ventes (23 novembre 2026), et rien d'autre", () => {
+    for (const type of ["souscription", "rachat", "ferme", "achat", "vente", "cession"] as const) expect(ordreSignable(ordre({ type })), type).toBe(true);
+    // Ni une question, ni une demande de rappel, ni un appétit : rien à signer.
+    for (const type of ["info", "rappel", "appetit"] as const) expect(ordreSignable(ordre({ type })), type).toBe(false);
   });
 
   it("une fois signé, ou une fois parti au marché, on ne resigne pas", () => {
@@ -55,7 +51,7 @@ describe("quels ordres se signent dans l'app", () => {
   it("un ordre confirmé avant la signature dans l'app se signe quand même", () => {
     expect(ordreSignable(ordre({ state: "confirmee" }))).toBe(true);
     expect(ordreSignable(ordre({ type: "rachat", state: "confirmee" }))).toBe(true);
-    expect(ordreSignable(ordre({ type: "ferme", state: "confirmee" }))).toBe(false);
+    expect(ordreSignable(ordre({ type: "ferme", state: "confirmee" }))).toBe(true);
   });
 });
 

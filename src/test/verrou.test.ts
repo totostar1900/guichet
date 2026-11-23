@@ -38,9 +38,9 @@ describe("quand l'application se verrouille", () => {
     expect(verrou, "le verrou navigue au lieu de couvrir").not.toMatch(/router\.(push|replace)/);
     expect(verrou).toMatch(/Cinq codes faux|r\.bloque/);
   });
-  it("les deux signatures repoussent le verrou quand un code vient de partir", () => {
-    expect(lire("src/app/moi/ordres/[id]/Signature.tsx")).toMatch(/if \(envoi\?\.ok\) reporterLeVerrou\(\)/);
+  it("la signature de la convention repousse le verrou quand un code vient de partir ; celle d'un ordre n'envoie plus de code (PIN du compte, 23 novembre 2026)", () => {
     expect(lire("src/app/ouvrir-un-compte/convention/Signer.tsx")).toMatch(/if \(sendState\?\.ok\) reporterLeVerrou\(\)/);
+    expect(lire("src/app/moi/ordres/[id]/Signature.tsx"), "un code à envoyer est revenu sur l'ordre").not.toMatch(/reporterLeVerrou/);
   });
 });
 

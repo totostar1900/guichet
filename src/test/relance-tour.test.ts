@@ -90,7 +90,8 @@ describe("le tour des procédures laissées en route", () => {
        partagent le même dépôt en mémoire, et reprendre celui du précédent
        hériterait de ses cinq rappels. */
     await tourDesRelances("2026-10-31");
-    const occupes = new Set((await r.listRelances()).map((x) => x.userId));
+    /* « Occupé » se lit sur le sujet du test : depuis le 23 novembre 2026 toute transaction se signe, donc presque chaque contact porte déjà un rappel de signature, qui ne gêne pas celui du mandat. */
+    const occupes = new Set((await r.listRelances()).filter((x) => x.sujet === "mandat").map((x) => x.userId));
     const qui = (await r.listContacts()).find((c) => c.phone && c.email && c.whatsappOptIn && !occupes.has(c.id))!;
     expect(qui, "le jeu d'essai doit porter un second contact joignable et libre").toBeTruthy();
     await r.createMandat({ userId: qui.id, objet: "provision", bankName: "BGFI", bankAccount: "GA0000000002", accountHolder: qui.name, amount: 300_000 });
