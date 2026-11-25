@@ -533,7 +533,7 @@ export async function Console({ session }: { session: Session }) {
           ELLE S'EFFACE QUAND IL N'Y A RIEN : cinq dépêches reçues et relues,
           non publiées, ne sont pas une actualité, et une rubrique vide en
           tête de page apprend à ne plus l'ouvrir. */}
-      {/* CHAPITRE 5 : LIRE (17 novembre 2026, planche « Accueil », 3A). À la une et Apprendre sont deux blocs de même nature : 28 px entre eux, 44 avec ce qui les entoure. Vide, le chapitre ne laisse aucun écart. */}
+      {/* CHAPITRE 5 : LIRE (17 novembre 2026, planche « Accueil », 3A). « À la une » est seul dans ce chapitre depuis le 25 novembre 2026 (« Bon à savoir » est passé en dernier). Vide, le chapitre ne laisse aucun écart. */}
       <div className={`pile ${styles.chapitre}`}>
       {une && (
         <section className={styles.blocUne} data-anim="bloc" aria-labelledby="a-la-une">
@@ -550,8 +550,6 @@ export async function Console({ session }: { session: Session }) {
         </section>
       )}
 
-      {/* 9 bis. APPRENDRE (14 novembre 2026, planche 3A) : trois éclairages pas encore lus, EN PLUS de « À la une » et de la porte « Aide ». La pièce se tait quand tout est lu, titre compris. */}
-      <BlocApprendre />
       </div>
 
       {/* CHAPITRE 6 : MON COMPTE (17 novembre 2026, 3A). Le dossier dit ce qu'il en est du client (l'appareil se fait reconnaître à la connexion, plus ici). */}
@@ -579,6 +577,11 @@ export async function Console({ session }: { session: Session }) {
         appareilAjoute={appareils.length > 0}
         couponsSansReinvestissement={Boolean(ctx.attendu) && !ctx.reinvestissement}
       />
+      </div>
+
+      {/* CHAPITRE 7 : BON À SAVOIR, EN DERNIER (25 novembre 2026, le client : « passer le bloc Apprendre en dernier et un titre moins paternaliste »). Trois éclairages pas encore lus (planche 3A du 14 novembre), EN PLUS de « À la une » et de la porte « Aide » : après tout ce qui parle du client et du marché, jamais avant. Le titre « Apprendre » faisait la leçon ; « Bon à savoir » (choisi par le client parmi six propositions) ne dit pas ce que le lecteur doit faire. La page où mène « Tout voir » s'appelle toujours « Éclairages ». La pièce se tait quand tout est lu, titre compris, et le chapitre avec elle. */}
+      <div className={`pile ${styles.chapitre}`}>
+        <BlocApprendre />
       </div>
     </div>
   );

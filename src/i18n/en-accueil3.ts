@@ -70,4 +70,5 @@ export const EN_ACCUEIL3: Record<string, string> = {
   "Verser": "Deposit",
   "Retrait": "Withdraw",
   "Apprendre": "Learn",
+  "Bon à savoir": "Good to know",
 };

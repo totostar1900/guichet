@@ -24,11 +24,15 @@ describe("le bloc « Apprendre » de l'Accueil", () => {
     expect(premiersNonLus(huit, null).map((l) => l.key)).toEqual(["e1", "e2", "e3"]);
   });
 
-  it("vient EN PLUS : « À la une » et la porte vers le Guide restent, et le bloc est posé après « À la une »", () => {
+  it("vient EN PLUS : « À la une » et la porte vers le Guide restent, et le bloc est le DERNIER de la page, sous le dossier (25 novembre 2026)", () => {
     const c = lire("src/app/Console.tsx");
     expect(c, "« À la une » a disparu de l'Accueil").toMatch(/titre="À la une" href="\/actualites"/);
     expect(c, "le bloc « Apprendre » n'est pas posé sur l'Accueil").toMatch(/<BlocApprendre \/>/);
-    expect(c.indexOf('titre="À la une"'), "« Apprendre » ne suit plus « À la une »").toBeLessThan(c.indexOf("<BlocApprendre />"));
+    expect(c.indexOf("<DossierAccueil"), "« Bon à savoir » n'est plus le dernier bloc : il remonte au-dessus du dossier").toBeLessThan(c.indexOf("<BlocApprendre />"));
+    expect(c.indexOf('titre="À la une"'), "« Bon à savoir » repasse avant « À la une »").toBeLessThan(c.indexOf("<BlocApprendre />"));
+    expect(c.slice(c.indexOf("<BlocApprendre />")), "quelque chose a été posé après « Bon à savoir »").not.toMatch(/<(DossierAccueil|IndexPulse|GrilleInvestir|TuilesDuHaut|CeQuiVousAttend)/);
+    expect(lire("src/components/accueil/BlocApprendre.tsx"), "l'ancien titre paternaliste est revenu").not.toMatch(/titre="Apprendre"/);
+    expect(lire("src/components/accueil/BlocApprendre.tsx")).toMatch(/titre="Bon à savoir"/);
     /* Le bandeau « Entrer sans attendre un code » est parti (21 novembre 2026, 5A) : l'appareil se fait reconnaître à la connexion. */
     expect(c, "le bandeau de l'appareil est revenu sur l'Accueil").not.toMatch(/TrustNudge/);
     expect(lire("src/components/NavTabs.tsx"), "la porte « Guide » du menu a disparu").toMatch(/label: "Guide"/);

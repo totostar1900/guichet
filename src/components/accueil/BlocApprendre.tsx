@@ -4,7 +4,7 @@ import { loadLessons } from "@/lib/reference";
 import { ListeApprendre } from "./ListeApprendre";
 
 /**
- * « APPRENDRE » SUR L'ACCUEIL (14 novembre 2026, planche 3A) : TROIS ÉCLAIRAGES PAS ENCORE LUS, EN PLUS DE CE QUI Y EST.
+ * « BON À SAVOIR » SUR L'ACCUEIL, EN DERNIER (14 novembre 2026, planche 3A ; renommé et passé en dernier le 25 novembre 2026 : « Apprendre » faisait la leçon ; le client a retenu « Bon à savoir ») : TROIS ÉCLAIRAGES PAS ENCORE LUS, EN PLUS DE CE QUI Y EST.
  *
  * Le Guide existait (huit éclairages courts, un parcours de 29, le glossaire) mais aucun bloc de l'Accueil n'y menait : on le trouvait par
  * l'onglet « Aide » ou le menu. Ce bloc n'en remplace aucune porte, il en ajoute une, à l'endroit où le lecteur lit déjà.
@@ -20,7 +20,7 @@ export async function BlocApprendre() {
   if (!lessons.length) return null;
   return (
     <ListeApprendre
-      entete={<TitreDeBloc id="apprendre" titre="Apprendre" href="/info/eclairages" tout="Tout voir" />}
+      entete={<TitreDeBloc id="apprendre" titre="Bon à savoir" href="/info/eclairages" tout="Tout voir" />}
       lessons={lessons.map((l) => ({ key: l.key, order: l.order, titre: t(l.title), phrase: t(l.intro), minutes: l.minutes }))}
       min={t("min")}
     />
