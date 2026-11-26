@@ -8,7 +8,7 @@ export const ADMINISTRATION: DocPage = {
   visibility: "desk",
   audience: ["admin"],
   order: 6,
-  checkedOn: "2026-11-05",
+  checkedOn: "2026-11-25",
   owner: "Georges",
   chapters: [
     {
@@ -139,6 +139,24 @@ export const ADMINISTRATION: DocPage = {
           ),
         },
         { type: "note", kind: "info", text: l("Chaque modification est versionnée dans le Journal (entité Référentiel) : on voit qui a changé quoi, avant / après, et on peut revenir en arrière.", "Every change is versioned in the audit log (entity Reference data): who changed what, before / after, and it can be undone.") },
+      ],
+    },
+    {
+      id: "commissionnement",
+      title: l("Commissionnement : ce que les fonds nous versent", "Commissioning: what the funds pay us"),
+      blocks: [
+        { type: "p", text: l("Deux tableaux, deux publics. La tarification que le client lit (« Ce que vous payez ») dit ce qu'il paie, en une ligne totale par opération. Le commissionnement dit ce que chaque fonds verse à la maison : il est lu et modifié par le responsable du desk seul, et ne sort jamais. Le lien entre les deux est le code du fonds ; le client ne lit jamais le second.", "Two tables, two audiences. The pricing the client reads (“What you pay”) says what they pay, in a single total line per transaction. The commissioning says what each fund pays the house: only the desk manager reads and changes it, and it never leaves. The link between the two is the fund code; the client never reads the second.") },
+        {
+          type: "table",
+          head: [l("Onglet", "Tab"), l("À quoi il sert", "What it is for")],
+          rows: [
+            [l("Conditions", "Terms"), l("Par fonds : part des droits d'entrée et de sortie, taux sur le montant, rétrocession sur l'encours, plancher et plafond, départ, accord. Chaque enregistrement pose une version datée avec son motif (obligatoire) ; « Appliquer à tous les fonds de cette société » pose une version sur chacun, sans rien hériter en silence.", "Per fund: share of entry and exit fees, rate on the amount, retrocession on assets, floor and cap, start date, agreement. Each save sets a dated version with its reason (mandatory); “Apply to all this company's funds” sets a version on each, inheriting nothing silently.")],
+            [l("Dû du mois", "Due this month"), l("Pour chaque société puis chaque fonds : souscriptions, rachats, encours moyen, ce qui est dû sur les transactions et sur l'encours, le reçu, le solde à réclamer. Le calcul prend les conditions de la date de chaque ordre.", "For each company then each fund: subscriptions, redemptions, average assets, what is due on transactions and on assets, what was received, the balance to claim. The calculation uses the terms of each order's date.")],
+            [l("Relevés", "Statements"), l("Un relevé par société et par mois : calculé, envoyé, confirmé ou contesté, encaissé. L'envoi fige le mois (le total est écrit) ; un départ de conditions ne peut plus tomber dans un mois figé : on régularise par une ligne datée. Export Excel (CSV) pour la comptabilité.", "One statement per company and month: calculated, sent, confirmed or disputed, collected. Sending freezes the month (the total is written); new terms can no longer start in a frozen month: regularise with a dated line. Excel (CSV) export for accounting.")],
+            [l("Simulateur", "Simulator"), l("Changer un taux sans rien appliquer : les six derniers mois sont rejoués avec ces conditions, et douze mois sont projetés à volumes constants. C'est une estimation, jamais une promesse. Le même moteur sert l'aperçu d'impact avant d'enregistrer.", "Change a rate without applying anything: the last six months are replayed with these terms, and twelve months projected at constant volumes. It is an estimate, never a promise. The same engine serves the impact preview before saving.")],
+          ],
+        },
+        { type: "note", kind: "warn", text: l("Le journal d'audit ne porte jamais un taux : il dit qui a posé quelle version, quand et pourquoi. L'avant et l'après des taux sont dans les versions du fonds, réservées au responsable. Les codes (SG- pour la société, FD- pour le fonds) sont attribués une fois, jamais réutilisés, jamais tirés d'un nom ; un fonds est rattaché à sa société par un lien daté.", "The audit log never carries a rate: it says who set which version, when and why. The before and after of rates are in the fund's versions, reserved to the manager. Codes (SG- for the company, FD- for the fund) are assigned once, never reused, never drawn from a name; a fund is attached to its company by a dated link.") },
       ],
     },
     {

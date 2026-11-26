@@ -1,5 +1,5 @@
 import { DeskNav } from "@/components/DeskNav";
-import { requireDesk } from "@/lib/auth";
+import { requireResponsable } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { loadRegistry } from "@/lib/reference";
 import { loadBaremeDeFrais, loadHistoriqueDeFrais } from "@/lib/policy";
@@ -22,7 +22,8 @@ export const metadata = { title: "Suivi des frais" };
  * Rien de cette page n'est lu par le client.
  */
 export default async function SuiviDesFraisPage({ searchParams }: { searchParams: Promise<{ m?: string }> }) {
-  await requireDesk("/desk/frais/suivi");
+  /* LA DIRECTION SEULE (25 novembre 2026) : ce suivi met côte à côte ce que le client paie et ce que la maison attend de tiers. */
+  await requireResponsable("/desk/frais/suivi");
   await loadRegistry();
   const t = await getT();
   const sp = await searchParams;

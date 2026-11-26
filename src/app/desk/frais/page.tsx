@@ -1,6 +1,7 @@
 import { DeskNav } from "@/components/DeskNav";
 import { RegleForm } from "./Formulaire";
 import { requireDesk } from "@/lib/auth";
+import { isResponsable } from "@/lib/auth/types";
 import { loadBaremeDeFrais } from "@/lib/policy";
 import { CLES_DE_REGLE, LIBELLE_DE_REGLE, enVigueur, premierDepartPossible, type RegleDeFrais } from "@/lib/domain/frais";
 import { getT } from "@/i18n/server";
@@ -18,7 +19,9 @@ export const metadata = { title: "Frais" };
  * La direction arrête une règle, l'audit garde l'avant et l'après, et une règle sans date de départ calcule zéro.
  */
 export default async function FraisPage() {
-  await requireDesk("/desk/frais");
+  const me = await requireDesk("/desk/frais");
+  /* CE QUE LA MAISON REÇOIT DE TIERS NE SE LIT QUE PAR LA DIRECTION (25 novembre 2026) : un opérateur voit ce que le client paie, pas la colonne « reçu de tiers », et ne porte pas les formulaires qui arrêtent une règle. */
+  const direction = isResponsable(me);
   const t = await getT();
   const bareme = await loadBaremeDeFrais();
   const jour = new Date().toISOString().slice(0, 10);
@@ -54,7 +57,7 @@ export default async function FraisPage() {
                 <tr>
                   <th>{t("Opération")}</th>
                   <th>{t("Frais du client")}</th>
-                  <th>{t("Reçu de tiers · desk seulement")}</th>
+                  {direction && <th>{t("Reçu de tiers · desk seulement")}</th>}
                   <th>{t("Départ")}</th>
                 </tr>
               </thead>
@@ -65,7 +68,7 @@ export default async function FraisPage() {
                     <tr key={cle}>
                       <td>{t(LIBELLE_DE_REGLE[cle])}</td>
                       <td>{client(r)}</td>
-                      <td>{tiers(r)}</td>
+                      {direction && <td>{tiers(r)}</td>}
                       <td>
                         {r.effetLe ? <span className={enVigueur(r, jour) ? "st reglee" : "st transmise"}>{enVigueur(r, jour) ? t("en vigueur") : fmtDate(r.effetLe)}</span> : <span className="muted">{t("non fixé")}</span>}
                       </td>
@@ -77,8 +80,9 @@ export default async function FraisPage() {
           </div>
         </section>
 
-        {CLES_DE_REGLE.map((cle) => (
-          <section key={cle} className="panel">
+        {direction &&
+          CLES_DE_REGLE.map((cle) => (
+            <section key={cle} className="panel">
             <details className={styles.fiche}>
               <summary>{t(LIBELLE_DE_REGLE[cle])}</summary>
               <div className={styles.pb}>
@@ -86,7 +90,7 @@ export default async function FraisPage() {
               </div>
             </details>
           </section>
-        ))}
+          ))}
       </div>
     </>
   );

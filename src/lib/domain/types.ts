@@ -69,13 +69,11 @@ export interface FundTerms {
    * Il se montre donc au client, à côté des autres.
    */
   managementFeePct?: number;
-  /**
-   * La part de ces frais de gestion qui revient au distributeur, chaque année.
-   *
-   * C'est notre revenu, pas une condition du fonds : le client ne paie rien de
-   * plus à cause d'elle, et elle ne le regarde pas. Elle ne paraît qu'au desk.
+  /*
+   * LA RÉTROCESSION N'EST PLUS SUR LA FICHE DU FONDS (25 novembre 2026). La fiche d'un fonds est lue par le client, et la table des offres l'est par tout visiteur pour une offre publiée :
+   * ce que la maison reçoit d'un partenaire n'a rien à y faire (règle du 14 novembre 2026). Elle vit dans le commissionnement (`domain/commissionnement.ts`), fonds par fonds, lisible et
+   * modifiable par la direction seule.
    */
-  trailerPct?: number;
   minAmount: number; // FCFA, first subscription
   /**
    * Le minimum d une epargne programmee, quand la convention le distingue.

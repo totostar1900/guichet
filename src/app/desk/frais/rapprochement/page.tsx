@@ -1,6 +1,6 @@
 import { DeskNav } from "@/components/DeskNav";
 import { RecuForm } from "./Formulaire";
-import { requireDesk } from "@/lib/auth";
+import { requireResponsable } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { loadRegistry } from "@/lib/reference";
 import { loadBaremeDeFrais, loadHistoriqueDeFrais } from "@/lib/policy";
@@ -26,7 +26,8 @@ export const metadata = { title: "Rapprochement des frais de tiers" };
  * Rien de cette page n'est lu par le client.
  */
 export default async function RapprochementPage({ searchParams }: { searchParams: Promise<{ m?: string }> }) {
-  await requireDesk("/desk/frais/rapprochement");
+  /* LA DIRECTION SEULE (25 novembre 2026) : ce qu'un partenaire verse à la maison ne se lit que par elle. */
+  await requireResponsable("/desk/frais/rapprochement");
   await loadRegistry();
   const t = await getT();
   const sp = await searchParams;

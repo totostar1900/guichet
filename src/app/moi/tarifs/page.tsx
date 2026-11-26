@@ -2,7 +2,7 @@ import { repo } from "@/lib/data";
 import { baremeOuvert } from "@/lib/domain/garde";
 import { GRATUITS } from "@/lib/domain/tarifs";
 import { fraisLusParLeClient, type LigneDeFraisClient } from "@/lib/domain/frais";
-import { fourchetteDeFonds, fourchetteDePassage, type Fourchette } from "@/lib/domain/frais-fonds";
+import { fourchetteDeFonds, fourchetteDePassage, pctTotal, type Fourchette } from "@/lib/domain/frais-fonds";
 import { loadBaremeClient, loadBaremeGarde, loadTarifs } from "@/lib/policy";
 import { fmt, fmtDate, fmtPct } from "@/lib/format";
 import { getT } from "@/i18n/server";
@@ -77,6 +77,18 @@ export default async function TarifsPage() {
     for (const d of [...new Set(dates)].sort()) lignes.push(`${t("à partir du {d}", { d: fmtDate(d) })} : ${diteFourchette(fourchetteDePassage(fonds, d), "")}`);
     return lignes;
   };
+  /* FONDS PAR FONDS (25 novembre 2026, planche « Deux tableaux », ①) : une ligne par fonds au lieu d'une seule fourchette, toujours le TOTAL (les droits du fonds et ce que la maison ajoute, sans les séparer),
+     avec la date quand une règle à venir changera le total. Rien n'est lu du commissionnement : ce tableau ne dit que ce que le client paie. */
+  const fondsOuverts = offres.filter((o) => o.kind === "FONDS" && !o.hidden && o.fund?.distributed);
+  const datesAVenir = ["fonds.souscription", "fonds.rachat"].map((c) => frais[c as "fonds.souscription" | "fonds.rachat"]).filter((r) => r.effetLe && r.clientPct > 0 && r.effetLe > jour).map((r) => r.effetLe as string);
+  const futur = [...new Set(datesAVenir)].sort()[0];
+  const parFonds = fondsOuverts.map((o) => ({
+    id: o.id,
+    titre: o.title,
+    entree: pctTotal(o.fund!, "souscription", jour),
+    sortie: pctTotal(o.fund!, "rachat", jour),
+    ...(futur ? { plusTard: { le: futur, entree: pctTotal(o.fund!, "souscription", futur), sortie: pctTotal(o.fund!, "rachat", futur) } } : {}),
+  }));
   const achat = ligne("titres.achat");
   const vente = ligne("titres.vente");
   const bourse = [achat ? `${t("Achat")} : ${dit(achat)}` : "", vente ? `${t("Vente")} : ${dit(vente)}` : ""].filter(Boolean);
@@ -124,6 +136,39 @@ export default async function TarifsPage() {
             </table>
           </div>
         </section>
+
+        {parFonds.length > 0 && (
+          <section className={styles.bloc}>
+            <h2>{t("Fonds par fonds")}</h2>
+            <p className={styles.sous}>{t("Les frais totaux de chaque fonds, en une seule ligne par opération : ce que vous payez, sans autre détail.")}</p>
+            <div className="scroll-x">
+              <table className={styles.tbl}>
+                <thead>
+                  <tr>
+                    <th>{t("Fonds")}</th>
+                    <th>{t("Investir")}</th>
+                    <th>{t("Sortir")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {parFonds.map((f) => (
+                    <tr key={f.id}>
+                      <td>{t(f.titre)}</td>
+                      <td className={styles.prix}>
+                        {f.entree > 0 ? fmtPct(f.entree, 2) : rien}
+                        {f.plusTard && f.plusTard.entree !== f.entree && <div className={styles.tiers}>{t("à partir du {d}", { d: fmtDate(f.plusTard.le) })} : {fmtPct(f.plusTard.entree, 2)}</div>}
+                      </td>
+                      <td className={styles.prix}>
+                        {f.sortie > 0 ? fmtPct(f.sortie, 2) : rien}
+                        {f.plusTard && f.plusTard.sortie !== f.sortie && <div className={styles.tiers}>{t("à partir du {d}", { d: fmtDate(f.plusTard.le) })} : {fmtPct(f.plusTard.sortie, 2)}</div>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
 
         <section className={styles.bloc}>
           <h2>{t("Dans le temps")}</h2>

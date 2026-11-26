@@ -4,6 +4,8 @@ import { BarreGelee } from "./BarreGelee";
 import { DeclarerBadges } from "./ColonneStore";
 import { getT } from "@/i18n/server";
 import { DESK_GROUPS } from "@/lib/desk-groupes";
+import { getSession } from "@/lib/auth";
+import { isResponsable } from "@/lib/auth/types";
 
 /**
  * LA TABLE A DÉMÉNAGÉ DANS `lib/desk-groupes`, et la page a dit pourquoi.
@@ -51,8 +53,12 @@ export { DESK_GROUPS, DESK_TABS } from "@/lib/desk-groupes";
  * trente-huit pages du desk n'ont pas une ligne à changer, et il n'existe
  * toujours qu'UN endroit où un compte est calculé.
  */
+/** Les pages que la direction seule voit (25 novembre 2026) : ce que la maison reçoit de ses partenaires ne se lit pas par un opérateur, pas même par un onglet qui renverrait ailleurs. */
+const DIRECTION_SEULE = new Set(["/desk/commissionnement", "/desk/frais/suivi", "/desk/frais/rapprochement"]);
+
 export async function DeskNav({ current, badges = {} }: { current: string; badges?: Record<string, number> }) {
   const t = await getT();
+  const direction = isResponsable(await getSession());
   return (
     <>
     <DeclarerBadges cle={`desk:${current}`} badges={badges} />
@@ -61,7 +67,7 @@ export async function DeskNav({ current, badges = {} }: { current: string; badge
         <div key={g.label} className={styles.group}>
           <span className={styles.label}>{t(g.label)}</span>
           <div className={styles.tabs}>
-            {g.tabs.map(([href, label]) => (
+            {g.tabs.filter(([href]) => direction || !DIRECTION_SEULE.has(href)).map(([href, label]) => (
               <Link key={href} href={href} aria-current={href === current ? "page" : undefined}>
                 {t(label)}
                 {badges[href] ? <span className={styles.badge}>{badges[href]}</span> : null}

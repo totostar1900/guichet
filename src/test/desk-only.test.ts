@@ -73,14 +73,21 @@ describe("ce qui reste au desk", () => {
   }
 
   /**
-   * La rétrocession sur encours est notre revenu, pas une condition du fonds :
-   * le client ne paie rien de plus à cause d’elle et elle ne le regarde pas.
-   * Les frais de gestion, eux, sont à lui et se montrent. La garde tient la
-   * séparation, parce qu’un champ voisin se copie sans y penser.
+   * La rétrocession est notre revenu, pas une condition du fonds : le client ne paie rien de plus à cause d'elle et elle ne le regarde pas. Elle était rangée dans la fiche du fonds
+   * (`trailerPct`), donc dans la table des offres, lisible par tout visiteur pour une offre publiée (constaté le 25 novembre 2026). Elle vit maintenant dans le commissionnement, lu et
+   * modifié par la direction seule : AUCUN fichier ne cite plus ce champ, et la migration 0136 réserve les tables d'argent de tiers à la direction.
    */
-  it("la rétrocession ne quitte pas le desk", () => {
-    const leaks = files.filter((f) => !isDesk(f.path) && !f.path.startsWith("lib/domain/types") && f.text.includes("trailerPct")).map((f) => f.path);
-    expect(leaks, "ces fichiers ne sont pas au desk et citent trailerPct").toEqual([]);
+  it("la rétrocession n'est plus sur la fiche du fonds : aucun fichier ne cite trailerPct", () => {
+    /* Deux fichiers le nomment pour le RETIRER : l'écriture d'un fonds au desk (elle l'efface d'une ancienne fiche) et le commentaire du type qui dit où il est passé. */
+    const leaks = files.filter((f) => f.text.includes("trailerPct") && f.path !== "app/desk/marche/actions.ts" && f.path !== "lib/domain/types.ts" && f.path !== "test/desk-only.test.ts").map((f) => f.path);
+    expect(leaks, "la rétrocession est revenue dans la fiche d'un fonds, que le client lit").toEqual([]);
+  });
+
+  it("la migration 0136 sort la rétrocession des offres et réserve l'argent de tiers à la direction", () => {
+    const m = readFileSync(join(ROOT, "..", "supabase/migrations/0136_commissionnement.sql"), "utf8");
+    expect(m).toMatch(/update offers set fund = fund - 'trailerPct'/);
+    expect(m).toMatch(/using \(is_responsable\(\)\)/);
+    for (const kind of ["partenaire", "commission_fonds", "releve_commissionnement", "trailer_historique", "frais", "recu_de_tiers"]) expect(m, `le kind ${kind} n'est pas réservé`).toContain(`'${kind}'`);
   });
 
   it("les frais de gestion, eux, se montrent au client", () => {

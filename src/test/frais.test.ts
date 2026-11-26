@@ -441,9 +441,9 @@ describe("le suivi des frais : trois chiffres et un tableau, calculés avec la r
     expect(s.parRegle.find((l) => l.cle === "titres.achat")!.ordres).toBe(1);
   });
 
-  it("la page lit les ordres exécutés et ne s'ouvre qu'au desk, avec le registre chargé", () => {
+  it("la page lit les ordres exécutés et ne s'ouvre qu'à la direction (25 novembre 2026), avec le registre chargé", () => {
     const p = lire("src/app/desk/frais/suivi/page.tsx");
-    expect(p).toMatch(/requireDesk\("\/desk\/frais\/suivi"\)/);
+    expect(p).toMatch(/requireResponsable\("\/desk\/frais\/suivi"\)/);
     expect(p).toMatch(/await loadRegistry\(\)/);
     expect(p).toMatch(/i\.state === "servie" \|\| i\.state === "reglee"/);
     expect(p).toMatch(/suiviDesFrais\(ordres, bareme, historique\)/);
