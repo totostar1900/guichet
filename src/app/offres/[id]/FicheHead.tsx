@@ -11,6 +11,8 @@ import type { OfferSummary } from "@/lib/domain/summary";
 import { familySegment, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/domain/status";
 import { cadenceDuSuivi } from "@/lib/domain/sections";
 import { getT } from "@/i18n/server";
+import { enClairDe } from "@/lib/domain/en-clair";
+import { EnBrefDeLaFiche } from "@/components/EnClair";
 import styles from "./page.module.css";
 
 /**
@@ -55,6 +57,7 @@ export async function FicheHead({
   /* LA MÊME CADENCE QUE LES CARTES (7 novembre 2026) : une séance se rappelle chaque jour jusqu'à sa clôture, une ligne cotée à chaque mouvement. La fiche la disait toujours « à chaque mouvement ». */
   const cadence = cadenceDuSuivi(o);
   const t = await getT();
+  const enClair = enClairDe(o);
   return (
     <div className={styles.head}>
       <div className={styles.crumb}>
@@ -96,6 +99,8 @@ export async function FicheHead({
           </div>
         </div>
       </div>
+      {/* « EN BREF », EN TÊTE DE FICHE (28 novembre 2026, le client : « les novices ne comprennent pas les informations détaillées des pages ») : la phrase et les trois curseurs, avant les chiffres. Rendu aussi dans l'aperçu d'une voisine : les deux fiches ont la même hauteur de tête. */}
+      {enClair && <EnBrefDeLaFiche e={enClair} />}
     </div>
   );
 }

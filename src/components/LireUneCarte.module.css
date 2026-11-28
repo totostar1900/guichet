@@ -1,0 +1,110 @@
+.anatomie {
+  display: grid;
+  gap: var(--bloc-gap);
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+.carte {
+  display: grid;
+  gap: var(--tuiles-gap);
+  grid-template-columns: minmax(0, 1fr);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  min-width: 0;
+}
+.tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tuiles-gap);
+}
+.nom {
+  display: grid;
+  min-width: 0;
+}
+.nom small,
+.chiffre small,
+.grille small {
+  font-size: var(--t-1);
+  color: var(--ink-3);
+}
+.etat,
+.chiffre,
+.grille,
+.pied {
+  position: relative;
+}
+.chiffre {
+  display: grid;
+  padding-left: 28px;
+}
+.chiffre b {
+  font-size: var(--t-6);
+}
+.grille {
+  display: flex;
+  gap: var(--tuiles-gap);
+  padding-left: 28px;
+}
+.grille span {
+  display: grid;
+  flex: 1 1 auto;
+}
+.pied {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--tuiles-gap);
+  padding-left: 28px;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.voir {
+  color: var(--ink);
+  font-weight: 600;
+}
+/* Le repère : un rond d'encre pleine, posé à gauche de sa zone, avec le numéro de la légende. */
+.repere {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: var(--t-1);
+  font-style: normal;
+  font-weight: 700;
+}
+.chiffre .repere,
+.grille .repere,
+.pied .repere {
+  position: absolute;
+  left: 0;
+  top: 2px;
+}
+.etat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.legende {
+  display: grid;
+  gap: var(--tuiles-gap);
+  margin: 0;
+  padding-left: 20px;
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+.legende b {
+  display: block;
+  color: var(--ink);
+}
+.geste {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}

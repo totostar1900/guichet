@@ -398,3 +398,18 @@
 .vide b {
   color: var(--ink);
 }
+
+/* « À QUOI SERT CETTE SECTION » (28 novembre 2026) : une ligne sous le titre des sections techniques, pour qui lit une fiche pour la première fois. */
+.aide {
+  margin: 0 0 10px;
+  font-size: var(--t-3);
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+.sec h3:has(+ .aide) {
+  margin-bottom: 4px;
+}
+/* « En bref » dans la tête de la fiche : à une section d'écart sous le titre. */
+.head > section {
+  margin-top: var(--bloc-gap);
+}

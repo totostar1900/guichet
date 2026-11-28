@@ -18,6 +18,7 @@ import { DossierAccueil } from "@/components/accueil/DossierAccueil";
 import { joursEnMots } from "@/lib/domain/echeances";
 import { IndexPulse } from "@/components/IndexPulse";
 import { BlocApprendre } from "@/components/accueil/BlocApprendre";
+import { BandeauComprendre } from "@/components/BandeauComprendre";
 import { TitreDeBloc } from "@/components/TitreDeBloc";
 import { TotalCollant } from "./TotalCollant";
 import { aLaUne, pourquoiLu, publishedNews, titreLu } from "@/lib/news";
@@ -485,6 +486,8 @@ export async function Console({ session }: { session: Session }) {
           de ce que la maison annonce ou de ce que le client propose, et la porte
           du catalogue entier. Aucune ne dit combien elle contient (arbitrage du
           29 octobre 2026) ; leurs règles vivent dans « GrilleInvestir ». */}
+      {/* « NOUVEAU SUR INVESTIR ? » (28 novembre 2026) : le même bandeau que sur la page Investir, avant les entrées, pour qui arrive sans savoir par où commencer. Il se ferme pour de bon. */}
+      <BandeauComprendre />
       <GrilleInvestir offres={offers} />
 
       {/* 7. LE MARCHÉ, EN UN CHIFFRE ET SA DATE.

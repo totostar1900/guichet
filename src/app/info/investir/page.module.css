@@ -1,0 +1,63 @@
+.page {
+  display: grid;
+  gap: var(--sections-gap);
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  max-width: 860px;
+}
+/* Dix sections : l'écart des chapitres entre deux sections, comme la fiche d'une ligne. */
+.sections {
+  display: grid;
+  gap: var(--chapitres-gap);
+}
+.section {
+  display: grid;
+  gap: var(--titre-gap);
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+.section h2 {
+  margin: 0;
+  font-size: var(--t-6);
+  font-weight: 700;
+  color: var(--ink);
+}
+.section p {
+  margin: 0;
+  font-size: var(--t-4);
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.lignes {
+  display: grid;
+  margin: 0;
+}
+.lignes > div {
+  display: grid;
+  gap: 2px;
+  padding: var(--titre-gap) 0;
+  border-bottom: 1px solid var(--line);
+}
+.lignes > div:last-child {
+  border-bottom: 0;
+}
+.lignes dt {
+  font-size: var(--t-4);
+  font-weight: 700;
+  color: var(--ink);
+}
+.lignes dd {
+  margin: 0;
+  font-size: var(--t-4);
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.section p.fin {
+  font-size: var(--t-3);
+  color: var(--ink-3);
+}
+.date {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}

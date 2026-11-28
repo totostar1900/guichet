@@ -139,6 +139,7 @@ export const MARCHE_PAGES: NavPage[] = MARKET_PAGES;
 export const AIDE_PAGES: NavPage[] = [
   { key: "questions", href: "/info/aide", label: "Questions courantes", tuile: "ce qu'on nous demande", hint: "ce qu'on nous demande le plus souvent, répondu une fois pour toutes" },
   { key: "eclairages", href: "/info/eclairages", label: "Éclairages", tuile: "comprendre avant de placer", hint: "huit éclairages de deux à trois minutes : rendement, coupon, adjudication, risques" },
+  { key: "investir", href: "/info/investir", label: "Comprendre l'investissement", tuile: "avant de placer", hint: "ce que l'on peut acheter, comment lire la page Investir, comment se passe un ordre" },
   { key: "parcours", href: "/info/parcours", label: "Le parcours CEMAC", tuile: "le marché, de bout en bout", hint: "le marché et ses acteurs, les instruments, les risques, passer un ordre, fiscalité et frais, taux et monnaie" },
   { key: "simulateur", href: "/info/simulateur", label: "Simulateur", tuile: "voir le rendement bouger", hint: "comment le prix, le coupon et la durée fabriquent le rendement" },
   { key: "glossaire", href: "/info/glossaire", label: "Glossaire", tuile: "les mots du marché", hint: "le vocabulaire du marché, défini une fois, tel qu'il est employé dans les fiches" },

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useT } from "@/i18n/client";
 import { estIci, ongletsDuSiege } from "@/lib/nav-onglets";
+import { BandeauComprendre } from "@/components/BandeauComprendre";
 import styles from "./OngletsMarche.module.css";
 
 /**
@@ -45,6 +46,7 @@ export function OngletsMarche() {
      pour ne pas la poser, parce qu'une page de plus naîtrait en la posant. */
   if (pages.length === 0) return null;
   return (
+    <>
     <nav className={styles.onglets} aria-label={t("Ce qui s'achète")} data-balayage-sections="">
       {pages.map((p) => (
         <Link key={p.key} href={p.href} replace data-coach={p.key === "fonds" ? "titres-fonds" : undefined} className={styles.onglet} aria-current={estIci(p, path) ? "page" : undefined}>
@@ -56,5 +58,8 @@ export function OngletsMarche() {
         </Link>
       ))}
     </nav>
+    {/* « NOUVEAU SUR INVESTIR ? » (28 novembre 2026) : un bandeau qui se ferme pour de bon, sous les trois cartes. */}
+    <BandeauComprendre />
+    </>
   );
 }

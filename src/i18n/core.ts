@@ -35,6 +35,7 @@ import { EN_PROVISION } from "./en-provision";
 import { EN_REGLEMENT } from "./en-reglement";
 import { EN_RELANCES } from "./en-relances";
 import { EN_TRADE } from "./en-trade";
+import { EN_COMPRENDRE } from "./en-comprendre";
 import { EN_DOCUMENTS } from "./en-documents";
 import { EN_DOSSIER } from "./en-dossier";
 import { EN_VITRINE } from "./en-vitrine";
@@ -80,6 +81,7 @@ const EN: Record<string, string> = {
   ...EN_REGLEMENT,
   ...EN_RELANCES,
   ...EN_TRADE,
+  ...EN_COMPRENDRE,
   ...EN_DOCUMENTS,
   ...EN_DOSSIER,
   ...EN_VITRINE,

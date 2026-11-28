@@ -21,6 +21,8 @@ import { issuerZone } from "@/data/issuer-registry";
 import { Drapeau } from "./Drapeau";
 import type { FenetreDuCours, FenetresDuCours } from "@/lib/market/performe";
 import type { PeriodeDeLaListe } from "@/lib/market/periodes";
+import { enClairDe } from "@/lib/domain/en-clair";
+import { Curseur, LienDesRisques, PhraseEnClair, TexteDuCurseur } from "./EnClair";
 import { localIso } from "@/lib/format";
 import styles from "./OfferCard.module.css";
 
@@ -148,6 +150,7 @@ export function OfferCard({ o, s, suivi = false, courbe, extension = false, sans
   const { fmtDate } = useDates();
   const compact = useDensity() === "compact" || extension || sansExtension;
   const estAction = o.kind === "MARCHE" && o.instrument === "action";
+  const enClair = enClairDe(o);
   const prix = estAction ? prixDe(s) : null;
   const avecCoupon = (o.kind === "OTA" || o.kind === "APE") && s.coupon !== "—";
   /* Le Trésor se nomme sur la tuile compacte comme sur la carte détaillée (7 novembre 2026) : « RCA » seul ne disait pas qui emprunte. */
@@ -240,6 +243,14 @@ export function OfferCard({ o, s, suivi = false, courbe, extension = false, sans
           )}
             </>
           )}
+          {/* LA PHRASE « EN CLAIR » OUVRE L'EXTENSION (28 novembre 2026, le client : « les novices ne savent pas lire les tuiles étendues ») : ce qu'on fait en achetant, avant les chiffres. */}
+          {dos && enClair && <PhraseEnClair e={enClair} />}
+          {dos && enClair && (
+            <>
+              <h4 className={styles.curseurTitre}>{t("Ce que je peux gagner")}</h4>
+              <TexteDuCurseur e={enClair} curseur="gagner" />
+            </>
+          )}
           <div className={styles.facts} data-coach="titres-grille">
             {(dos ? faitsDeLExtension : estAction && prix ? faitsAction(s) : avecCoupon ? s.facts.filter(([k]) => k !== "Coupon") : s.facts).map(([k, v, note]) => (
               <div key={k}>
@@ -250,9 +261,16 @@ export function OfferCard({ o, s, suivi = false, courbe, extension = false, sans
             ))}
           </div>
           {/* LE CALENDRIER DE LA LIGNE (adjudications, 9 novembre 2026) : les étapes datées de la séance, à la place de l'échéance seule. */}
+          {dos && enClair && (
+            <Curseur titre="Quand je récupère mon argent">
+              <TexteDuCurseur e={enClair} curseur="recuperer" />
+            </Curseur>
+          )}
           {dos && extension && <CalendrierDeLaLigne o={o} aujourdhui={localIso(new Date())} />}
           {/* LA VARIATION SUR SIX MOIS, DOUZE MOIS ET DEUX ANS, CÔTE À CÔTE (9 novembre 2026), à la place de « cours inchangé depuis » et de l'ISIN. Une ligne entrée à la cote depuis moins longtemps n'a pas de chiffre : elle dit depuis quand elle y est. */}
           {dos && estAction && courbe?.fenetres && (
+            <>
+            <h4 className={styles.curseurTitre}>{t("Comment le prix a bougé")}</h4>
             <div className={styles.facts} data-coach="titres-fenetres">
               {([["6 mois", courbe.fenetres.mois6], ["12 mois", courbe.fenetres.mois12], ["2 ans", courbe.fenetres.ans2]] as [string, FenetreDuCours][]).map(([k, f]) => (
                 <div key={k}>
@@ -262,6 +280,13 @@ export function OfferCard({ o, s, suivi = false, courbe, extension = false, sans
                 </div>
               ))}
             </div>
+            </>
+          )}
+          {dos && enClair && (
+            <Curseur titre="Ce qui peut mal tourner">
+              <TexteDuCurseur e={enClair} curseur="risquer" />
+              <LienDesRisques />
+            </Curseur>
           )}
           {/* Le calendrier de la ligne dit déjà la clôture : le pied ne la redit pas dans l'extension d'une adjudication. */}
           {(!dos || (!continuous && !extension)) && (

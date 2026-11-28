@@ -1,0 +1,60 @@
+.phrase {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+.phrase b {
+  display: block;
+  font-size: var(--t-1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 2px;
+}
+.curseur {
+  display: grid;
+  gap: var(--titre-gap);
+  min-width: 0;
+}
+.curseur h4 {
+  margin: 0;
+  font-size: var(--t-1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.texte {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+.lien {
+  font-size: var(--t-2);
+  font-weight: 600;
+  color: var(--ink);
+}
+.enBref {
+  display: grid;
+  gap: var(--bloc-gap);
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+.enBref dl {
+  display: grid;
+  gap: var(--tuiles-gap);
+  margin: 0;
+}
+.enBref dt {
+  font-size: var(--t-1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.enBref dd {
+  margin: 2px 0 0;
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  line-height: 1.45;
+}

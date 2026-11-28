@@ -1,0 +1,41 @@
+.bandeau {
+  position: relative;
+  display: grid;
+  gap: var(--titre-gap);
+  grid-template-columns: minmax(0, 1fr);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  min-width: 0;
+}
+.texte {
+  display: grid;
+  gap: 2px;
+  padding-right: 32px;
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  line-height: 1.4;
+}
+.texte b {
+  color: var(--ink);
+  font-size: var(--t-4);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tuiles-gap);
+}
+.fermer {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
