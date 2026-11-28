@@ -53,3 +53,11 @@
   margin: 0;
   color: var(--ink-3);
 }
+.accords {
+  display: grid;
+  gap: var(--titre-gap);
+}
+.accords h2 {
+  margin: 0;
+  font-size: var(--t-6);
+}

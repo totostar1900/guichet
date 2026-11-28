@@ -4,10 +4,12 @@ import { requireSession } from "@/lib/auth";
 import { getT } from "@/i18n/server";
 import { fmt, fmtDate } from "@/lib/format";
 import { facialLisible } from "@/lib/domain/facial-lisible";
-import { annoncesPubliees, peutParticiper, placeOuverte } from "@/lib/place-donnees";
+import { annoncesPubliees, mesAccords, peutParticiper, placeOuverte } from "@/lib/place-donnees";
 import { Glissement } from "@/components/mobile/Glissement";
 import { EnTete } from "@/components/EnTete";
 import styles from "./page.module.css";
+
+const ETAT: Record<string, string> = { accord_de_principe: "Accord de principe", signe: "Signé", bloque: "Fonds et titres bloqués", regle: "Réglé", expire: "Tombé", annule: "Annulé", echec: "Échec du règlement" };
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Place de marché" };
@@ -20,7 +22,7 @@ export default async function PlacePage({ searchParams }: { searchParams: Promis
   const s = await requireSession("/place");
   if (!placeOuverte() || !peutParticiper(s)) notFound();
   const t = await getT();
-  const [liste, sp] = await Promise.all([annoncesPubliees(s.userId), searchParams]);
+  const [liste, sp, accords] = await Promise.all([annoncesPubliees(s.userId), searchParams, mesAccords(s.userId)]);
   return (
     <Glissement>
       <div className="pile">
@@ -31,6 +33,23 @@ export default async function PlacePage({ searchParams }: { searchParams: Promis
             {t("Déposer une annonce")}
           </Link>
         </div>
+        {accords.length > 0 && (
+          <section className={styles.accords}>
+            <h2>{t("Mes accords")}</h2>
+            <ul className={styles.liste}>
+              {accords.map((x) => (
+                <li key={x.id}>
+                  <Link className={styles.carte} href={`/place/accord/${x.id}`}>
+                    <span className={styles.sens}>{x.role === "vendeur" ? t("Je vends") : t("J'achète")}</span>
+                    <strong className={styles.facial}>{facialLisible(x.facial)} FCFA</strong>
+                    <span className={styles.titre}>{x.titre}</span>
+                    <span className={styles.meta}>{ETAT[x.etat] ? t(ETAT[x.etat]) : x.etat}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         {liste.length === 0 ? (
           <p className={styles.vide}>{t("Aucune annonce publiée pour le moment.")}</p>
         ) : (

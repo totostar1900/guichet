@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth";
-import { accepterUneProposition, deposerUneAnnonce, peutParticiper, placeOuverte, refuserUneProposition, repondre } from "@/lib/place-donnees";
+import { accepterUneProposition, deposerUneAnnonce, peutParticiper, placeOuverte, refuserUneProposition, repondre, signerMonAccord } from "@/lib/place-donnees";
 
 /**
  * LES GESTES DU CLIENT SUR LA PLACE DE MARCHÉ (28 novembre 2026) : déposer, répondre, accepter ou refuser une proposition. Chacun vérifie l'interrupteur et que le client peut participer ; aucun ne reçoit ni
@@ -55,8 +55,9 @@ export async function accepterAction(form: FormData): Promise<void> {
   const s = await participant();
   const annonceId = String(form.get("annonceId") ?? "");
   const propositionId = String(form.get("propositionId") ?? "");
-  await accepterUneProposition(s, annonceId, propositionId);
+  const r = await accepterUneProposition(s, annonceId, propositionId);
   revalidatePath(`/place/${annonceId}`);
+  if (r.ok) redirect(`/place/accord/${r.id}`);
 }
 
 export async function refuserAction(form: FormData): Promise<void> {
@@ -64,4 +65,13 @@ export async function refuserAction(form: FormData): Promise<void> {
   const annonceId = String(form.get("annonceId") ?? "");
   await refuserUneProposition(s, annonceId, String(form.get("propositionId") ?? ""));
   revalidatePath(`/place/${annonceId}`);
+}
+
+/** Signer le contrat d'échange avec le code du compte. */
+export async function signerAction(accordId: string, pin: string): Promise<PlaceResult> {
+  const s = await participant();
+  const r = await signerMonAccord(s, accordId, pin);
+  if (!r.ok) return { ok: false, error: r.erreur };
+  revalidatePath(`/place/accord/${accordId}`);
+  return { ok: true, message: "Contrat signé." };
 }

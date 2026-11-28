@@ -1,0 +1,88 @@
+.decompte {
+  margin: 0;
+  font-size: var(--t-4);
+  color: var(--ink-2);
+}
+.clos {
+  margin: 0;
+  color: var(--crit);
+}
+.piste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--tuiles-gap);
+}
+.pas {
+  display: grid;
+  gap: var(--s-1);
+  padding-left: var(--s-5);
+  border-left: 3px solid var(--ink-3);
+  font-size: var(--t-3);
+}
+.pas span {
+  color: var(--ink-3);
+}
+.fait {
+  border-left-color: var(--good);
+}
+.en_cours {
+  border-left-color: var(--warn);
+}
+.a_venir {
+  opacity: 0.7;
+}
+.contrat {
+  display: grid;
+  gap: var(--titre-gap);
+}
+.contrat h2 {
+  margin: 0;
+  font-size: var(--t-6);
+}
+.bloc {
+  display: grid;
+  gap: var(--s-2);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+}
+.bloc h3 {
+  margin: 0;
+  font-size: var(--t-4);
+}
+.bloc p {
+  margin: 0;
+  font-size: var(--t-3);
+  color: var(--ink-2);
+}
+.reserve {
+  font-style: italic;
+}
+.signature {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bloc-gap);
+  max-width: 360px;
+}
+.champ {
+  display: grid;
+  gap: var(--s-2);
+  font-size: var(--t-3);
+}
+.champ input {
+  min-height: 44px;
+  padding: 0 var(--s-5);
+  font: inherit;
+  letter-spacing: 0.3em;
+}
+.ok {
+  margin: 0;
+  color: var(--good);
+}
+.ko {
+  margin: 0;
+  color: var(--crit);
+}

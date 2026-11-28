@@ -5,6 +5,16 @@ import { backendName, repo } from "@/lib/data";
 import { positionsFrom } from "@/lib/positions";
 import {
   accepter,
+  annuler,
+  bloquer,
+  convenirDesFrais,
+  echouer,
+  fraisDeLaPartie,
+  fraisPermis,
+  regler,
+  signer,
+  valeurDeLAccord,
+  type FourchetteDeFrais,
   creerUneAnnonce,
   expirerLesAccords,
   facialDe,
@@ -22,7 +32,7 @@ import {
   type UnitePrix,
 } from "@/lib/domain/place-de-marche";
 import type { Offer } from "@/lib/domain/types";
-import { peutTitres, type Session } from "@/lib/auth/types";
+import { isResponsable, peutTitres, type Session } from "@/lib/auth/types";
 
 /**
  * LA PLACE DE MARCHÉ : LE STOCKAGE ET LES GESTES (28 novembre 2026). Le domaine (`place-de-marche.ts`) dit les règles ; ce fichier les applique à ce que le dépôt garde.
@@ -180,4 +190,204 @@ export async function annoncesAModerer(): Promise<(Annonce & { titre: string })[
   const [liste, offres] = await Promise.all([annonces(), repo().listOffers()]);
   const titres = new Map(offres.map((o) => [o.id, o.title]));
   return liste.filter((a) => a.etat === "en_moderation").sort((a, b) => a.deposeeLe.localeCompare(b.deposeeLe)).map((a) => ({ ...a, titre: titres.get(a.offerId) ?? a.offerId }));
+}
+
+
+/* ------------------------------------------------------------------ ÉTAPE 2 : l'accord, le contrat, les frais, le règlement ------------------------------------------------------------------ */
+
+export const KIND_FOURCHETTE = "place_fourchette";
+const CLE_FOURCHETTE = "courante";
+/** Tant que la direction n'a rien posé, la fourchette est nulle : tout montant convenu demande sa dérogation. */
+export const FOURCHETTE_NON_POSEE: FourchetteDeFrais = { pctMin: 0, pctMax: 0, plancher: 0, plafond: 0 };
+
+export async function fourchette(): Promise<{ posee: boolean; f: FourchetteDeFrais }> {
+  const r = (await repo().listPrive(KIND_FOURCHETTE)).find((x) => x.key === CLE_FOURCHETTE);
+  return r ? { posee: true, f: r.data as FourchetteDeFrais } : { posee: false, f: FOURCHETTE_NON_POSEE };
+}
+
+/** La direction pose la fourchette de frais, et elle seule. L'écart des bornes au journal est le seul chiffre qui sort. */
+export async function poserLaFourchette(s: Session, f: FourchetteDeFrais): Promise<Gest> {
+  if (!isResponsable(s)) return { ok: false, erreur: "La fourchette de frais est posée par la direction." };
+  const ok = [f.pctMin, f.pctMax, f.plancher, f.plafond].every((n) => Number.isFinite(n) && n >= 0) && f.pctMin <= f.pctMax && f.plancher <= f.plafond;
+  if (!ok) return { ok: false, erreur: "Une fourchette va du plus bas au plus haut, en nombres positifs." };
+  const avant = await fourchette();
+  await ecrire(KIND_FOURCHETTE, CLE_FOURCHETTE, f, s.email ?? s.name);
+  await audit("place.fourchette", KIND_FOURCHETTE, CLE_FOURCHETTE, { before: avant.posee ? avant.f : undefined, after: f });
+  return { ok: true, id: CLE_FOURCHETTE };
+}
+
+/** L'accord tel que son participant le lit : son rôle, ses frais à lui, l'état des signatures et des blocages. Jamais l'identité ni les frais de l'autre. */
+export interface AccordEnVue {
+  id: string;
+  annonceId: string;
+  titre: string;
+  role: "vendeur" | "acheteur";
+  quantite: number;
+  facial: number;
+  prix: number;
+  unite: UnitePrix;
+  valeur: number;
+  etat: Accord["etat"];
+  creeLe: string;
+  expireLe: string;
+  mesFrais?: number;
+  jAiSigne: boolean;
+  lAutreASigne: boolean;
+  peutSigner: boolean;
+  fondsBloques: boolean;
+  titresBloques: boolean;
+  regleLe?: string;
+}
+
+const enVue = (x: Accord, userId: string, titre: string): AccordEnVue => {
+  const role = x.vendeur === userId ? "vendeur" : "acheteur";
+  const autre = role === "vendeur" ? "acheteur" : "vendeur";
+  return {
+    id: x.id,
+    annonceId: x.annonceId,
+    titre,
+    role,
+    quantite: x.quantite,
+    facial: facialDe(x.quantite, x.nominal),
+    prix: x.prix,
+    unite: x.unite,
+    valeur: valeurDeLAccord(x),
+    etat: x.etat,
+    creeLe: x.creeLe,
+    expireLe: x.expireLe,
+    mesFrais: fraisDeLaPartie(x, role),
+    jAiSigne: Boolean(x.signatures[role]),
+    lAutreASigne: Boolean(x.signatures[autre]),
+    peutSigner: x.etat === "accord_de_principe" && Boolean(x.frais.vendeur && x.frais.acheteur) && !x.signatures[role],
+    fondsBloques: Boolean(x.bloque.fonds),
+    titresBloques: Boolean(x.bloque.titres),
+    regleLe: x.regleLe,
+  };
+};
+
+/** Les accords d'un participant, les plus récents d'abord. */
+export async function mesAccords(userId: string): Promise<AccordEnVue[]> {
+  const [liste, offres] = await Promise.all([accords(), repo().listOffers()]);
+  const titres = new Map(offres.map((o) => [o.id, o.title]));
+  return liste
+    .filter((x) => x.vendeur === userId || x.acheteur === userId)
+    .sort((a, b) => b.creeLe.localeCompare(a.creeLe))
+    .map((x) => enVue(x, userId, titres.get(x.offerId) ?? x.offerId));
+}
+
+export async function monAccord(userId: string, id: string): Promise<AccordEnVue | undefined> {
+  return (await mesAccords(userId)).find((x) => x.id === id);
+}
+
+/** Le participant signe le contrat d'échange avec le code de son compte (le même que celui du verrou et des ordres). */
+export async function signerMonAccord(s: Session, id: string, pin: string): Promise<Gest> {
+  const maintenant = new Date().toISOString();
+  const x = (await accords(maintenant)).find((a) => a.id === id);
+  if (!x || (x.vendeur !== s.userId && x.acheteur !== s.userId)) return { ok: false, erreur: "Accord introuvable." };
+  const partie = x.vendeur === s.userId ? "vendeur" : "acheteur";
+  const { verifierCodeDuCompte } = await import("@/lib/auth/devices");
+  const v = await verifierCodeDuCompte(s, pin);
+  if (!v.ok) return { ok: false, erreur: v.error };
+  const r = signer(x, partie, maintenant);
+  if (!r.ok) return { ok: false, erreur: r.erreur };
+  await ecrire(KIND_ACCORD, id, r.accord, s.email ?? s.name);
+  await audit("place.signature", KIND_ACCORD, id, { after: { partie, etat: r.accord.etat, maniere: "code du compte" } });
+  return { ok: true, id };
+}
+
+/** L'accord vu du desk : il sait qui sont les parties (il les a au téléphone), voit les deux frais et la fourchette. */
+export interface AccordPourLeDesk {
+  id: string;
+  titre: string;
+  vendeur: string;
+  acheteur: string;
+  quantite: number;
+  facial: number;
+  prix: number;
+  unite: UnitePrix;
+  valeur: number;
+  etat: Accord["etat"];
+  expireLe: string;
+  frais: Accord["frais"];
+  signatures: Accord["signatures"];
+  bloque: Accord["bloque"];
+  permis: { min: number; max: number };
+  regleLe?: string;
+}
+
+async function nomDuClient(userId: string): Promise<string> {
+  const f = await repo().getClientFileByUser(userId).catch(() => undefined);
+  const nom = f && "name" in f ? String((f as { name?: string }).name ?? "") : "";
+  return nom || `Client ···${userId.slice(-4)}`;
+}
+
+export async function accordsDuDesk(): Promise<AccordPourLeDesk[]> {
+  const [liste, offres, four] = await Promise.all([accords(), repo().listOffers(), fourchette()]);
+  const titres = new Map(offres.map((o) => [o.id, o.title]));
+  const noms = new Map<string, string>();
+  for (const id of new Set(liste.flatMap((x) => [x.vendeur, x.acheteur]))) noms.set(id, await nomDuClient(id));
+  return liste
+    .sort((a, b) => b.creeLe.localeCompare(a.creeLe))
+    .map((x) => ({
+      id: x.id,
+      titre: titres.get(x.offerId) ?? x.offerId,
+      vendeur: noms.get(x.vendeur) ?? "",
+      acheteur: noms.get(x.acheteur) ?? "",
+      quantite: x.quantite,
+      facial: facialDe(x.quantite, x.nominal),
+      prix: x.prix,
+      unite: x.unite,
+      valeur: valeurDeLAccord(x),
+      etat: x.etat,
+      expireLe: x.expireLe,
+      frais: x.frais,
+      signatures: x.signatures,
+      bloque: x.bloque,
+      permis: fraisPermis(valeurDeLAccord(x), four.f),
+      regleLe: x.regleLe,
+    }));
+}
+
+async function chargerAccord(id: string): Promise<Accord | undefined> {
+  return (await accords()).find((x) => x.id === id);
+}
+
+/**
+ * Le desk convient de frais avec une partie (au téléphone ou sur WhatsApp ; l'application garde le résultat). Dans la fourchette, le motif suffit ; hors fourchette, la dérogation est posée par
+ * la direction : un opérateur qui sort de la fourchette est refusé, et le motif de la dérogation est exigé.
+ */
+export async function convenirLesFrais(s: Session, id: string, partie: "vendeur" | "acheteur", d: { montant: number; motif: string; derogation?: string }): Promise<Gest> {
+  const x = await chargerAccord(id);
+  if (!x) return { ok: false, erreur: "Accord introuvable." };
+  const maintenant = new Date().toISOString();
+  const four = await fourchette();
+  const valeur = valeurDeLAccord(x);
+  const { min, max } = fraisPermis(valeur, four.f);
+  const dehors = d.montant < min || d.montant > max;
+  if (dehors && !isResponsable(s)) return { ok: false, erreur: `Ces frais sortent de la fourchette (${min} à ${max} FCFA) : seule la direction pose une dérogation.` };
+  const frais = { montant: d.montant, par: s.email ?? s.name, le: maintenant, motif: d.motif, ...(dehors ? { derogation: { par: s.email ?? s.name, le: maintenant, motif: d.derogation ?? "" } } : {}) };
+  const r = convenirDesFrais(x, partie, frais, valeur, four.f);
+  if (!r.ok) return { ok: false, erreur: r.erreur };
+  await ecrire(KIND_ACCORD, id, r.accord, s.email ?? s.name);
+  await audit("place.frais_convenus", KIND_ACCORD, id, { after: { partie, montant: d.montant, derogation: dehors } });
+  return { ok: true, id };
+}
+
+type Passage = "bloquer_fonds" | "bloquer_titres" | "regler" | "echouer" | "annuler";
+
+/** Les passages du desk : blocage des fonds de l'acheteur et des titres du vendeur, règlement, échec, annulation avant signature. */
+export async function passageDuDesk(s: Session, id: string, passage: Passage): Promise<Gest> {
+  const x = await chargerAccord(id);
+  if (!x) return { ok: false, erreur: "Accord introuvable." };
+  const maintenant = new Date().toISOString();
+  const r =
+    passage === "bloquer_fonds" ? bloquer(x, "fonds", maintenant)
+    : passage === "bloquer_titres" ? bloquer(x, "titres", maintenant)
+    : passage === "regler" ? regler(x, maintenant)
+    : passage === "echouer" ? echouer(x)
+    : annuler(x);
+  if (!r.ok) return { ok: false, erreur: r.erreur };
+  await ecrire(KIND_ACCORD, id, r.accord, s.email ?? s.name);
+  await audit(`place.${passage}`, KIND_ACCORD, id, { after: { etat: r.accord.etat } });
+  return { ok: true, id };
 }

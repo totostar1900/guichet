@@ -22,6 +22,7 @@ export default async function DeskPlacePage() {
       <header>
         <h1>{t("Place de marché : modération")}</h1>
         <p>{t("Une annonce n'est publiée qu'après relecture. Un refus s'écrit avec son motif.")}</p>
+        <Link href="/desk/place/accords">{t("Accords en cours")}</Link>
         <Link href="/place">{t("Voir la place de marché côté client")}</Link>
       </header>
       {liste.length === 0 ? (
