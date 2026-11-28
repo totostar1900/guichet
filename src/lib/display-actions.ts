@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
-import { isLang, LANG_COOKIE, type Lang } from "@/i18n/core";
+import { isLang, LANG_COOKIE, type Lang } from "@/i18n/langue";
 import { DESK_T_COOKIE, isDeskTheme, P_COOKIE, PALETTES, T_COOKIE, THEMES, YEAR } from "@/lib/palette";
 
 /**

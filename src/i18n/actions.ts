@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { isLang, LANG_COOKIE } from "./core";
+import { isLang, LANG_COOKIE } from "./langue";
 
 /** The language switch: a cookie for a year, then back to the same page. */
 export async function setLangAction(form: FormData): Promise<void> {

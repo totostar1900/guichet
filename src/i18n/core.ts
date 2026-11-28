@@ -100,12 +100,8 @@ const EN: Record<string, string> = {
 /** Le dictionnaire entier, pour que les tests puissent le relire contre lui-même. */
 export const EN_ALL: Readonly<Record<string, string>> = EN;
 
-export type Lang = "fr" | "en";
-export const LANGS: Lang[] = ["fr", "en"];
-export const LANG_COOKIE = "guichet_lang";
-export const isLang = (v: unknown): v is Lang => v === "fr" || v === "en";
-
-export type T = (s: string, params?: Record<string, string | number>) => string;
+export { LANGS, LANG_COOKIE, intlLocale, isLang, type Lang, type T } from "./langue";
+import { poserLesParametres, type Lang, type T } from "./langue";
 
 /**
  * Entries whose key holds {placeholders} also work as templates: the French
@@ -254,15 +250,10 @@ export function translatable(s: string, neutre: (x: string) => boolean = () => f
 }
 
 export function translate(lang: Lang, s: string, params?: Record<string, string | number>): string {
-  let out = lang === "en" ? toEnglish(s) : s;
-  if (params) for (const [k, v] of Object.entries(params)) out = out.split(`{${k}}`).join(String(v));
-  return out;
+  return poserLesParametres(lang === "en" ? toEnglish(s) : s, params);
 }
 
 export const translator =
   (lang: Lang): T =>
   (s, params) =>
     translate(lang, s, params);
-
-/** Locale for Intl formatting (dates, lists). Numbers keep the FCFA convention (space thousands) in both languages. */
-export const intlLocale = (lang: Lang): string => (lang === "en" ? "en-GB" : "fr-FR");

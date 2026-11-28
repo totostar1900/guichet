@@ -1,12 +1,20 @@
 "use client";
 
-import { createContext, useContext, useMemo } from "react";
-import { translator, type Lang, type T } from "./core";
+import { createContext, use, useContext, useMemo } from "react";
+import { traducteurFrancais, type Lang, type T } from "./langue";
 import { formatsDeLaLangue, setFormatLang, type FormatsDeDate } from "@/lib/format";
 
-const Ctx = createContext<{ lang: Lang; t: T }>({ lang: "fr", t: translator("fr") });
+const Ctx = createContext<{ lang: Lang; t: T }>({ lang: "fr", t: traducteurFrancais });
+
+/**
+ * LE DICTIONNAIRE ANGLAIS NE PART QUE POUR UN LECTEUR ANGLAIS : l'import est dynamique et mis en mémoire (une seule requête), et le rendu attend qu'il soit là (`use`), au serveur comme au navigateur,
+ * pour que le premier rendu et l'hydratation disent la même chose. Un lecteur français n'en télécharge pas un octet.
+ */
+let dictionnaireEn: Promise<typeof import("./core")> | undefined;
+const chargerLeDictionnaire = () => (dictionnaireEn ??= import("./core"));
 
 export function LangProvider({ lang, children }: { lang: Lang; children: React.ReactNode }) {
+  const core = lang === "en" ? use(chargerLeDictionnaire()) : null;
   const value = useMemo(() => {
     /* LA LANGUE DES DATES SE POSE POUR LE NAVIGATEUR, PAS POUR LE SERVEUR.
        Ce composant est « client », mais il s'exécute aussi au rendu serveur, et
@@ -15,8 +23,8 @@ export function LangProvider({ lang, children }: { lang: Lang; children: React.R
        repeignant les dates de la requête française d'à côté. Au navigateur, un
        document n'a qu'un lecteur et qu'une langue : la valeur fixe y est juste. */
     if (typeof window !== "undefined") setFormatLang(lang);
-    return { lang, t: translator(lang) };
-  }, [lang]);
+    return { lang, t: core ? core.translator(lang) : traducteurFrancais };
+  }, [lang, core]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
