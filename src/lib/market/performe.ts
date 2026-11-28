@@ -38,7 +38,7 @@ import { tradedSession, type Quote } from "@/lib/domain/market";
  * mnémonique tranche.
  */
 
-import { debutDeFenetre, JOURS_DE_GRACE, MOIS_FENETRE } from "@/lib/market/periodes";
+import { debutDeFenetre, JOURS_DE_GRACE, MOIS_FENETRE, PERIODES_DE_LA_LISTE, type PeriodeDeLaListe } from "@/lib/market/periodes";
 
 /** La fenêtre et son début se définissent dans `periodes.ts`, partagé avec le graphe de la fiche : une seule définition de « trois mois ». */
 export { debutDeFenetre, MOIS_FENETRE };
@@ -157,4 +157,38 @@ export function fenetresDesCours(cotations: Quote[], jusquAu: string): Record<st
 export async function fenetresDeLaCote(): Promise<Record<string, FenetresDuCours>> {
   const lu = await lire(MOIS_DES_FENETRES[MOIS_DES_FENETRES.length - 1]);
   return lu ? fenetresDesCours(lu.cotations, lu.jusquAu) : {};
+}
+
+/* ------------------------------------------------------------------ *
+ * LA PÉRIODE CHOISIE SUR LA LISTE DES TITRES : 3 MOIS, 6 MOIS, 1 AN (28 novembre 2026)
+ * ------------------------------------------------------------------ */
+
+/** Une action lue sur une période : sa courbe et sa variation. Absente de la période quand la ligne n'a pas deux échanges dans la fenêtre. */
+export interface LueSurPeriode {
+  serie: number[];
+  variationPct: number;
+}
+
+/**
+ * LA COURBE ET LA VARIATION DE CHAQUE ACTION SUR LES TROIS PÉRIODES, depuis UNE lecture des cotations (la plus longue).
+ *
+ * UNE LIGNE ENTRÉE À LA COTE PENDANT LA PÉRIODE n'y figure pas (sauf sur 3 mois, qui garde la règle de « Ce qui performe » : sa variation part de sa première
+ * cotation) : « 1 an » ne prête pas un chiffre à une ligne cotée depuis quatre mois. La liste dit alors « non connue », comme pour une ligne muette.
+ * Écrit sans base : il reçoit les cotations.
+ */
+export function periodesDesCours(cotations: Quote[], jusquAu: string): Record<string, Partial<Record<PeriodeDeLaListe, LueSurPeriode>>> {
+  const out: Record<string, Partial<Record<PeriodeDeLaListe, LueSurPeriode>>> = {};
+  for (const p of PERIODES_DE_LA_LISTE) {
+    for (const l of classerSurFenetre(cotations, debutDeFenetre(jusquAu, p.mois))) {
+      if (l.entree && p.cle !== "3m") continue;
+      (out[l.isin] ??= {})[p.cle] = { serie: l.serie, variationPct: l.variationPct };
+    }
+  }
+  return out;
+}
+
+/** LA LISTE DES TITRES EN UNE SEULE LECTURE (la plus longue, vingt-quatre mois) : les trois périodes du sélecteur et les fenêtres de l'extension de la carte. */
+export async function lectureDeLaCote(): Promise<{ periodes: Record<string, Partial<Record<PeriodeDeLaListe, LueSurPeriode>>>; fenetres: Record<string, FenetresDuCours> }> {
+  const lu = await lire(MOIS_DES_FENETRES[MOIS_DES_FENETRES.length - 1]);
+  return lu ? { periodes: periodesDesCours(lu.cotations, lu.jusquAu), fenetres: fenetresDesCours(lu.cotations, lu.jusquAu) } : { periodes: {}, fenetres: {} };
 }

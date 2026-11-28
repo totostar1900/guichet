@@ -19,14 +19,24 @@ export function debutDeFenetre(jusquAu: string, mois = MOIS_FENETRE): string {
   return d.toISOString().slice(0, 10);
 }
 
+/* LES TROIS PÉRIODES DE LA LISTE DES TITRES (28 novembre 2026) : le sélecteur de la ligne de recherche. Le 1 mois et le début d'année n'y sont pas : trop courts pour une cote où une action traite quelques jours par mois. */
+export type PeriodeDeLaListe = "3m" | "6m" | "1a";
+export const PERIODES_DE_LA_LISTE: { cle: PeriodeDeLaListe; mois: number; libelle: string }[] = [
+  { cle: "3m", mois: 3, libelle: "3 mois" },
+  { cle: "6m", mois: 6, libelle: "6 mois" },
+  { cle: "1a", mois: 12, libelle: "1 an" },
+];
+export const PERIODE_DE_LA_LISTE_PAR_DEFAUT: PeriodeDeLaListe = "3m";
+export const estPeriodeDeLaListe = (v: string | null | undefined): v is PeriodeDeLaListe => PERIODES_DE_LA_LISTE.some((p) => p.cle === v);
+
 export type PeriodeCours = "3m" | "6m" | "1a" | "debut" | "2a" | "3a" | "5a" | "max";
 
-/** Dans l'ordre de la liste déroulante. `mois` : la fenêtre civile ; « debut » commence au 1er janvier, « max » à la première séance. */
+/** Dans l'ordre de la liste déroulante, du plus court au plus long (28 novembre 2026) : « Depuis le 1er janv. » tient entre 6 mois et 1 an, « Max » ferme la liste. `mois` : la fenêtre civile ; « debut » commence au 1er janvier, « max » à la première séance. */
 export const PERIODES: { cle: PeriodeCours; libelle: string; mois?: number }[] = [
   { cle: "3m", libelle: "3 mois", mois: 3 },
   { cle: "6m", libelle: "6 mois", mois: 6 },
+  { cle: "debut", libelle: "Depuis le 1er janv." },
   { cle: "1a", libelle: "1 an", mois: 12 },
-  { cle: "debut", libelle: "Début d'année" },
   { cle: "2a", libelle: "2 ans", mois: 24 },
   { cle: "3a", libelle: "3 ans", mois: 36 },
   { cle: "5a", libelle: "5 ans", mois: 60 },

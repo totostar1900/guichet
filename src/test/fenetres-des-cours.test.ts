@@ -35,7 +35,7 @@ describe("la variation sur six mois, douze mois et deux ans", () => {
     expect(oc, "le chiffre en avant est revenu dans l'extension").toMatch(/\{!dos && \(\s*<>\s*\{estAction && prix \? \(/);
     expect(oc, "« cours inchangé depuis » est revenu dans l'extension").toMatch(/faitsAction\(s\)\.filter\(\(\[k\]\) => k !== "Cours inchangé depuis" && k !== "Ticket min\."\)/);
     expect(oc, "l'ISIN est revenu au pied de l'extension").toMatch(/\{!dos && <span className=\{styles\.footIsin\}>/);
-    expect(code("src/app/TitresBody.tsx"), "la cote ne lit plus les trois fenêtres").toMatch(/fenetres: fenetres\[l\.isin\]/);
+    expect(code("src/app/TitresBody.tsx"), "la cote ne lit plus les trois fenêtres").toMatch(/fenetres: lue\.fenetres\[isin\]/);
   });
   it("l'extension d'un fonds ne redit pas son titre et porte l'ISIN à côté de la pastille", () => {
     const fc = code("src/app/fonds/FundCard.tsx");

@@ -68,7 +68,6 @@ export const EN_VISITE: Record<string, string> = {
   "Actionnaires": "Shareholders",
   "Période du graphe": "Chart period",
   "Clôtures du {a} au {b}": "Closing prices from {a} to {b}",
-  "Début d'année": "Year to date",
   "historique insuffisant": "not enough history",
   "Séances avec échange": "Sessions with trades",
   "{n} sur {m} séances": "{n} of {m} sessions",

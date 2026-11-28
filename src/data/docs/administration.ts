@@ -8,7 +8,7 @@ export const ADMINISTRATION: DocPage = {
   visibility: "desk",
   audience: ["admin"],
   order: 6,
-  checkedOn: "2026-11-25",
+  checkedOn: "2026-11-28",
   owner: "Georges",
   chapters: [
     {

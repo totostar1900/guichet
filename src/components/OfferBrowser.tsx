@@ -11,6 +11,9 @@ import { COUNTRY_CODE, summarize, type OfferSummary } from "@/lib/domain/summary
 import { parseDate } from "@/lib/finance";
 import { syntheseDesSeances } from "@/lib/domain/synthese-seances";
 import { OfferCard, type CourbeDuTitre } from "./OfferCard";
+import { ChoixPeriode } from "./ChoixPeriode";
+import { estPeriodeDeLaListe, PERIODE_DE_LA_LISTE_PAR_DEFAUT, PERIODES_DE_LA_LISTE, type PeriodeDeLaListe } from "@/lib/market/periodes";
+import type { LueSurPeriode } from "@/lib/market/performe";
 import { TitresHead } from "./MarketToggles";
 import { CoachMarks } from "./mobile/CoachMarks";
 import { visiteDesTitres } from "@/lib/ui/visite-titres";
@@ -116,6 +119,10 @@ const VIEW_LABEL: Record<View, string> = { table: "Tableau", list: "Liste", card
    l'ordre, pas la colonne, et un ordre se renverse — « la plus proche »
    devenait faux dès qu'on inversait la flèche. « Plus récent » est parti : il
    range sur la date d'entrée au référentiel, qui ne dit rien de la ligne. */
+/* LES LIBELLÉS QUI NOMMENT LA PÉRIODE (28 novembre 2026) : le filtre, le tri et la colonne de variation disent la période choisie, jamais « 3 mois » quand c'est « 1 an ». Écrits en toutes lettres : le scanner de clefs ne voit que le littéral. */
+const FACETTE_DE_VARIATION: Record<PeriodeDeLaListe, string> = { "3m": "Variation sur 3 mois", "6m": "Variation sur 6 mois", "1a": "Variation sur 1 an" };
+const TRI_DE_VARIATION: Record<PeriodeDeLaListe, string> = { "3m": "variation sur 3 mois", "6m": "variation sur 6 mois", "1a": "variation sur 1 an" };
+const SOUS_LA_VARIATION: Record<PeriodeDeLaListe, string> = { "3m": "sur 3 mois", "6m": "sur 6 mois", "1a": "sur 1 an" };
 const SORT_LABEL: Record<SortKey, string> ={ deadline: "Date de clôture", yield: "rendement", coupon: "coupon", tenor: "échéance", minimum: "ticket minimum", title: "nom", issuer: "émetteur", variation: "variation du cours" };
 const ORDER: Record<DisplayStatus, number> = { closing: 0, open: 1, upcoming: 2, quoted: 2, on_request: 3, results: 4, closed: 4, live: 5, matured: 6 };
 
@@ -254,7 +261,7 @@ const StatusPill = ({ s }: { s: OfferSummary }) => {
  * les cartes et la liste les affichent. Les recalculer ici aurait fait un
  * second découpage à tenir d'accord avec le premier.
  */
-function Table({ rows, sort, dir, onSort, grouped, featured, chosen, sections, picks, cols, courbes }: { rows: Row[]; /** Les colonnes que la sélection porte (domain/controles.ts). */ cols: ControlesOfferts["colonnes"]; courbes?: Record<string, CourbeDuTitre>; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; grouped: boolean; featured?: boolean; chosen?: boolean; /** Les lignes retenues par le desk, rendues dans la liste même (adjudications). */ picks?: Set<string>; sections?: { clef: string; nom: string; rows: Row[] }[] }) {
+function Table({ rows, sort, dir, onSort, grouped, featured, chosen, sections, picks, cols, courbes, periode }: { /** La période de la colonne de variation. */ periode: PeriodeDeLaListe; rows: Row[]; /** Les colonnes que la sélection porte (domain/controles.ts). */ cols: ControlesOfferts["colonnes"]; courbes?: Record<string, CourbeDuTitre>; sort: SortKey; dir: Dir; onSort: (k: SortKey) => void; grouped: boolean; featured?: boolean; chosen?: boolean; /** Les lignes retenues par le desk, rendues dans la liste même (adjudications). */ picks?: Set<string>; sections?: { clef: string; nom: string; rows: Row[] }[] }) {
   const groups = sections
     ? sections.map((x) => ({ issuer: x.nom, zone: "Cameroun" as const, countryName: "", rows: x.rows, section: x.clef }))
     : grouped
@@ -293,7 +300,7 @@ function Table({ rows, sort, dir, onSort, grouped, featured, chosen, sections, p
             ] : grouped ? [<GroupHead key={`g-${g.issuer}`} g={g} colSpan={nbCols} />] : []),
             <GroupBody key={`b-${g.issuer}`} issuer={grouped && !sections ? g.issuer : ""}>
               {g.rows.map(({ o, s }) => (
-                <TableRow key={o.id} o={o} s={s} featured={featured || Boolean(picks?.has(o.id))} avertir={Boolean(picks)} cols={cols} variation={courbes?.[o.isin ?? ""]?.variationPct} />
+                <TableRow key={o.id} o={o} s={s} featured={featured || Boolean(picks?.has(o.id))} avertir={Boolean(picks)} cols={cols} variation={courbes?.[o.isin ?? ""]?.variationPct} periode={periode} />
               ))}
             </GroupBody>,
           ])}
@@ -365,7 +372,7 @@ function RangeeDeSeance({ o, s }: { o: Offer; s: OfferSummary }) {
 }
 
 /** One row of the table, with its « ··· ». */
-function TableRow({ o, s, featured, avertir, cols, variation }: { o: Offer; s: OfferSummary; featured?: boolean; avertir?: boolean; cols: ControlesOfferts["colonnes"]; variation?: number }) {
+function TableRow({ o, s, featured, avertir, cols, variation, periode }: { periode: PeriodeDeLaListe; o: Offer; s: OfferSummary; featured?: boolean; avertir?: boolean; cols: ControlesOfferts["colonnes"]; variation?: number }) {
   const t = useT();
   const href = useLineHref();
   const desk = useDeskView();
@@ -388,7 +395,7 @@ function TableRow({ o, s, featured, avertir, cols, variation }: { o: Offer; s: O
                     {variation > 0.05 ? "▲ +" : variation < -0.05 ? "▼ −" : ""}
                     {Math.abs(variation).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %
                   </b>
-                  <small>{t("sur 3 mois")}</small>
+                  <small>{t(SOUS_LA_VARIATION[periode])}</small>
                 </>
               )}
             </td>
@@ -548,7 +555,7 @@ function FilterSheet({ open, onClose, groups, comptes, onToggle, onClear, gauge,
 /** Le nombre de lignes qu'une section montre avant « Voir les N lignes ». */
 const LIGNES_VISIBLES = 8;
 
-export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis, courbes }: { offers: Offer[]; nowIso: string; fundsCount: number; lieu?: Lieu; /** Les lignes sur lesquelles CE lecteur a armé une alerte, lues au serveur. */ suivis?: string[]; /** Le petit graphe sur trois mois de chaque action, par ISIN. */ courbes?: Record<string, CourbeDuTitre> }) {
+export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis, courbes: courbesLues }: { offers: Offer[]; nowIso: string; fundsCount: number; lieu?: Lieu; /** Les lignes sur lesquelles CE lecteur a armé une alerte, lues au serveur. */ suivis?: string[]; /** Le petit graphe sur trois mois de chaque action, par ISIN. */ courbes?: Record<string, CourbeDuTitre & { periodes?: Partial<Record<PeriodeDeLaListe, LueSurPeriode>> }> }) {
   const now = useMemo(() => new Date(nowIso), [nowIso]);
   const t: T = useT();
   /* LES DATES DU RÉSUMÉ VIENNENT DU CONTEXTE, PAS DU MODULE : ce composant est
@@ -559,6 +566,20 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   const router = useRouter();
   const pathname = usePathname();
   const sp = useSearchParams();
+  /* LA PÉRIODE DE LA LISTE (28 novembre 2026) : 3 mois, 6 mois ou 1 an, dans l'adresse. La courbe, la variation, le filtre « hausse / baisse » et le tri la suivent : une seule lecture, celle de la période. Une action que la période ne couvre pas n'a pas de variation (« non connue »). */
+  const periode: PeriodeDeLaListe = estPeriodeDeLaListe(sp.get("periode")) ? (sp.get("periode") as PeriodeDeLaListe) : PERIODE_DE_LA_LISTE_PAR_DEFAUT;
+  const courbes = useMemo<Record<string, CourbeDuTitre> | undefined>(() => {
+    if (!courbesLues) return undefined;
+    return Object.fromEntries(
+      Object.entries(courbesLues).flatMap(([isin, c]) => {
+        if (!c.periodes) return [[isin, c]];
+        const p = c.periodes[periode];
+        return p ? [[isin, { serie: p.serie, variationPct: p.variationPct, fenetres: c.fenetres, periode }]] : [];
+      }),
+    );
+  }, [courbesLues, periode]);
+  const peutChoisirLaPeriode = Boolean(courbesLues && Object.values(courbesLues).some((c) => c.periodes));
+  const periodesServies = Object.fromEntries(PERIODES_DE_LA_LISTE.map((p) => [p.cle, Object.values(courbesLues ?? {}).some((c) => c.periodes?.[p.cle])])) as Record<PeriodeDeLaListe, boolean>;
   const setOf = (k: string) => new Set((sp.get(k) ?? "").split(",").filter(Boolean));
 
   const kind = setOf("instrument");
@@ -730,7 +751,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   /* TOUT EFFACER VEUT DIRE TOUT : les filtres, la recherche, la section
      choisie, l'ordre et son sens. Il ne remettait que les filtres, et qui
      avait trié gardait son ordre après l'avoir touché. */
-  const reset = () => update({ cloture: undefined, ticket: undefined, dividende: undefined, variation: undefined, marche: undefined, instrument: undefined, pays: undefined, statut: undefined, duree: undefined, ans: undefined, rendement: undefined, q: undefined, section: undefined, tri: undefined, sens: undefined, mesure: undefined });
+  const reset = () => update({ cloture: undefined, ticket: undefined, dividende: undefined, variation: undefined, marche: undefined, instrument: undefined, pays: undefined, statut: undefined, duree: undefined, ans: undefined, rendement: undefined, q: undefined, section: undefined, tri: undefined, sens: undefined, mesure: undefined, periode: undefined });
   /**
    * UNE SECTION À LA FOIS, « ACTIONS » D'ABORD (3 novembre 2026).
    *
@@ -777,7 +798,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
   /* « mesure » n'est pas un filtre, elle ne retire aucune ligne : elle est
      dans « Tout effacer » pour la raison du tri, parce qu'effacer veut dire
      rendre la page telle qu'elle s'ouvre. */
-  const aEffacer = filterCount > 0 || Boolean(q) || Boolean(sp.get("tri")) || Boolean(sp.get("sens")) || Boolean(sectionParam) || Boolean(sp.get("mesure"));
+  const aEffacer = filterCount > 0 || Boolean(q) || Boolean(sp.get("tri")) || Boolean(sp.get("sens")) || Boolean(sectionParam) || Boolean(sp.get("mesure")) || Boolean(sp.get("periode"));
   /* UN INSTRUMENT QUE LA PAGE N'A JAMAIS NE S'OFFRE PAS (planche du 7 novembre 2026, 4A) : « Action » ou « IPO » sur les adjudications ne sont pas des pastilles à zéro, elles n'ont pas lieu d'être. Ce qui est choisi reste offert. */
   const famPresentes = new Set(offers.map((o) => offerFamily(o)));
   const famItems = SEGMENTS.filter((sg) => !segment || sg === segment).flatMap((sg) => FAMILIES().filter((f) => familySegment(f) === sg && (famPresentes.has(f) || kind.has(f))).map((f) => [f, familyShort(f)] as [string, string]));
@@ -785,7 +806,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
     { key: "instrument", label: t("Instrument"), items: famItems, selected: kind },
     { key: "pays", label: t("Pays"), items: COUNTRIES.map((c) => [c, c] as [string, string]), selected: country },
     { key: "statut", label: t("Statut"), items: STATUSES, selected: status },
-    ...(["cloture", "ticket", "dividende", "variation"] as CleDeFacette[]).map((cle) => ({ key: cle, label: TITRE_DE_FACETTE[cle], items: VALEURS_DE_FACETTE[cle], selected: extra[cle] })),
+    ...(["cloture", "ticket", "dividende", "variation"] as CleDeFacette[]).map((cle) => ({ key: cle, label: cle === "variation" ? FACETTE_DE_VARIATION[periode] : TITRE_DE_FACETTE[cle], items: VALEURS_DE_FACETTE[cle], selected: extra[cle] })),
     /* LES PALIERS DE DURÉE SONT PARTIS DU FILTRE. Le nuage règle la même
        borne, en continu et à la barre : trois paliers à côté d'une barre,
        c'est la même question posée deux fois, et deux réponses possibles. */
@@ -1133,6 +1154,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
         chosen={Boolean(sp.get("vue"))}
         cols={dispo.colonnes}
         courbes={courbes}
+        periode={periode}
         picks={adj ? pickIds : undefined}
         sections={!featured && !sansGroupe && !grouped && (!sectionChoisie || souscriptionChoisie || adj) ? blocsDuSommaire(list).map((b) => ({ clef: b.clef, nom: b.entier, rows: b.rows })) : undefined}
       />
@@ -1370,12 +1392,20 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
               autant de place que celles qu'on touche à chaque visite. Les adjudications ont la recherche depuis le 4 novembre 2026 ; leur tri reste celui de la page (clôture). */}
           {!minimal && (
           <Affichage
-              tri={!adj ? { quoi: t("Trier par"), valeur: sort, options: dispo.tris.map((k) => [k, t(SORT_LABEL[k])] as [string, string]), onChange: (v) => update({ tri: v, sens: undefined }), sens: dir, onSens: () => update({ sens: dir === "asc" ? "desc" : "asc" }) } : undefined}
+              tri={!adj ? { quoi: t("Trier par"), valeur: sort, options: dispo.tris.map((k) => [k, t(k === "variation" ? TRI_DE_VARIATION[periode] : SORT_LABEL[k])] as [string, string]), onChange: (v) => update({ tri: v, sens: undefined }), sens: dir, onSens: () => update({ sens: dir === "asc" ? "desc" : "asc" }) } : undefined}
               groupe={sommaire ? { quoi: t("Grouper par"), valeur: sansGroupe ? "aucun" : grouped ? "emetteur" : "type", options: GROUPEMENTS.map(([k, l]) => [k, t(l)] as [string, string]), onChange: (v) => update({ groupe: v === "type" ? undefined : v }) } : undefined}
               vue={!phone ? { quoi: t("Vue"), valeur: view, options: VIEWS.map((v) => [v, t(VIEW_LABEL[v])] as [string, string]), onChange: (v) => update({ vue: v }) } : undefined}
               densite={view === "cards" && !desk}
               onReset={reset}
               aEffacer={aEffacer}
+            />
+          )}
+          {/* LA PÉRIODE, SUR LA MÊME LIGNE (28 novembre 2026) : une seule commande pour la courbe, la variation, le filtre et le tri. Une période que la cote ne couvre pas reste, éteinte, avec sa raison. */}
+          {!minimal && peutChoisirLaPeriode && (
+            <ChoixPeriode
+              valeur={periode}
+              options={PERIODES_DE_LA_LISTE.map((p) => ({ valeur: p.cle, libelle: t(p.libelle), indisponible: periodesServies[p.cle] ? undefined : t("historique insuffisant") }))}
+              onChange={(v) => update({ periode: v === PERIODE_DE_LA_LISTE_PAR_DEFAUT ? undefined : v })}
             />
           )}
           {repli && repli.ids.length > 1 && <FoldAll group={repli.group} ids={repli.ids} />}
@@ -1391,7 +1421,7 @@ export function OfferBrowser({ offers, nowIso, fundsCount, lieu = "cote", suivis
           {(dispo.filtres.statut || status.size > 0) && <Dropdown label={t("Statut")} items={STATUSES} selected={status} comptes={comptes.statut} onChange={setFilter("statut")} />}
           {(dispo.filtres.duree || tenor.size > 0) && <Dropdown label={t("Durée")} items={TENORS} selected={tenor} onChange={setFilter("duree")} />}
           {(dispo.filtres.rendement || yr.min != null || yr.max != null) && <YieldDropdown values={yieldsRestants} ensemble={yields} min={yr.min} max={yr.max} onChange={setYield} />}
-          {(["cloture", "ticket", "dividende", "variation"] as CleDeFacette[]).map((cle) => (dispo.filtres[cle] || extra[cle].size > 0) && <Dropdown key={cle} label={t(TITRE_DE_FACETTE[cle])} items={VALEURS_DE_FACETTE[cle]} selected={extra[cle]} comptes={comptes[cle]} onChange={setFilter(cle)} />)}
+          {(["cloture", "ticket", "dividende", "variation"] as CleDeFacette[]).map((cle) => (dispo.filtres[cle] || extra[cle].size > 0) && <Dropdown key={cle} label={t(cle === "variation" ? FACETTE_DE_VARIATION[periode] : TITRE_DE_FACETTE[cle])} items={VALEURS_DE_FACETTE[cle]} selected={extra[cle]} comptes={comptes[cle]} onChange={setFilter(cle)} />)}
           {(filterCount > 0 || q) && (
             <button type="button" className={styles.clear} onClick={reset}>
               {t("Effacer")}

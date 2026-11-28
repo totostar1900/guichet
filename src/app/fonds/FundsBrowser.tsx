@@ -22,7 +22,7 @@ import { TeteGroupe } from "@/components/market/TeteGroupe";
 import { FundCard } from "./FundCard";
 import { BandeFonds } from "./BandeFonds";
 import { FenetreCtx, useDepuisQuand, useFenetre, useNomFenetre, sansChiffreEnBas, valeurFenetre } from "./fenetre";
-import { ChoixFenetre } from "./ChoixFenetre";
+import { ChoixPeriode } from "@/components/ChoixPeriode";
 import { BandeauRepliable } from "@/components/market/BandeauRepliable";
 import { LineMenu } from "@/components/mobile/LineMenu";
 import { rememberList, useListScroll } from "@/components/ListNav";
@@ -896,6 +896,12 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
             onReset={clearAll}
             aEffacer={poseSurLaListe}
           />
+          {/* LA PÉRIODE EST SUR LA LIGNE DE LA RECHERCHE (28 novembre 2026) : la rangée de cinq boutons du bandeau est devenue UN sélecteur, le même que sur Titres. Elle règle la colonne, le tri, le filtre et le tracé ; une durée qu'aucun fonds ne couvre reste, éteinte, avec sa raison. */}
+          <ChoixPeriode
+            valeur={fenetre}
+            options={FENETRES.map((f) => ({ valeur: f.id, libelle: noms[f.id], indisponible: comptes[f.id] === 0 ? t("historique insuffisant") : undefined }))}
+            onChange={(v) => update({ periode: v === FENETRE_PAR_DEFAUT ? undefined : v, perf: undefined })}
+          />
           {groupe && vue !== "table" && blocs.length > 1 && <FoldAll group="blocs" ids={blocs.filter((b) => b.clef).map((b) => `sec-${b.clef}`)} />}
         </div>
         {/* TROIS LIGNES SOUS LE CHAMP, ET PAS UNE DE PLUS.
@@ -943,11 +949,6 @@ export function FundsBrowser({ rows, suivis }: { rows: FundRow[]; /** Les fonds 
           </>
         }
       >
-        {/* LA FENÊTRE EST DANS LE BANDEAU, avec la bande qu'elle commande :
-            posée dehors, elle réglait une mesure dont le tracé était replié,
-            et on changeait de durée sans rien voir changer. La colonne du
-            tableau, elle, suit toujours. */}
-        <ChoixFenetre fenetre={fenetre} comptes={comptes} surChoix={(f) => update({ periode: f === FENETRE_PAR_DEFAUT ? undefined : f, perf: undefined })} />
         <BandeFonds
           points={pourLaBande}
           nomFenetre={noms[fenetre]}

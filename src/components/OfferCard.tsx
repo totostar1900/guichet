@@ -20,6 +20,7 @@ import { nomDeSeance } from "@/lib/domain/nom-de-ligne";
 import { issuerZone } from "@/data/issuer-registry";
 import { Drapeau } from "./Drapeau";
 import type { FenetreDuCours, FenetresDuCours } from "@/lib/market/performe";
+import type { PeriodeDeLaListe } from "@/lib/market/periodes";
 import { localIso } from "@/lib/format";
 import styles from "./OfferCard.module.css";
 
@@ -87,7 +88,7 @@ function Montant({ etiquette, n }: { etiquette: string; n: string }) {
  * Aucune application de référence ne met le rendement d'un dividende en gros sur une action : le prix domine, la variation est son satellite (couleur,
  * flèche, PÉRIODE ÉCRITE), le dividende est une case de la grille. Les obligations, bons, fonds et adjudications gardent leur chiffre en avant.
  */
-function Variation({ pct, court = false, grande = false }: { pct: number; court?: boolean; /** Le chiffre de tête de la carte d'une action (12 novembre 2026) : la variation passe devant le cours. */ grande?: boolean }) {
+function Variation({ pct, court = false, grande = false, periode = "3m" }: { pct: number; court?: boolean; /** La période de la liste (28 novembre 2026) : 3 mois par défaut, 6 mois ou 1 an quand le lecteur l'a choisie. */ periode?: PeriodeDeLaListe; /** Le chiffre de tête de la carte d'une action (12 novembre 2026) : la variation passe devant le cours. */ grande?: boolean }) {
   const t = useT();
   const sens = pct > 0.05 ? "hausse" : pct < -0.05 ? "baisse" : "";
   const flèche = sens === "hausse" ? "▲ " : sens === "baisse" ? "▼ " : "";
@@ -99,7 +100,7 @@ function Variation({ pct, court = false, grande = false }: { pct: number; court?
         {signe}
         {Math.abs(pct).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %
       </em>
-      <span className={styles.periode}> · {court ? t("3 mois") : t("sur 3 mois")}</span>
+      <span className={styles.periode}> · {court ? nomCourtDePeriode(t, periode) : nomLongDePeriode(t, periode)}</span>
     </span>
   );
 }
@@ -127,11 +128,17 @@ const prixDe = (s: OfferSummary): { nombre: string; unite: boolean } | null => {
   return { nombre: c.replace(/\s*FCFA$/, ""), unite: /FCFA$/.test(c) };
 };
 
-/** Ce qu'une action porte en plus de son cours : la courbe de trois mois, et la variation sur six mois, douze mois et deux ans (voir `performe.ts`). */
+/* Les noms de la période, écrits en toutes lettres : le scanner de clefs ne voit que ce qui est littéral dans la source. */
+const nomCourtDePeriode = (t: (k: string) => string, p: PeriodeDeLaListe) => (p === "6m" ? t("6 mois") : p === "1a" ? t("1 an") : t("3 mois"));
+const nomLongDePeriode = (t: (k: string) => string, p: PeriodeDeLaListe) => (p === "6m" ? t("sur 6 mois") : p === "1a" ? t("sur 1 an") : t("sur 3 mois"));
+
+/** Ce qu'une action porte en plus de son cours : la courbe de la période choisie (trois mois par défaut), et la variation sur six mois, douze mois et deux ans (voir `performe.ts`). */
 export interface CourbeDuTitre {
   serie: number[];
   variationPct: number;
   fenetres?: FenetresDuCours;
+  /** La période que la courbe et la variation disent ; trois mois quand elle manque (l'Accueil). */
+  periode?: PeriodeDeLaListe;
 }
 
 export function OfferCard({ o, s, suivi = false, courbe, extension = false, sansExtension = false }: { o: Offer; s: OfferSummary; suivi?: boolean; /** La carte compacte seule, sans chevron ni extension : celle que l'Accueil montre (10 novembre 2026, planche « Accueil et page Trade », 1A). */ sansExtension?: boolean; /** La ligne et son extension, quelle que soit la densité choisie : la page des adjudications, dont l'extension porte le calendrier de la ligne (9 novembre 2026). */ extension?: boolean; /** Le petit graphe sur trois mois d'une action : la forme du cours, avec sa variation. */ courbe?: CourbeDuTitre }) {
@@ -182,7 +189,7 @@ export function OfferCard({ o, s, suivi = false, courbe, extension = false, sans
                 {courbe ? (
                   /* LA VARIATION EN TÊTE, LE COURS DESSOUS (12 novembre 2026). Sans variation connue, le cours reste en tête : un « 0 % » inventé ne remplace rien. */
                   <>
-                    <Variation pct={courbe.variationPct} grande />
+                    <Variation pct={courbe.variationPct} periode={courbe.periode} grande />
                     <small className={styles.coursSous}>
                       {t("cours")} {prix.nombre}
                       {prix.unite && <i className={styles.fcfa}>FCFA</i>}
@@ -334,7 +341,7 @@ export function OfferCard({ o, s, suivi = false, courbe, extension = false, sans
                       {Math.abs(courbe.variationPct).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %
                     </b>
                     <small>
-                      {t("3 mois")} · {prix.nombre}
+                      {nomCourtDePeriode(t, courbe.periode ?? "3m")} · {prix.nombre}
                       {prix.unite && <i className={styles.fcfa}>FCFA</i>}
                     </small>
                   </>

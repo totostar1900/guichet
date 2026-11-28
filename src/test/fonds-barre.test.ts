@@ -113,7 +113,7 @@ describe("les commandes de la page des fonds", () => {
          « clearAll » pour la même raison que le tri : « tout effacer » rend
          la liste telle qu'elle s'ouvre. Sa commande doit donc être nommée
          comme les autres. */
-      periode: { quoi: "la rangée des fenêtres d'observation", preuve: /<ChoixFenetre\s/ },
+      periode: { quoi: "le sélecteur de période, sur la ligne de la recherche", preuve: /<ChoixPeriode\s/ },
       perf: { quoi: "la barre à deux poignées de la bande à points", preuve: /<BandeFonds\s/ },
     };
     const effacees = [...corpsDe("const clearAll = () => {", BLOC).matchAll(/(\w+): undefined/g)].map((m) => m[1]);

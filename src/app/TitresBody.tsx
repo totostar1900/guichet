@@ -4,7 +4,7 @@ import styles from "./TitresBody.module.css";
 import { getSession } from "@/lib/auth";
 import { repo } from "@/lib/data";
 import { fondsListes, lignesDeLaCote } from "@/lib/domain/listes";
-import { fenetresDeLaCote, performanceSur } from "@/lib/market/performe";
+import { lectureDeLaCote } from "@/lib/market/performe";
 
 
 /**
@@ -39,16 +39,19 @@ export async function TitresBody() {
    * prix de ce rattrapage est que la cloche se taira si la table boude — c'est
    * le même choix que « mes lignes suivies », pour la même raison.
    */
-  const [all, veilles, trois, fenetres] = await Promise.all([
+  const [all, veilles, lue] = await Promise.all([
     repo().listOffers(),
     session ? repo().listWatches(session.userId).catch(() => []) : Promise.resolve([]),
-    performanceSur().catch(() => undefined),
-    /* LA VARIATION SUR SIX MOIS, DOUZE MOIS ET DEUX ANS (9 novembre 2026), lue en UNE requête pour toute la cote : elle vit dans l'extension de la carte. */
-    fenetresDeLaCote().catch((): Awaited<ReturnType<typeof fenetresDeLaCote>> => ({})),
+    /* LA COURBE ET LA VARIATION DE CHAQUE ACTION SUR 3 MOIS, 6 MOIS ET 1 AN, plus les fenêtres de l'extension de la carte : UNE lecture des cotations pour toute la cote, jamais ligne par ligne (28 novembre 2026). */
+    lectureDeLaCote().catch((): Awaited<ReturnType<typeof lectureDeLaCote>> => ({ periodes: {}, fenetres: {} })),
   ]);
-  /* LE PETIT GRAPHE DE CHAQUE ACTION (4 novembre 2026) : les trois mois de « Ce qui performe », lus en UNE requête pour toute la cote, jamais
-     ligne par ligne. Les obligations n'y sont pas : leur mouvement dit l'état des taux, pas celui d'une société. */
-  const courbes = Object.fromEntries((trois?.lignes ?? []).map((l) => [l.isin, { serie: l.serie, variationPct: l.variationPct, fenetres: fenetres[l.isin] }]));
+  /* LE PETIT GRAPHE DE CHAQUE ACTION (4 novembre 2026), sur la période que le lecteur choisit ; la lecture envoie les trois, le choix se fait dans le navigateur (quelques actions, quelques centaines de points). Les obligations n'y sont pas : leur mouvement dit l'état des taux, pas celui d'une société. */
+  const courbes = Object.fromEntries(
+    Object.entries(lue.periodes).flatMap(([isin, p]) => {
+      const trois = p["3m"];
+      return [[isin, { serie: trois?.serie ?? [], variationPct: trois?.variationPct ?? 0, fenetres: lue.fenetres[isin], periodes: p }]];
+    }),
+  );
   /* La cote et les fonds : le tri vit dans « domain/listes », avec ce qu'il
      écarte et pourquoi. Les séances ont leur page. */
   const offers = lignesDeLaCote(all);
@@ -63,7 +66,7 @@ export async function TitresBody() {
        toucher dans la bande des lieux. */
     <>
       <OfferBrowser offers={offers} nowIso={nowIso} fundsCount={fundsCount} suivis={veilles.map((w) => w.offerId)} courbes={courbes} />
-      <p className={styles.note}>{t("Les variations de cours sont des performances passées, mesurées sur trois mois et hors dividendes : elles ne préjugent pas des performances futures. Un cours reste inchangé quand une ligne n'est pas échangée : la carte dit depuis quand.")}</p>
+      <p className={styles.note}>{t("Les variations de cours sont des performances passées, mesurées sur la période choisie (3 mois, 6 mois ou 1 an) et hors dividendes : elles ne préjugent pas des performances futures. Un cours reste inchangé quand une ligne n'est pas échangée : la carte dit depuis quand.")}</p>
       {/* Le retour en haut est monté par la liste, avec son jumeau : les
           deux paraissent au même moment. */}
     </>

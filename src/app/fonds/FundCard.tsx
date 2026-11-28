@@ -119,7 +119,7 @@ export function FundCard({ r, sansExtension = false }: { r: FundRow; /** La cart
       </div>
       <div className={styles.facts}>
         <div>
-          <span>{t("1ᵉʳ janv.")}</span>
+          <span>{t("Depuis le 1er janv.")}</span>
           <b className={cls(ytd)}>{signed(ytd)}</b>
           {ytd == null && <em>{t("année incomplète")}</em>}
         </div>

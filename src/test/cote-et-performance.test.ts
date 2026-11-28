@@ -280,15 +280,16 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
   /* RENVERSÉ LE 12 NOVEMBRE 2026, à la demande du client : la variation est le chiffre de tête d'une action, le cours passe dessous. Le 6 novembre, la planche avait tranché l'inverse (les références mettent le prix en avant) ; le client a choisi, et l'on suit. Sans variation connue, le cours garde la tête. */
   it("la variation d'une action est en tête avec sa période écrite, le cours dessous ; avertissement et risques ; titre sans « action cotée »", () => {
     const oc = lire("src/components/OfferCard.tsx");
-    expect(oc, "la variation n'écrit plus sa période").toMatch(/\{court \? t\("3 mois"\) : t\("sur 3 mois"\)\}/);
+    expect(oc, "la variation n'écrit plus sa période").toMatch(/\{court \? nomCourtDePeriode\(t, periode\) : nomLongDePeriode\(t, periode\)\}/);
+    expect(oc, "la période choisie n'est plus nommée en toutes lettres").toMatch(/t\("sur 6 mois"\) : p === "1a" \? t\("sur 1 an"\) : t\("sur 3 mois"\)/);
     expect(oc, "la carte détaillée d'une action n'a plus sa variation en tête").toMatch(/estAction && prix \? \(\s*<div className=\{styles\.bigAction\}[^>]*>/);
-    expect(oc, "la variation n'est plus le chiffre de tête de la carte détaillée").toMatch(/<Variation pct=\{courbe\.variationPct\} grande \/>/);
+    expect(oc, "la variation n'est plus le chiffre de tête de la carte détaillée").toMatch(/<Variation pct=\{courbe\.variationPct\} periode=\{courbe\.periode\} grande \/>/);
     expect(oc, "le cours ne passe plus dessous la variation").toMatch(/<small className=\{styles\.coursSous\}>/);
     expect(oc, "sans variation connue, le cours doit garder la tête de la carte").toMatch(/\) : \(\s*<b className=\{styles\.prix\}>/);
     expect(oc, "la grille d'une action redit de nouveau le cours ou le ticket").toMatch(/const faitsAction = /);
     expect(oc, "le ticket redit de nouveau le prix dans la grille d'une action").toMatch(/ticket && ticket\[1\] !== cours\?\.\[1\]/);
     expect(oc, "la tuile compacte d'une action n'a plus sa variation en tête").toMatch(/estAction && prix \? \(\s*courbe \? \(/);
-    expect(oc, "la tuile compacte ne dit plus le cours dessous la variation").toMatch(/\{t\("3 mois"\)\} · \{prix\.nombre\}/);
+    expect(oc, "la tuile compacte ne dit plus le cours dessous la variation").toMatch(/\{nomCourtDePeriode\(t, courbe\.periode \?\? "3m"\)\} · \{prix\.nombre\}/);
     const css = lire("src/components/OfferCard.module.css");
     expect(css, "le prix d'une action n'est plus à l'encre").toMatch(/\.prix \{[^}]*color: var\(--ink\)/);
     expect(lire("src/lib/domain/carte-compacte.ts"), "le titre porte de nouveau « action cotée »").toMatch(/replace\(\/\\s\*:\\s\*action cotée\\s\*\$\/i, ""\)/);
@@ -296,7 +297,7 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
     const i = lire("src/components/EnBrefInstruments.tsx");
     expect(i, "le « i » n'a plus ses risques pour l'onglet Titres").toMatch(/onglet === "titres" && <VariationEtRisques \/>/);
     expect(i, "la liquidité n'est plus nommée dans le « i »").toMatch(/<b>\{t\("Liquidité\."\)\}<\/b>/);
-    expect(lire("src/app/TitresBody.tsx"), "la mise en garde a quitté le pied de la page Titres").toMatch(/performances passées, mesurées sur trois mois/);
+    expect(lire("src/app/TitresBody.tsx"), "la mise en garde a quitté le pied de la page Titres").toMatch(/performances passées, mesurées sur la période choisie/);
   });
 
   it("chaque Trésor a son drapeau dessiné, et il est sur chaque ligne et sur chaque pastille de pays", () => {
@@ -316,7 +317,7 @@ describe("choix de la planche du 4 novembre 2026 : Affichage, grille, drapeaux, 
     expect(compact, "« Dividende » n'est plus abrégé en « Div. »").toMatch(/<Montant etiquette=\{t\("Div\."\)\}/);
     expect(compact, "le cours n'a plus son « FCFA » réduit").toMatch(/<Montant etiquette=\{t\("cours"\)\}/);
     expect(c, "le « FCFA » n'est plus réduit").toMatch(/<i className=\{styles\.fcfa\}>FCFA<\/i>/);
-    expect(lire("src/app/TitresBody.tsx"), "les graphes ne sont plus lus en une seule requête pour toute la cote").toMatch(/performanceSur\(\)/);
+    expect(lire("src/app/TitresBody.tsx"), "les graphes ne sont plus lus en une seule requête pour toute la cote").toMatch(/lectureDeLaCote\(\)/);
   });
 });
 
