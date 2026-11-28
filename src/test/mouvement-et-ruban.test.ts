@@ -13,9 +13,9 @@ const lire = (f: string) => readFileSync(f, "utf8");
  */
 describe("le ruban du balayage : cinq places, Investir n'en compte qu'une (planche « Le balayage », 2A)", () => {
   it("les sept racines gardent leur ordre pour les barres ; le ruban n'a que cinq places", () => {
-    expect([...RACINES]).toEqual(["/", "/activite", "/titres", "/fonds", "/calendrier", "/marche", "/aide"]);
-    expect(RACINES.map((r) => rangDe(r))).toEqual([0, 1, 2, 3, 4, 5, 6]);
-    expect([...PLACES]).toEqual(["/", "/activite", "/titres", "/marche", "/aide"]);
+    expect([...RACINES]).toEqual(["/", "/activite", "/titres", "/fonds", "/calendrier", "/marche", "/place", "/aide"]);
+    expect(RACINES.map((r) => rangDe(r))).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+    expect([...PLACES]).toEqual(["/", "/activite", "/titres", "/marche", "/place", "/aide"]);
     expect([...SECTIONS_INVESTIR].map((r) => placeDe(r))).toEqual([2, 2, 2]);
     expect(placeDe("/marche")).toBe(3);
     expect(placeDe("/offres/x")).toBe(-1);
@@ -36,6 +36,12 @@ describe("le ruban du balayage : cinq places, Investir n'en compte qu'une (planc
     }
     expect(racineVoisine("/", -1)).toBeUndefined();
     expect(racineVoisine("/aide", 1)).toBeUndefined();
+    /* la place de marché : à plat dans le ruban quand elle est ouverte, sautée quand elle est fermée */
+    expect(racineVoisine("/marche", 1)).toBe("/place");
+    expect(racineVoisine("/place", 1)).toBe("/aide");
+    expect(racineVoisine("/marche", 1, undefined, false)).toBe("/aide");
+    expect(racineVoisine("/aide", -1, undefined, false)).toBe("/marche");
+    expect(racineVoisine("/place", 1, undefined, false)).toBeUndefined();
     expect(racineVoisine("/moi/ordres", 1)).toBeUndefined();
   });
   it("en arrivant dans Investir, la dernière section vue ; Titres à défaut ou si la mémoire est fausse", () => {
@@ -232,5 +238,14 @@ describe("le filigrane patriote", () => {
     const h = lire("src/lib/ui/filigrane.ts");
     expect(h).toMatch(/useEffect\(\(\) => \{\s*const id = setTimeout/);
     expect(h.slice(0, h.indexOf("useEffect"))).not.toMatch(/Math\.random/);
+  });
+});
+
+describe("la place de marché, sixième icône du menu du bas (28 novembre 2026)", () => {
+  it("l'icône est une entrée à plat, sous condition ; le menu l'allume sur toute la section et le ruban la saute quand elle est fermée", () => {
+    const m = lire("src/components/mobile/MobileShell.tsx");
+    expect(m).toMatch(/\.\.\.\(place \? \[\{ href: "\/place", label: t\("Place"\), icon: I\.echange, match: isPlaceSection \}\] : \[\]\)/);
+    expect(m).toMatch(/<BalayageDesMenus avecPlace=\{place\} \/>/);
+    expect(lire("src/app/layout.tsx")).toMatch(/place=\{Boolean\(session && !deskUi && placeOuverte\(\) && peutParticiper\(session\)\)\}/);
   });
 });

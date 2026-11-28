@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { isEspaceSection, isFundsSection, isInstrumentsSection, isMarcheSection, isTitresSection, isTraderSection, listForFiche, TITRES } from "@/lib/nav-section";
+import { isEspaceSection, isFundsSection, isInstrumentsSection, isMarcheSection, isPlaceSection, isTitresSection, isTraderSection, listForFiche, TITRES } from "@/lib/nav-section";
 
 /**
  * La fiche d'un fonds appartient aux Fonds, pas aux Titres.
@@ -101,6 +101,7 @@ describe("chaque siège s'allume sur son propre sommaire", () => {
     { nom: "isTraderSection", prend: isTraderSection },
     { nom: "isInstrumentsSection", prend: isInstrumentsSection },
     { nom: "isMarcheSection", prend: isMarcheSection },
+    { nom: "isPlaceSection", prend: isPlaceSection },
     { nom: "aide", prend: (p) => p === "/aide" || p.startsWith("/info") },
   ];
 

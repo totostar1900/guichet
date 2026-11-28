@@ -59,7 +59,9 @@ export function paires(source: string): { fr: string; en: string }[] {
 
 /** Les sièges du dock, dans leur ordre : la propriété « label » de chaque entrée, suivie de « icon ». */
 export function siegesDuDock(shell: string): string[] {
-  return [...sansNotes(shell).matchAll(/label:\s*t\("([^"]+)"\),\s*icon/g)].map((m) => m[1]);
+  /* LA SIXIÈME ICÔNE (la place de marché) EST CONDITIONNELLE : `...(place ? [{ … }] : [])`. L'aide annonce les sièges de tout client ; tant que la place est fermée, il y en a cinq. Quand elle s'ouvrira
+     à tous, l'aide devra dire six sièges et ce filtre tombera. */
+  return [...sansNotes(shell).replace(/\.\.\.\(place \? \[[\s\S]*?\] : \[\]\)/g, "").matchAll(/label:\s*t\("([^"]+)"\),\s*icon/g)].map((m) => m[1]);
 }
 
 /** Les étiquettes de page que « nav-groups » déclare. */

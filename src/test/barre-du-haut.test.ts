@@ -95,9 +95,9 @@ describe("la barre du haut", () => {
  * Sur téléphone, la barre du bas ne paraît qu'aux sept racines ; dans une page elle glisse hors de l'écran, la barre du haut porte le retour, le menu et les boutons de la page, et tout ce qui se posait au-dessus de la barre descend avec elle.
  */
 describe("les racines et les pages", () => {
-  it("n'a que sept racines, et les connaît avant la première image", () => {
+  it("n'a que huit racines, et les connaît avant la première image", () => {
     const n = lire("src/lib/nav-profondeur.ts");
-    expect(n).toMatch(/RACINES = \["\/", "\/activite", "\/titres", "\/fonds", "\/calendrier", "\/marche", "\/aide"\] as const/);
+    expect(n).toMatch(/RACINES = \["\/", "\/activite", "\/titres", "\/fonds", "\/calendrier", "\/marche", "\/place", "\/aide"\] as const/);
     expect(sansNotes(lire("src/app/layout.tsx")), "le script de profondeur n'est plus dans le <head>").toMatch(/__html: PROFONDEUR_BOOT/);
   });
   it("le dock glisse hors de l'écran dans une page et revient sur une racine, à la même courbe que la variable de hauteur", () => {

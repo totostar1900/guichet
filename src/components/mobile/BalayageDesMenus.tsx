@@ -118,7 +118,7 @@ function remetre(el: HTMLElement | null) {
   coupe(el, false);
 }
 
-export function BalayageDesMenus() {
+export function BalayageDesMenus({ avecPlace = false }: { /** La place de marché est ouverte à ce client : le ruban la compte, sinon il la saute. */ avecPlace?: boolean }) {
   const router = useRouter();
   const chemin = usePathname();
   const tr = useT();
@@ -137,11 +137,11 @@ export function BalayageDesMenus() {
     const reduit = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     /* Les deux racines voisines sont préparées d'avance : au toucher validé, la page arrive sans attendre. */
     for (const pas of [1, -1] as const) {
-      for (const v of [racineVoisine(chemin, pas, lireDerniereSection()), sectionVoisine(chemin, pas)]) if (v) router.prefetch(v);
+      for (const v of [racineVoisine(chemin, pas, lireDerniereSection(), avecPlace), sectionVoisine(chemin, pas)]) if (v) router.prefetch(v);
     }
     type Doigt = { x: number; y: number; t: number; verrou: "h" | "v" | null; dx: number; tic: boolean; vers: string | undefined; onglets: boolean };
     /* Le voisin d'un geste : la section d'à côté pour un balayage posé sur la rangée d'onglets d'Investir, la place d'à côté sinon. */
-    const voisin = (onglets: boolean, pas: 1 | -1) => (onglets ? sectionVoisine(chemin, pas) : racineVoisine(chemin, pas, lireDerniereSection()));
+    const voisin = (onglets: boolean, pas: 1 | -1) => (onglets ? sectionVoisine(chemin, pas) : racineVoisine(chemin, pas, lireDerniereSection(), avecPlace));
     let d: Doigt | null = null;
     let reprise: ReturnType<typeof setTimeout> | undefined;
 
@@ -233,6 +233,6 @@ export function BalayageDesMenus() {
       clearTimeout(reprise);
       retireApercu();
     };
-  }, [chemin, router, tr]);
+  }, [chemin, router, tr, avecPlace]);
   return null;
 }

@@ -20,7 +20,7 @@ import { retourEtape } from "./retourEtape";
 import type { Attente } from "@/lib/domain/services";
 import styles from "./MobileShell.module.css";
 import { accentDe, familleDe } from "@/lib/famille";
-import { isAideSection, isEspaceSection, isInstrumentsSection, isMarcheSection, isTraderSection, listForFiche } from "@/lib/nav-section";
+import { isAideSection, isEspaceSection, isInstrumentsSection, isMarcheSection, isPlaceSection, isTraderSection, listForFiche } from "@/lib/nav-section";
 
 /**
  * The phone shell (≤ 760 px): a top bar with a real « back » and the page
@@ -66,6 +66,15 @@ const I = {
       <path d="M3 9h18" />
       <path d="M5.5 9v9M9.5 9v9M14.5 9v9M18.5 9v9" />
       <path d="M3 20h18" />
+    </svg>
+  ),
+  /* LA PLACE DE MARCHÉ : deux flèches qui s'échangent, l'une vers la droite, l'autre vers la gauche (28 novembre 2026). */
+  echange: (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 8h14" />
+      <path d="M14.5 4.5L18 8l-3.5 3.5" />
+      <path d="M20 16H6" />
+      <path d="M9.5 12.5L6 16l3.5 3.5" />
     </svg>
   ),
   /* L'ACCUEIL : une maison simple, sans porte (10 novembre 2026) : un toit et quatre murs. */
@@ -132,7 +141,7 @@ function fallbackFor(path: string): string {
   return "/";
 }
 
-export function MobileShell({ signedIn, name, desk, deskHost = false, attentes = [], echeances = 0, favoris = false, menu }: { signedIn: boolean; name?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; /** Ce qui attend le client, pour la pastille de la barre : voir BarreProps. */ attentes?: Attente[]; /** Les lignes qui ferment sous sept jours : le nombre de l'horloge. */ echeances?: number; /** Le client a un favori : l'étoile paraît. */ favoris?: boolean; menu?: React.ReactNode }) {
+export function MobileShell({ signedIn, name, desk, deskHost = false, attentes = [], echeances = 0, favoris = false, place = false, menu }: { signedIn: boolean; name?: string; desk: boolean; /** the desk's own host: no client tab bar */ deskHost?: boolean; /** Ce qui attend le client, pour la pastille de la barre : voir BarreProps. */ attentes?: Attente[]; /** Les lignes qui ferment sous sept jours : le nombre de l'horloge. */ echeances?: number; /** Le client a un favori : l'étoile paraît. */ favoris?: boolean; /** La place de marché est ouverte à ce client : sa sixième icône paraît dans la barre du bas. */ place?: boolean; menu?: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   /* LES RACINES N'ONT PAS DE FLÈCHE ET GARDENT LES DEUX BARRES (10 novembre 2026, option A) : sept entrées (nav-profondeur). Dans une page, la barre du bas glisse hors de l'écran, la flèche apparaît, et la barre du haut porte les boutons de la page. */
@@ -238,6 +247,8 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
     /* « INVESTIR » EST L'ENTRÉE DES LIGNES EN UN TOUCHER (10 novembre 2026) : Titres, Fonds et Adjudications. Trade garde sa page et ses services, et ne s'allume plus sur les listes ni sur les fiches. Le siège ouvre « /titres », dont les trois tuiles du haut mènent aux deux autres familles. */
     { href: "/titres", label: t("Investir"), icon: I.trader, match: isInstrumentsSection },
     { href: "/marche", label: t("Marché"), icon: I.bourse, match: isMarcheSection },
+    /* LA SIXIÈME ENTRÉE, À PLAT (28 novembre 2026, le client : « le marché secondaire aura son menu à plat, une sixième icône dans le menu de bas »). Elle ne paraît que si la place est ouverte à ce client : l'interrupteur `PLACE_DE_MARCHE` et un dossier qui peut investir. */
+    ...(place ? [{ href: "/place", label: t("Place"), icon: I.echange, match: isPlaceSection }] : []),
     /* LE CINQUIÈME SIÈGE : DEMANDER, ET TROUVER SOI-MÊME. Quatre onglets
        menaient à ce qu'on possède, ce qu'on achète, ce qu'on fait et ce
        qu'on lit du marché ; aucun à la maison elle-même. Le conseiller et
@@ -350,7 +361,7 @@ export function MobileShell({ signedIn, name, desk, deskHost = false, attentes =
         })}
       </nav>
       )}
-      {!deskHost && signedIn && racine && <BalayageDesMenus />}
+      {!deskHost && signedIn && racine && <BalayageDesMenus avecPlace={place} />}
       {!deskHost && <Mouvement />}
 
       {/* LE TIROIR DE TUILES A VÉCU, le 23 octobre 2026. Les trois sièges

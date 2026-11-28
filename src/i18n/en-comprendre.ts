@@ -286,4 +286,5 @@ export const EN_COMPRENDRE: Record<string, string> = {
   "Bloquer les titres": "Block securities",
   "Régler l'échange": "Settle the exchange",
   "Annuler l'accord": "Cancel the agreement",
+  "Place": "Exchange",
 };

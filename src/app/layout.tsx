@@ -51,6 +51,7 @@ import { attentesPourLaBarre } from "@/lib/domain/contexte-client";
 import { aDesFavoris } from "@/lib/domain/favoris";
 import { RaccourcisColonne } from "@/components/RaccourcisColonne";
 import { echeancesProches } from "@/lib/domain/echeances";
+import { peutParticiper, placeOuverte } from "@/lib/place-donnees";
 
 // One family for everything, display, text and figures, with tabular numerals; see globals.css.
 const ui = Manrope({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"], variable: "--font-ui", display: "swap" });
@@ -266,7 +267,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </div>
         </header>
         {deskUi && <RelectureDuDesk />}
-        <MobileShell signedIn={Boolean(session)} name={session?.name} attentes={deskUi ? [] : attentes} echeances={echeances ?? 0} favoris={Boolean(favoris)} desk={deskUi} deskHost={onDeskHost} menu={menu} />
+        <MobileShell signedIn={Boolean(session)} name={session?.name} attentes={deskUi ? [] : attentes} echeances={echeances ?? 0} favoris={Boolean(favoris)} desk={deskUi} deskHost={onDeskHost} place={Boolean(session && !deskUi && placeOuverte() && peutParticiper(session))} menu={menu} />
         {needsConsent ? <ConsentGate previous={consent?.version} /> : null}
         {/* LE VERROU : les clients seulement, le desk a son second facteur (19 novembre 2026). */}
         {session && !desk ? <VerrouDeLApp aUnCode={Boolean(codeDuCompte)} prenom={session.name} /> : null}

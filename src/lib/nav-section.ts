@@ -75,6 +75,9 @@ const AU_COMPTE = ["/moi/profil", "/moi/securite", "/moi/reclamation"];
 export const isEspaceSection = (path: string): boolean =>
   (path === "/" || path.startsWith("/moi")) && !AU_COMPTE.some((p) => path === p || path.startsWith(p + "/"));
 
+/** La place de marché (gré à gré) : sa racine, et tout ce qui en découle (déposer, une annonce, un accord). */
+export const isPlaceSection = (path: string): boolean => path === "/place" || path.startsWith("/place/");
+
 /**
  * La section « Marché », qui a absorbé le catalogue.
  *

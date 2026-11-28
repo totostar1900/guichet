@@ -14,7 +14,9 @@ const nettoyer = (chemin: string) => chemin.split("?")[0].replace(/(.)\/$/, "$1"
 /** Les trois sections de la place Investir, dans l'ordre des onglets. */
 export const SECTIONS_INVESTIR = ["/titres", "/fonds", "/calendrier"] as const;
 /** Les cinq places ; Investir est nommée par sa première section, que la barre du bas ouvre aussi. */
-export const PLACES = ["/", "/activite", "/titres", "/marche", "/aide"] as const;
+export const PLACES = ["/", "/activite", "/titres", "/marche", "/place", "/aide"] as const;
+/** Les places que le ruban saute quand l'interrupteur de la place de marché est fermé : le balayage ne mène jamais à une page qui répond 404. */
+const SANS_PLACE = ["/place"];
 
 /** Le rang d'une racine parmi les sept (l'ordre des onglets d'Investir en dépend). */
 export const rangDe = (chemin: string): number => (RACINES as readonly string[]).indexOf(nettoyer(chemin));
@@ -40,10 +42,13 @@ export function sensEntre(de: string, vers: string): string[] | undefined {
 /**
  * La place voisine dans le ruban (+1 : la suivante, -1 : la précédente), ou rien aux deux bouts. Quand c'est Investir, la dernière section vue (`derniere`), Titres à défaut.
  */
-export function racineVoisine(chemin: string, pas: 1 | -1, derniere?: string): string | undefined {
+export function racineVoisine(chemin: string, pas: 1 | -1, derniere?: string, placeOuverte = true): string | undefined {
   const i = placeDe(chemin);
   if (i < 0) return undefined;
-  const v = PLACES[i + pas];
+  const ruban = placeOuverte ? PLACES : PLACES.filter((p) => !SANS_PLACE.includes(p));
+  const j = ruban.indexOf(PLACES[i]);
+  if (j < 0) return undefined;
+  const v = ruban[j + pas];
   if (v === "/titres") return derniere && (SECTIONS_INVESTIR as readonly string[]).includes(derniere) ? derniere : "/titres";
   return v;
 }
@@ -63,5 +68,6 @@ export const NOM_DE_PLACE: Record<string, string> = {
   "/fonds": "Fonds",
   "/calendrier": "Adjudications",
   "/marche": "Marché",
+  "/place": "Place",
   "/aide": "Aide",
 };
