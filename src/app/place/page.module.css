@@ -1,0 +1,55 @@
+/* La place de marché : une carte par annonce. Aucun écart en dur : les jetons de la maison. */
+.liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--tuiles-gap);
+}
+.carte {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s-2) var(--s-5);
+  text-decoration: none;
+  color: inherit;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-bottom: var(--tuile-trait);
+  border-radius: var(--tuile-rayon);
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+}
+.sens {
+  grid-column: 1 / -1;
+  font-size: var(--t-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+.facial {
+  font-size: var(--t-6);
+  font-variant-numeric: tabular-nums;
+}
+.prix {
+  justify-self: end;
+  font-size: var(--t-4);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.titre {
+  grid-column: 1 / -1;
+  font-size: var(--t-3);
+  color: var(--ink-2);
+}
+.meta {
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.ok {
+  margin: 0;
+  color: var(--good);
+}
+.vide {
+  margin: 0;
+  color: var(--ink-3);
+}

@@ -1,0 +1,37 @@
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bloc-gap);
+  max-width: 560px;
+}
+.champ {
+  display: grid;
+  gap: var(--s-2);
+  font-size: var(--t-3);
+}
+.champ input:not([type="hidden"]) {
+  min-height: 44px;
+  padding: 0 var(--s-5);
+  font: inherit;
+}
+.sens {
+  display: flex;
+  gap: var(--s-6);
+  font-size: var(--t-3);
+}
+.case {
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+  font-size: var(--t-3);
+}
+.pied {
+  display: flex;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+.ko {
+  color: var(--crit);
+  font-size: var(--t-3);
+}

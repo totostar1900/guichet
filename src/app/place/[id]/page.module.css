@@ -1,0 +1,71 @@
+.resume {
+  display: grid;
+  gap: var(--s-2);
+}
+.facial {
+  font-size: var(--t-8);
+  font-variant-numeric: tabular-nums;
+}
+.prix {
+  font-size: var(--t-5);
+  font-weight: 600;
+}
+.reponse {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--bloc-gap);
+  max-width: 560px;
+}
+.champ {
+  display: grid;
+  gap: var(--s-2);
+  font-size: var(--t-3);
+}
+.champ input:not([type="hidden"]) {
+  min-height: 44px;
+  padding: 0 var(--s-5);
+  font: inherit;
+}
+.gestes {
+  display: flex;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+}
+.recues {
+  display: grid;
+  gap: var(--titre-gap);
+}
+.recues h2 {
+  margin: 0;
+  font-size: var(--t-6);
+}
+.recues ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--tuiles-gap);
+}
+.proposition {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+}
+.vide {
+  margin: 0;
+  color: var(--ink-3);
+}
+.ok {
+  margin: 0;
+  color: var(--good);
+}
+.ko {
+  margin: 0;
+  color: var(--crit);
+}
