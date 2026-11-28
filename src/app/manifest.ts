@@ -8,7 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Opportunités et instruments financiers en CEMAC : titres publics, BVMAC, fonds.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f6f7f9",
+    /* LE FOND DE L'ÉCRAN DE LANCEMENT D'ANDROID (28 novembre 2026) : le même que le fond sombre de l'application d'un client connecté (`--paper` en sombre, globals.css), pour que le passage du logo statique à l'écran animé ne clignote pas du clair au sombre. */
+    background_color: "#0e1928",
     theme_color: "#0b2545",
     lang: "fr",
     icons: [
