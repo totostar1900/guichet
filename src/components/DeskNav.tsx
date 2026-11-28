@@ -54,7 +54,7 @@ export { DESK_GROUPS, DESK_TABS } from "@/lib/desk-groupes";
  * toujours qu'UN endroit où un compte est calculé.
  */
 /** Les pages que la direction seule voit (25 novembre 2026) : ce que la maison reçoit de ses partenaires ne se lit pas par un opérateur, pas même par un onglet qui renverrait ailleurs. */
-const DIRECTION_SEULE = new Set(["/desk/commissionnement", "/desk/frais/suivi", "/desk/frais/rapprochement"]);
+const DIRECTION_SEULE = new Set(["/desk/commissionnement", "/desk/gestionnaires", "/desk/frais/suivi", "/desk/frais/rapprochement"]);
 
 export async function DeskNav({ current, badges = {} }: { current: string; badges?: Record<string, number> }) {
   const t = await getT();

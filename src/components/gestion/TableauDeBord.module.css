@@ -1,0 +1,112 @@
+.tableau {
+  display: grid;
+  gap: var(--sections-gap);
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+.commandes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tuiles-gap);
+  align-items: center;
+  justify-content: space-between;
+}
+.groupe {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+}
+.groupe button {
+  min-height: 44px;
+  padding: 0 var(--s-5);
+  font: inherit;
+  font-size: var(--t-3);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.groupe button[aria-pressed="true"] {
+  background: var(--choisi-fond, var(--surface-2));
+  border-color: var(--choisi-line, var(--ink));
+  color: var(--choisi-ink, var(--ink));
+  font-weight: 700;
+}
+.tuiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--tuiles-gap);
+}
+.tuile {
+  display: grid;
+  gap: 2px;
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  min-width: 0;
+}
+.tuile small {
+  font-size: var(--t-1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.tuile b {
+  font-size: var(--t-6);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.tuile em {
+  font-style: normal;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.hausse {
+  color: var(--good) !important;
+}
+.baisse {
+  color: var(--crit) !important;
+}
+.graphe {
+  display: grid;
+  gap: var(--titre-gap);
+  min-width: 0;
+}
+.lignes {
+  display: grid;
+  gap: var(--titre-gap);
+}
+.lignes h2 {
+  margin: 0;
+  font-size: var(--t-6);
+}
+.lignes ul {
+  display: grid;
+  gap: var(--tuiles-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ligne {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  padding: var(--tuile-pad-y) var(--tuile-pad-x);
+  background: var(--tuile-fond);
+  border: var(--tuile-bord);
+  border-radius: var(--tuile-rayon);
+  color: var(--ink);
+  cursor: pointer;
+  min-width: 0;
+}
+.ligne[aria-pressed="true"] {
+  border-color: var(--ink);
+}
+.ligne span {
+  font-size: var(--t-3);
+  color: var(--ink-2);
+}

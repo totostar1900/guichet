@@ -1,3 +1,4 @@
+import { EcranDeDemarrage } from "@/components/EcranDeDemarrage";
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Instrument_Serif, Manrope, Plus_Jakarta_Sans } from "next/font/google";
@@ -116,6 +117,19 @@ async function accountLine(userId: string): Promise<{ security: { channels: numb
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const backend = backendName();
   const [session, registry, issuers, lang, t, jar, hdrs] = await Promise.all([getSession(), loadRegistry(), loadIssuerRegistry(), getLang(), getT(), cookies(), headers()]);
+  /* L'ESPACE GESTIONNAIRE A SA PROPRE MISE EN PAGE (28 novembre 2026) : une bande sobre et la page. Aucune barre du client, aucune porte vers le marché : un gestionnaire n'est pas un client qui s'égare. */
+  if ((hdrs.get("x-chemin") ?? "").split("?")[0] === "/gestion" || (hdrs.get("x-chemin") ?? "").startsWith("/gestion/")) {
+    return (
+      <html lang={lang} className={`${ui.variable} ${titre.variable} ${vitrine.variable}`} suppressHydrationWarning>
+        <head>
+          <style dangerouslySetInnerHTML={{ __html: MARQUE_CSS + cssDeCampagne(CAMPAGNE) }} />
+        </head>
+        <body>
+          <LangProvider lang={lang}>{children}</LangProvider>
+        </body>
+      </html>
+    );
+  }
   const desk = isDesk(session);
   // With the desk on its own host, the client site shows no desk control, even to staff.
   const onDeskHost = isDeskHost(hdrs.get("host"));
@@ -194,6 +208,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script dangerouslySetInnerHTML={{ __html: FAMILLE_BOOT }} />
       </head>
       <body>
+        {/* L'ÉCRAN DE DÉMARRAGE ANIMÉ de l'application installée (28 novembre 2026) : le logo vit dès la première image, jusqu'à l'hydratation. */}
+        <EcranDeDemarrage />
         <LangProvider lang={lang}>
         <AuthHashRedirect />
         {deskUi ? <DeskThemeKeeper saved={account?.prefs?.deskTheme} /> : <PaletteKeeper saved={account?.prefs} />}

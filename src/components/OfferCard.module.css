@@ -590,12 +590,3 @@
   font-size: 0.5em;
   vertical-align: 0.28em;
 }
-
-/* LES TROIS CURSEURS DE L'EXTENSION (28 novembre 2026) : un titre à plat avant chaque bloc, le même que celui des pièces « En clair ». */
-.curseurTitre {
-  margin: 0;
-  font-size: var(--t-1);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}

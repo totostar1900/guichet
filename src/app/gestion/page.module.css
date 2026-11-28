@@ -1,0 +1,23 @@
+/* L'espace gestionnaire : une colonne sobre, la même sur téléphone et sur grand écran. */
+.page {
+  display: grid;
+  gap: var(--sections-gap);
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 980px;
+  margin: 0 auto;
+  padding: var(--s-8) var(--marge-page, 16px) var(--s-10);
+  min-width: 0;
+}
+.vide {
+  margin: 0;
+  max-width: 64ch;
+  font-size: var(--t-4);
+  color: var(--ink-2);
+}
+.note {
+  margin: 0;
+  max-width: 72ch;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+  line-height: 1.5;
+}

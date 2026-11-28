@@ -1,72 +1,76 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
-import { useT } from "@/i18n/client";
+import { useState } from "react";
+import { useDates, useT } from "@/i18n/client";
 import { cleDeLaPhrase, type EnClair } from "@/lib/domain/en-clair";
-import { GAGNER, PHRASE, RECUPERER, RISQUER, TITRES_DES_CURSEURS } from "@/lib/domain/en-clair-textes";
+import { CHIFFRES, GAGNER, PHRASE, RECUPERER, RISQUER, TITRES_DES_CURSEURS } from "@/lib/domain/en-clair-textes";
+import { Sheet } from "./mobile/Sheet";
 import styles from "./EnClair.module.css";
 
 /**
- * « EN CLAIR », LES TROIS CURSEURS DE LA PRÉSENTATION, DANS LA CARTE ET DANS LA FICHE (28 novembre 2026).
- * La phrase dit ce qu'on fait en achetant ; les trois lignes disent ce qu'on peut gagner, quand on récupère son argent, ce qui peut mal tourner. Les mots sont dans `en-clair-textes.ts`.
+ * « EN CLAIR », UNE FENÊTRE (28 novembre 2026, le client : « la page en clair sera un popup avec sa croix et sa fermeture avec glissement bas, dans la tuile et dans la fiche ; dynamique, adaptée à la
+ * ligne ; elle ne doit pas changer, bousculer ou déplacer le contenu actuel mais se rajouter de manière ordonnée »).
+ *
+ * Elle S'AJOUTE, elle ne s'insère pas : un bouton dans la rangée de l'extension d'une carte, un onglet à la fin de la bande de la fiche (et un bouton à côté de « Fiche PDF » sur grand écran, où la bande n'est pas
+ * montrée). Rien d'autre ne bouge dans la page. La fenêtre est celle de la maison (centrée, croix, tirée vers le bas pour fermer) et lit la ligne : la phrase, les trois curseurs, puis les chiffres de CETTE ligne
+ * avec leurs valeurs.
  */
-export function PhraseEnClair({ e }: { e: EnClair }) {
+function Contenu({ e, titre }: { e: EnClair; titre: string }) {
   const t = useT();
-  return (
-    <p className={styles.phrase}>
-      <b>{t(TITRES_DES_CURSEURS.enClair)}</b> {t(PHRASE[cleDeLaPhrase(e)], e.params)}
-    </p>
-  );
-}
-
-/** Un titre à plat, et ce qu'il range : l'écart du titre à son contenu est celui de la maison (`--titre-gap`). */
-export function Curseur({ titre, children }: { titre: string; children: ReactNode }) {
-  const t = useT();
-  return (
-    <section className={styles.curseur}>
-      <h4>{t(titre)}</h4>
-      {children}
-    </section>
-  );
-}
-
-export function TexteDuCurseur({ e, curseur }: { e: EnClair; curseur: "gagner" | "recuperer" | "risquer" }) {
-  const t = useT();
-  const table = curseur === "gagner" ? GAGNER : curseur === "recuperer" ? RECUPERER : RISQUER;
-  return <p className={styles.texte}>{t(table[e.famille])}</p>;
-}
-
-/** Le lien vers le texte opposable : un seul, au pied du curseur du risque. */
-export function LienDesRisques() {
-  const t = useT();
-  return (
-    <Link className={styles.lien} href="/info/risques">
-      {t(TITRES_DES_CURSEURS.risques)} →
-    </Link>
-  );
-}
-
-/** « EN BREF » EN TÊTE DE FICHE : trois lignes, une par curseur, sans rien retirer à la fiche. */
-export function EnBrefDeLaFiche({ e }: { e: EnClair }) {
-  const t = useT();
+  const { fmtDate } = useDates();
+  /* Les dates arrivent en ISO : elles se disent dans la langue du lecteur. */
+  const mots = (p: Record<string, string>) => (p.date ? { ...p, date: fmtDate(p.date, true) } : p);
   const lignes = [
     ["gagner", TITRES_DES_CURSEURS.gagner, GAGNER[e.famille]],
     ["recuperer", TITRES_DES_CURSEURS.recuperer, RECUPERER[e.famille]],
     ["risquer", TITRES_DES_CURSEURS.risquer, RISQUER[e.famille]],
   ] as const;
   return (
-    <section className={styles.enBref} aria-label={t("En bref")}>
-      <PhraseEnClair e={e} />
-      <dl>
-        {lignes.map(([cle, titre, texte]) => (
+    <div className={styles.fenetre}>
+      <p className={styles.ligneDeTitre}>{titre}</p>
+      <p className={styles.phrase}>{t(PHRASE[cleDeLaPhrase(e)], e.params)}</p>
+      <dl className={styles.curseurs}>
+        {lignes.map(([cle, intitule, texte]) => (
           <div key={cle}>
-            <dt>{t(titre)}</dt>
+            <dt>{t(intitule)}</dt>
             <dd>{t(texte)}</dd>
           </div>
         ))}
       </dl>
-      <LienDesRisques />
-    </section>
+      {e.chiffres.length > 0 && (
+        <section className={styles.chiffres} aria-label={t(TITRES_DES_CURSEURS.chiffres)}>
+          <h3>{t(TITRES_DES_CURSEURS.chiffres)}</h3>
+          <ul>
+            {e.chiffres.map((c) => (
+              <li key={c.cle}>
+                <b>{t(CHIFFRES[c.cle].titre, mots(c.params))}</b>
+                <span>{t(CHIFFRES[c.cle].texte, mots(c.params))}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <Link className={styles.lien} href="/info/risques">
+        {t(TITRES_DES_CURSEURS.risques)} →
+      </Link>
+      <p className={styles.mention}>{t("Explication pédagogique : ni conseil, ni promesse de rendement.")}</p>
+    </div>
+  );
+}
+
+/** Le bouton et sa fenêtre. `className` : la forme du bouton là où il se pose (rangée de l'extension, bande de la fiche, entête). */
+export function EnClairBouton({ e, titre, className }: { e: EnClair; /** Le nom de la ligne, rappelé en tête de la fenêtre. */ titre: string; className?: string }) {
+  const t = useT();
+  const [ouvert, setOuvert] = useState(false);
+  return (
+    <>
+      <button type="button" className={className} onClick={() => setOuvert(true)} aria-haspopup="dialog" data-coach="en-clair">
+        {t("En clair")}
+      </button>
+      <Sheet open={ouvert} onClose={() => setOuvert(false)} title={t("En clair")} centre>
+        <Contenu e={e} titre={titre} />
+      </Sheet>
+    </>
   );
 }

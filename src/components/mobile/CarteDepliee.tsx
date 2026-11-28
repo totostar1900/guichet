@@ -1,5 +1,7 @@
 "use client";
 
+import { EnClairBouton } from "@/components/EnClair";
+import type { EnClair } from "@/lib/domain/en-clair";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useSyncExternalStore, useTransition } from "react";
@@ -115,7 +117,7 @@ export function Extension({ ouvert, idRegion, children }: { ouvert: boolean; idR
  * LES TROIS BOUTONS, ALIGNÉS SOUS L'EXTENSION : l'action de la ligne (la même que celle du menu « ··· » et de la fiche), « Favori » (le suivi : un message à chaque mouvement de la cote, ou un
  * message par jour jusqu'à la clôture d'une adjudication), « Voir la fiche ».
  */
-export function BoutonsDeLaCarte({ id, href, kind, past, cadence, suivi, agir = true }: { id: string; href: string; kind?: string; past?: boolean; cadence: "evenement" | "quotidien"; suivi?: boolean; /** Faux au desk : la ligne y a ses propres gestes. */ agir?: boolean }) {
+export function BoutonsDeLaCarte({ id, href, kind, past, cadence, suivi, agir = true, enClair, titre }: { /** « En clair » (28 novembre 2026) : la fenêtre de la ligne, un bouton de plus dans la rangée. */ enClair?: EnClair; titre?: string; id: string; href: string; kind?: string; past?: boolean; cadence: "evenement" | "quotidien"; suivi?: boolean; /** Faux au desk : la ligne y a ses propres gestes. */ agir?: boolean }) {
   const t = useT();
   const router = useRouter();
   const { dire } = useBulle();
@@ -153,6 +155,7 @@ export function BoutonsDeLaCarte({ id, href, kind, past, cadence, suivi, agir = 
           {cadence === "quotidien" ? t("Alerte") : t("Favori")}
         </button>
       )}
+      {enClair && <EnClairBouton e={enClair} titre={titre ?? ""} className={`btn ${styles.bouton}`} />}
       <Link className={`btn ${styles.bouton}`} href={href}>
         {t("Voir la fiche")}
       </Link>

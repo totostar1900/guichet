@@ -48,3 +48,18 @@ export const deskHostServes = (path: string): boolean => DESK_HOST_ALLOW.some((p
  * Une adresse du desk est « /desk », ou quelque chose sous « /desk/ ».
  */
 export const isDeskPath = (path: string): boolean => path === "/desk" || path.startsWith("/desk/");
+
+/**
+ * L'ESPACE GESTIONNAIRE A, COMME LE DESK, SON ADRESSE (28 novembre 2026, planche « Espace gestionnaire », 1B). Avec `NEXT_PUBLIC_GESTION_HOST` posé (par exemple gestion.purposecapital.africa), « /gestion » vit sur cet hôte, et
+ * cet hôte ne sert que ce qu'il faut pour se connecter et lire. Sans lui (développement, aperçus), un seul hôte sert tout, la porte étant la liste des accès posés par la direction.
+ */
+export const GESTION_HOST = (process.env.NEXT_PUBLIC_GESTION_HOST ?? "").trim().toLowerCase();
+export const gestionSplit = (): boolean => Boolean(GESTION_HOST);
+export const isGestionHost = (host: string | null | undefined): boolean => gestionSplit() && (host ?? "").split(":")[0].toLowerCase() === GESTION_HOST;
+export const gestionOrigin = (): string => (GESTION_HOST ? `https://${GESTION_HOST}` : "");
+/** Ce que l'hôte de l'espace gestionnaire sert : l'espace, la connexion, l'authentification, les API, l'icône. Jamais une page du client. */
+export const GESTION_HOST_ALLOW = ["/gestion", "/connexion", "/auth", "/api", "/manifest.webmanifest", "/sw.js", "/icon", "/apple-icon", "/robots.txt"];
+export const gestionHostServes = (path: string): boolean => GESTION_HOST_ALLOW.some((p) => path === p || path.startsWith(p + "/") || (p.endsWith("icon") && path.startsWith(p)));
+/** « /gestion », ou quelque chose sous « /gestion/ », jamais « /gestionnaire ». */
+export const isGestionPath = (path: string): boolean => path === "/gestion" || path.startsWith("/gestion/");
+

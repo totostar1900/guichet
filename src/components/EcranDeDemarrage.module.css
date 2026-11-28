@@ -1,0 +1,100 @@
+/* L'ÉCRAN DE DÉMARRAGE : posé sur la page, seulement dans l'application installée, parti à l'hydratation ou après 25 s. Le logo est celui de l'icône, au centre, comme l'écran d'Android. */
+.demarrage {
+  display: none;
+}
+@media (display-mode: standalone) {
+  .demarrage {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483000;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: var(--s-7);
+    background: var(--paper);
+    animation: sortie 0.3s ease 25s forwards;
+  }
+  :global(html[data-pret]) .demarrage {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+    animation: none;
+  }
+}
+.halo {
+  position: absolute;
+  top: calc(50% - 160px);
+  left: calc(50% - 160px);
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--marque-or) 0%, transparent 65%);
+  opacity: 0.16;
+  animation: halo 2.4s ease-in-out infinite;
+}
+.logo {
+  position: relative;
+  border-radius: 26px;
+  box-shadow: var(--shadow);
+  animation: respire 2.4s ease-in-out infinite;
+}
+/* Le trait d'or sous le G passe de gauche à droite : une barre de progression qui ne promet pas de durée. */
+.trait {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: trait 1.8s ease-in-out infinite;
+}
+.texte {
+  position: relative;
+  font-size: var(--t-3);
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+@keyframes respire {
+  0%,
+  100% {
+    transform: scale(0.96);
+  }
+  50% {
+    transform: scale(1);
+  }
+}
+@keyframes halo {
+  0%,
+  100% {
+    opacity: 0.08;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.2;
+    transform: scale(1.05);
+  }
+}
+@keyframes trait {
+  0% {
+    transform: scaleX(0.1);
+    opacity: 0.4;
+  }
+  60% {
+    transform: scaleX(1);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0.4;
+  }
+}
+@keyframes sortie {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+/* Pour qui a demandé moins de mouvement : le logo reste fixe, le halo aussi ; le texte dit l'attente. */
+@media (prefers-reduced-motion: reduce) {
+  .halo,
+  .logo,
+  .trait {
+    animation: none;
+  }
+}

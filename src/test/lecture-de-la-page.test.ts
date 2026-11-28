@@ -476,7 +476,7 @@ describe("la fiche d'une action : des encadrés en relief, des graphes, des mosa
     expect(action(), "le chiffre clé porte de nouveau son propre « ? » : un seul « i » par section").not.toMatch(/<KpiCard/);
   });
   it("Chiffres est regroupé dans l'Essentiel : trois onglets, les sections de chaque onglet sont là, dans l'ordre", () => {
-    expect(lire(`${dir}/FicheReading.tsx`), "l'onglet Chiffres est revenu pour une action").toMatch(/<FicheSegments exclure=\{\["calendrier", "chiffres"\]\} mini=\{mini\} \/>\s*<FicheAction/);
+    expect(lire(`${dir}/FicheReading.tsx`), "l'onglet Chiffres est revenu pour une action").toMatch(/<FicheSegments exclure=\{\["calendrier", "chiffres"\]\} mini=\{mini\} enClair=\{enClairDe\(o\)\} titre=\{o\.title\} \/>\s*<FicheAction/);
     const a = action();
     expect(a, "un bloc de la fiche d'une action est encore rangé dans l'onglet Chiffres").not.toMatch(/pane="chiffres"/);
     const ordre = ['t("Cours")', 't("Chiffres clés")', 't("Séances")', 't("Cotation et règlement")', 't("Documents")', 't("L\'émetteur")', 't("Performance financière")', 't("Marge et rentabilité")', 't("Bilan et capitaux propres")', 't("Dividende par action")', '<GraphesDeValorisation', 't("Actionnaires")'];

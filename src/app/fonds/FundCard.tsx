@@ -1,5 +1,6 @@
 "use client";
 
+import { enClairDe } from "@/lib/domain/en-clair";
 import { useDates, useT } from "@/i18n/client";
 import Link from "next/link";
 import { useDensity } from "@/components/Density";
@@ -205,7 +206,7 @@ export function FundCard({ r, sansExtension = false }: { r: FundRow; /** La cart
         {/* LE DOS EST L'EXTENSION (4A) : tout ce que disait le dos, puis les trois boutons. */}
         <Extension ouvert={ouvert} idRegion={idRegion}>
           <div className={propres.dos}>{corps(true)}</div>
-          <BoutonsDeLaCarte id={r.id} href={href} kind="FONDS" cadence="evenement" agir={!desk} />
+          <BoutonsDeLaCarte id={r.id} href={href} kind="FONDS" cadence="evenement" agir={!desk} enClair={enClairDe({ kind: "FONDS", issuer: r.manager, title: r.title, nominal: 0, fund: { manager: r.manager, category: r.category, frequency: r.frequency, nav: r.nav, navDate: r.navDate } })} titre={r.title} />
         </Extension>
       </Depliable>
       )}

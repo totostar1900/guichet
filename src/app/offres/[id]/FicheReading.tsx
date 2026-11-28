@@ -1,3 +1,4 @@
+import { enClairDe } from "@/lib/domain/en-clair";
 import { pctTotal, souscriptionNette } from "@/lib/domain/frais-fonds";
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -99,7 +100,6 @@ function Decoupe({ mode, t, titre, calcul, totaux, courbe, note, fin }: { mode: 
       {totaux && (
         <section className={styles.sec}>
           <h3>{t("Ce que cela représente")}</h3>
-          <p className={styles.aide}>{t("Le total en FCFA, pour le montant simulé : de quoi comparer avec votre budget.")}</p>
           {totaux}
           {queue("totaux")}
         </section>
@@ -107,7 +107,6 @@ function Decoupe({ mode, t, titre, calcul, totaux, courbe, note, fin }: { mode: 
       {courbe && (
         <section className={styles.sec}>
           <h3>{t("L'échéancier")}</h3>
-          <p className={styles.aide}>{t("Les paiements prévus, date par date, pour le montant simulé.")}</p>
           {courbe}
           {queue("courbe")}
         </section>
@@ -579,7 +578,7 @@ export async function FicheReading({ o, data, mode = "client", qty, children }: 
   if (mode !== "desk" && o.kind === "MARCHE" && o.instrument === "action") {
     return (
       <div className="chapitres">
-        <FicheSegments exclure={["calendrier", "chiffres"]} mini={mini} />
+        <FicheSegments exclure={["calendrier", "chiffres"]} mini={mini} enClair={enClairDe(o)} titre={o.title} />
         <FicheAction o={o} data={data} />
         <RelatedNews kind="offer" keyOf={o.id} className={styles.sec} />
         {children}
@@ -590,7 +589,7 @@ export async function FicheReading({ o, data, mode = "client", qty, children }: 
   if (mode !== "desk" && o.kind === "FONDS" && o.fund) {
     return (
       <div className="chapitres">
-        <FicheSegments exclure={["calendrier", "chiffres"]} libelles={{ emetteur: "Société de gestion" }} mini={mini} />
+        <FicheSegments exclure={["calendrier", "chiffres"]} libelles={{ emetteur: "Société de gestion" }} mini={mini} enClair={enClairDe(o)} titre={o.title} />
         <FicheFonds o={o} data={data} />
         <RelatedNews kind="offer" keyOf={o.id} className={styles.sec} />
         {children}
@@ -617,7 +616,7 @@ export async function FicheReading({ o, data, mode = "client", qty, children }: 
   );
   const corps = (
     <>
-        <FicheSegments exclure={[...(avecCalendrier ? [] : ["calendrier"]), ...(seanceClient ? ["chiffres"] : [])]} mini={mini} />
+        <FicheSegments exclure={[...(avecCalendrier ? [] : ["calendrier"]), ...(seanceClient ? ["chiffres"] : [])]} mini={mini} enClair={enClairDe(o)} titre={o.title} />
         <section className={styles.sec} data-pane="essentiel">
           {seanceClient && <h3>{t("Rendement")}</h3>}
           {seanceClient ? (
@@ -664,7 +663,6 @@ export async function FicheReading({ o, data, mode = "client", qty, children }: 
           return extras.length > 0 ? (
             <section className={styles.sec} data-pane="essentiel">
               <h3>{t("Caractéristiques")}</h3>
-              <p className={styles.aide}>{t("Les données propres à ce titre, telles que le desk les a relevées.")}</p>
               <div className={styles.tl}>
                 {extras.map((f) => (
                   <div key={f.key}>
@@ -678,7 +676,6 @@ export async function FicheReading({ o, data, mode = "client", qty, children }: 
         })()}
         <section className={styles.sec} data-pane={avecCalendrier ? "calendrier" : "essentiel"}>
           <h3>{t(o.kind === "FONDS" ? "Souscription, rachat et règlement" : o.kind === "MARCHE" ? "Cotation et règlement" : "Calendrier de l'opération")}</h3>
-          <p className={styles.aide}>{t("Les dates qui comptent : jusqu'à quand agir, quand c'est réglé, quand votre argent revient.")}</p>
           {/* LES DATES EN FRISE VERTICALE chez le client (8 novembre 2026, choix 4) : une date par ligne, lue de haut en bas dans l'ordre où elle arrive. Le desk garde sa grille. */}
           <div className={mode === "desk" ? styles.tl : styles.frise}>
             {timeline.map(([k, v]) => (
@@ -694,7 +691,6 @@ export async function FicheReading({ o, data, mode = "client", qty, children }: 
 
         <section className={styles.sec} data-pane="docs">
           <h3>{t("Documents")}</h3>
-          <p className={styles.aide}>{t("Les documents officiels de la ligne : en cas de doute, ils font foi.")}</p>
           <div className={styles.docs}>
             {o.documents.length === 0 && !seance && (
               <div className={styles.vide}>
@@ -730,7 +726,6 @@ export async function FicheReading({ o, data, mode = "client", qty, children }: 
         {(!voletsMasques(o).includes("emetteur") || mode === "desk") && (
           <section className={styles.sec} data-pane="emetteur">
             <h3>{t("L'émetteur")}</h3>
-            <p className={styles.aide}>{t("Qui emprunte, et sa situation : c'est lui qui paie les intérêts et rembourse.")}</p>
             <IssuerCard profile={profile} o={o} others={others} company={company} issuer={issuer} />
           </section>
         )}

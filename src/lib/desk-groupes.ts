@@ -61,6 +61,7 @@ export const DESK_GROUPS: { label: string; tabs: [string, string][] }[] = [
       ["/desk/frais/suivi", "Suivi des frais"],
       ["/desk/frais/rapprochement", "Frais de tiers"],
       ["/desk/commissionnement", "Commissionnement"],
+      ["/desk/gestionnaires", "Gestionnaires"],
       ["/desk/documents", "Documents"],
     ],
   },

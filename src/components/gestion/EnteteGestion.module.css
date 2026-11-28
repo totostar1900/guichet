@@ -1,0 +1,53 @@
+.haut {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-5);
+  min-height: 52px;
+  padding: 0 var(--marge-page, 16px);
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.marque {
+  display: grid;
+  line-height: 1.15;
+  min-width: 0;
+}
+.marque b {
+  font-size: var(--t-3);
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+.marque em {
+  font-style: normal;
+  font-size: var(--t-2);
+  color: var(--ink-3);
+}
+.droite {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-5);
+  min-width: 0;
+}
+.nom {
+  font-size: var(--t-2);
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 14ch;
+}
+.sortie {
+  min-height: 44px;
+  padding: 0 var(--s-5);
+  font: inherit;
+  font-size: var(--t-2);
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  cursor: pointer;
+}

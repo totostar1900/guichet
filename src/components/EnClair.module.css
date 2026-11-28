@@ -1,60 +1,74 @@
-.phrase {
-  margin: 0;
-  font-size: var(--t-3);
-  color: var(--ink-2);
-  line-height: 1.45;
-}
-.phrase b {
-  display: block;
-  font-size: var(--t-1);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  margin-bottom: 2px;
-}
-.curseur {
-  display: grid;
-  gap: var(--titre-gap);
-  min-width: 0;
-}
-.curseur h4 {
-  margin: 0;
-  font-size: var(--t-1);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-.texte {
-  margin: 0;
-  font-size: var(--t-3);
-  color: var(--ink-2);
-  line-height: 1.45;
-}
-.lien {
-  font-size: var(--t-2);
-  font-weight: 600;
-  color: var(--ink);
-}
-.enBref {
+.fenetre {
   display: grid;
   gap: var(--bloc-gap);
   grid-template-columns: minmax(0, 1fr);
   min-width: 0;
 }
-.enBref dl {
-  display: grid;
-  gap: var(--tuiles-gap);
+.ligneDeTitre {
   margin: 0;
-}
-.enBref dt {
   font-size: var(--t-1);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
-.enBref dd {
+.phrase {
+  margin: 0;
+  font-size: var(--t-4);
+  color: var(--ink);
+  line-height: 1.45;
+}
+.curseurs {
+  display: grid;
+  gap: var(--tuiles-gap);
+  margin: 0;
+}
+.curseurs dt,
+.chiffres h3 {
+  margin: 0;
+  font-size: var(--t-1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.curseurs dd {
   margin: 2px 0 0;
   font-size: var(--t-3);
   color: var(--ink-2);
   line-height: 1.45;
+}
+.chiffres {
+  display: grid;
+  gap: var(--titre-gap);
+}
+.chiffres ul {
+  display: grid;
+  gap: var(--tuiles-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.chiffres li {
+  display: grid;
+  gap: 2px;
+  padding-top: var(--tuiles-gap);
+  border-top: 1px solid var(--line);
+}
+.chiffres b {
+  font-size: var(--t-3);
+  color: var(--ink);
+}
+.chiffres span {
+  font-size: var(--t-3);
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+.lien {
+  font-size: var(--t-3);
+  font-weight: 600;
+  color: var(--ink);
+}
+.mention {
+  margin: 0;
+  font-size: var(--t-2);
+  color: var(--ink-3);
 }

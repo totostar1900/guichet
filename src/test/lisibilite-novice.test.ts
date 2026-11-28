@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { COMPRENDRE } from "@/data/comprendre-investir";
 import { cleDeLaPhrase, enClairDe } from "@/lib/domain/en-clair";
-import { GAGNER, PHRASE, RECUPERER, RISQUER } from "@/lib/domain/en-clair-textes";
+import { CHIFFRES, GAGNER, PHRASE, RECUPERER, RISQUER } from "@/lib/domain/en-clair-textes";
 import type { Offer } from "@/lib/domain/types";
 
 /* LA LISIBILITÉ POUR LE NOVICE (28 novembre 2026) : « En clair » dans l'extension et la fiche, « Comprendre l'investissement », le bandeau et la carte annotée. */
@@ -79,19 +79,58 @@ describe("la page « Comprendre l'investissement »", () => {
   });
 });
 
-describe("où le novice le trouve", () => {
-  it("l'extension d'une carte ouvre sur « En clair » et se range par les trois curseurs", () => {
-    const oc = lire("src/components/OfferCard.tsx");
-    expect(oc).toMatch(/<PhraseEnClair e=\{enClair\} \/>/);
-    for (const t of ["Ce que je peux gagner", "Quand je récupère mon argent", "Ce qui peut mal tourner"]) expect(oc, t).toContain(t);
-    expect(oc, "le lien vers les risques a quitté l'extension").toMatch(/<LienDesRisques \/>/);
+describe("les chiffres de la ligne, expliqués avec leurs valeurs", () => {
+  const cles = (o: Partial<Offer>) => enClairDe(offre(o))!.chiffres.map((c) => c.cle);
+  it("une obligation sous le pair dit que le rendement dépasse le coupon ; au-dessus, l'inverse", () => {
+    expect(cles({ pricePct: 96 })).toContain("prix_sous");
+    expect(cles({ pricePct: 100 })).toContain("prix_pair");
+    expect(cles({ pricePct: 104 })).toContain("prix_dessus");
+    expect(CHIFFRES.prix_sous.texte).toMatch(/rendement dépasse le coupon/);
+    expect(CHIFFRES.prix_dessus.texte).toMatch(/inférieur au coupon/);
   });
-  it("la fiche s'ouvre sur « En bref », dans la tête que l'aperçu d'une voisine rend aussi", () => {
-    expect(lire("src/app/offres/[id]/FicheHead.tsx")).toMatch(/<EnBrefDeLaFiche e=\{enClair\} \/>/);
+  it("le coupon est dit en FCFA sur le nominal : 6 % de 10 000 = 600", () => {
+    const c = enClairDe(offre({}))!.chiffres.find((x) => x.cle === "coupon")!;
+    expect(c.params).toMatchObject({ coupon: "6", montant: "600", nominal: "10 000" });
+    expect(CHIFFRES.coupon.texte).toMatch(/jamais sur le prix payé/);
   });
-  it("les sections techniques de la fiche disent à quoi elles servent", () => {
-    const fr = lire("src/app/offres/[id]/FicheReading.tsx");
-    expect((fr.match(/className=\{styles\.aide\}/g) ?? []).length).toBeGreaterThanOrEqual(6);
+  it("une action rapporte son dividende au cours : 2 500 / 45 000 = 5,6 %", () => {
+    const e = enClairDe(offre({ kind: "MARCHE", instrument: "action", lastPrice: 45_000, dividendPerShare: 2_500 }))!;
+    expect(e.chiffres.map((c) => c.cle)).toEqual(["cours", "dividende", "rendement_dividende"]);
+    expect(e.chiffres[2].params.rendement).toBe("5,6");
+  });
+  it("un fonds dit sa valeur liquidative, sa fréquence et sa catégorie", () => {
+    const e = enClairDe(offre({ kind: "FONDS", fund: { manager: "Corridor", category: "M", frequency: "hebdomadaire", nav: 10_482, navDate: "2026-11-26" } as Offer["fund"] }))!;
+    expect(e.chiffres.map((c) => c.cle)).toEqual(["vl", "frequence", "categorie_M"]);
+  });
+  it("une ligne sans donnée n'invente aucun chiffre", () => {
+    expect(cles({ couponRate: undefined, maturityOn: undefined })).toEqual(["nominal"]);
+    expect(enClairDe(offre({ kind: "MARCHE", instrument: "action" }))!.chiffres).toEqual([]);
+  });
+  it("aucun mot de frais ni de commission dans les chiffres : une seule ligne « Frais », ailleurs", () => {
+    expect(JSON.stringify(CHIFFRES)).not.toMatch(/commission|frais/i);
+  });
+});
+
+describe("où le novice le trouve : une fenêtre qui s'ajoute, sans rien déplacer", () => {
+  const ec = lire("src/components/EnClair.tsx");
+  it("la fenêtre est celle de la maison : centrée, avec sa croix et son glissement vers le bas", () => {
+    expect(ec).toMatch(/<Sheet open=\{ouvert\} onClose=\{\(\) => setOuvert\(false\)\} title=\{t\("En clair"\)\} centre>/);
+  });
+  it("l'extension d'une carte a un bouton « En clair » dans sa rangée de boutons", () => {
+    expect(lire("src/components/mobile/CarteDepliee.tsx")).toMatch(/<EnClairBouton e=\{enClair\}/);
+    expect(lire("src/components/OfferCard.tsx")).toMatch(/enClair=\{enClair\} titre=\{o\.title\}/);
+    expect(lire("src/app/fonds/FundCard.tsx")).toMatch(/enClair=\{enClairDe\(/);
+  });
+  it("la fiche a un onglet « En clair » à la fin de la bande, et un bouton à côté de « Fiche PDF » sur grand écran", () => {
+    expect(lire("src/components/mobile/FichePanes.tsx")).toMatch(/\{enClair && <EnClairBouton e=\{enClair\} titre=\{titre\} \/>\}/);
+    expect(lire("src/app/offres/[id]/FicheHead.tsx")).toMatch(/<EnClairBouton e=\{enClair\} titre=\{o\.title\} className=/);
+    expect(lire("src/app/offres/[id]/page.module.css")).toMatch(/\.enClairBureau \{\s*display: none;/);
+  });
+  it("RIEN N'EST INSÉRÉ DANS LE CONTENU ACTUEL : ni phrase dans l'extension, ni bloc dans la tête de la fiche, ni ligne sous les titres", () => {
+    expect(lire("src/components/OfferCard.tsx")).not.toMatch(/PhraseEnClair|curseurTitre|<Curseur/);
+    expect(lire("src/app/offres/[id]/FicheHead.tsx")).not.toMatch(/EnBrefDeLaFiche/);
+    expect(lire("src/app/offres/[id]/FicheReading.tsx")).not.toMatch(/styles\.aide/);
+    expect(ec).not.toMatch(/export function (PhraseEnClair|Curseur|EnBrefDeLaFiche)/);
   });
   it("le bandeau est sur Investir et sur l'Accueil, et se ferme pour de bon", () => {
     expect(lire("src/components/market/OngletsMarche.tsx")).toMatch(/<BandeauComprendre \/>/);

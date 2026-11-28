@@ -1,5 +1,7 @@
 "use client";
 
+import { EnClairBouton } from "@/components/EnClair";
+import type { EnClair } from "@/lib/domain/en-clair";
 import { useT } from "@/i18n/client";
 import Link from "next/link";
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -66,7 +68,7 @@ export function FichePanes({ children, className, sans = [], depart = "essentiel
  * de la page. COLLÉE, la bande montre au-dessus des onglets le nom court de la ligne et son chiffre en avant : la tête de la fiche a défilé, on sait encore
  * laquelle on lit.
  */
-export function FicheSegments({ exclure = [], mini, libelles = {}, volets = PANES }: { /** Les onglets de la page, quand ce ne sont pas ceux d'une fiche de ligne : « Marché · Comptes · Ratios · Société » pour une société cotée. */ volets?: [string, string][]; exclure?: string[]; mini?: { nom: string; chiffre: string; sous?: string }; /** Le nom d'un onglet propre à la ligne : « Société de gestion » pour un fonds, à la place de « Émetteur » (10 novembre 2026). */ libelles?: Record<string, string> }) {
+export function FicheSegments({ exclure = [], mini, libelles = {}, volets = PANES, enClair, titre = "" }: { /** « En clair » (28 novembre 2026) : un onglet de plus, à la fin, qui ouvre la fenêtre de la ligne sans changer de volet. */ enClair?: EnClair; titre?: string; /** Les onglets de la page, quand ce ne sont pas ceux d'une fiche de ligne : « Marché · Comptes · Ratios · Société » pour une société cotée. */ volets?: [string, string][]; exclure?: string[]; mini?: { nom: string; chiffre: string; sous?: string }; /** Le nom d'un onglet propre à la ligne : « Société de gestion » pour un fonds, à la place de « Émetteur » (10 novembre 2026). */ libelles?: Record<string, string> }) {
   const { pane, setPane, sans } = useContext(PaneCtx);
   const t = useT();
   const bande = useRef<HTMLDivElement>(null);
@@ -97,6 +99,7 @@ export function FicheSegments({ exclure = [], mini, libelles = {}, volets = PANE
               {t(libelles[k] ?? label)}
             </button>
           ))}
+          {enClair && <EnClairBouton e={enClair} titre={titre} />}
         </div>
       </div>
     </>

@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { clientOrigin, deskHostServes, deskOrigin, deskSplit, isDeskHost, isDeskPath } from "@/lib/hosts";
+import { clientOrigin, deskHostServes, deskOrigin, deskSplit, gestionHostServes, gestionOrigin, gestionSplit, isDeskHost, isDeskPath, isGestionHost, isGestionPath } from "@/lib/hosts";
 import { estPublic } from "@/lib/porte";
 
 /**
@@ -26,6 +26,13 @@ export async function proxy(req: NextRequest) {
     if (onDesk && path === "/") return NextResponse.redirect(new URL("/desk", req.url));
     if (onDesk && !deskHostServes(path) && clientOrigin()) return NextResponse.redirect(clientOrigin() + path + req.nextUrl.search);
     if (!onDesk && wantsDesk) return NextResponse.redirect(deskOrigin() + path + req.nextUrl.search);
+  }
+  /* L'ESPACE GESTIONNAIRE, SUR SON HÔTE quand il est posé : « / » y mène à l'espace, ce qu'il ne sert pas retourne au site du client, et « /gestion » ne se lit pas ailleurs. */
+  if (gestionSplit()) {
+    const surGestion = isGestionHost(req.headers.get("host"));
+    if (surGestion && path === "/") return NextResponse.redirect(new URL("/gestion", req.url));
+    if (surGestion && !gestionHostServes(path) && clientOrigin()) return NextResponse.redirect(clientOrigin() + path + req.nextUrl.search);
+    if (!surGestion && isGestionPath(path)) return NextResponse.redirect(gestionOrigin() + path + req.nextUrl.search);
   }
   /* L'ADRESSE EST DITE À LA MISE EN PAGE. Elle ne la connaît pas, et la fenêtre
      des mentions doit se taire pendant la création d'un compte : le parcours

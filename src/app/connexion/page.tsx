@@ -4,7 +4,7 @@ import { authMode, getSession } from "@/lib/auth";
 import { isDeskHost } from "@/lib/hosts";
 import { COMPANY } from "@/lib/config";
 import { EmailOtpForm } from "./EmailOtpForm";
-import { devLogin } from "./actions";
+import { devLogin, devLoginGestionnaire } from "./actions";
 import { Select } from "@/components/ui/Select";
 import styles from "./page.module.css";
 import { getT } from "@/i18n/server";
@@ -149,6 +149,13 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                   <p className={styles.hint}>{t("Accès au carnet, aux intentions et à la publication des prix.")}</p>
                   <button className="btn" type="submit">
                     {t("Entrer comme desk")}
+                  </button>
+                </form>
+                <form action={devLoginGestionnaire} className={styles.devForm}>
+                  <h2>{t("Gestionnaire")}</h2>
+                  <p className={styles.hint}>{t("Lit les fonds de Corridor Asset Management, sans invitation (démonstration).")}</p>
+                  <button className="btn" type="submit">
+                    {t("Entrer comme gestionnaire")}
                   </button>
                 </form>
               </div>

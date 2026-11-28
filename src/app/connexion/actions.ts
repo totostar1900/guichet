@@ -107,6 +107,15 @@ export async function devLogin(form: FormData): Promise<void> {
   redirect(safeNext(next));
 }
 
+/** La démonstration de l'espace gestionnaire : une session de client dont l'adresse est celle de la démonstration, qui lit les fonds de « Corridor Asset Management ». Jamais en production : l'accès vient de la direction. */
+export async function devLoginGestionnaire(): Promise<void> {
+  if (authMode() !== "dev") return;
+  const { EMAIL_DE_DEMONSTRATION } = await import("@/lib/domain/gestionnaire-acces");
+  const s: Session = { userId: "dev-gestionnaire-demo", role: "client", name: "Gestionnaire de démonstration", email: EMAIL_DE_DEMONSTRATION, segment: "Société de gestion", tier: 1, provider: "dev", mfaEnrolled: true, mfaVerified: true };
+  await writeDevSession(s);
+  redirect("/gestion");
+}
+
 /* ---------- Déconnexion (les deux modes) ---------- */
 
 /* APRÈS UNE SORTIE, ON ARRIVE SUR L'ACCUEIL (21 novembre 2026, le client : « revenir sur la page d'accueil après déconnexion. Pour le moment ça revient sur la page de connexion »). Elle remplace la décision du matin (« cet appareil » vers la porte du code) : l'accueil du visiteur garde « Se connecter » et « Ouvrir un compte » dans sa bande du bas, et l'appareil reste reconnu : seule la session s'arrête. */

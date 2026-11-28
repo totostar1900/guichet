@@ -12,7 +12,7 @@ import { familySegment, offerFamily, SEGMENT_LABEL, statusLabel } from "@/lib/do
 import { cadenceDuSuivi } from "@/lib/domain/sections";
 import { getT } from "@/i18n/server";
 import { enClairDe } from "@/lib/domain/en-clair";
-import { EnBrefDeLaFiche } from "@/components/EnClair";
+import { EnClairBouton } from "@/components/EnClair";
 import styles from "./page.module.css";
 
 /**
@@ -96,11 +96,11 @@ export async function FicheHead({
             <Link className={`btn sm ${styles.pdfBtn}`} href={hrefDeLecture(`/offres/${o.id}/fiche`, { titre: `${t("Fiche")} ${o.title}`, de: `/offres/${o.id}` })}>
               {t("Fiche PDF")}
             </Link>
+            {/* « EN CLAIR » SUR GRAND ÉCRAN (28 novembre 2026) : la bande d'onglets n'y est pas montrée, le bouton rejoint « Fiche PDF ». Sur téléphone, c'est l'onglet de la bande. */}
+            {enClair && <EnClairBouton e={enClair} titre={o.title} className={`btn sm ${styles.enClairBureau}`} />}
           </div>
         </div>
       </div>
-      {/* « EN BREF », EN TÊTE DE FICHE (28 novembre 2026, le client : « les novices ne comprennent pas les informations détaillées des pages ») : la phrase et les trois curseurs, avant les chiffres. Rendu aussi dans l'aperçu d'une voisine : les deux fiches ont la même hauteur de tête. */}
-      {enClair && <EnBrefDeLaFiche e={enClair} />}
     </div>
   );
 }
